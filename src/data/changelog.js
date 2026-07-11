@@ -3,6 +3,14 @@
 // date 格式為 "YYYY/MM/DD HH:MM"（含更新時間，不是只有日期）。
 const CHANGELOG = [
   {
+    version: "v49",
+    date: "2026/07/12 16:40",
+    changes: [
+      "修正上一版造成的重大錯誤：新增 src/game/status-effects.js 後忘記同步更新 index.html 的 <script> 載入清單（正式站台直接讀 index.html，不是 dist/ 打包檔），導致遊戲一開啟就整片黑屏。已補上遺漏的 script 標籤",
+      "（開發用，玩家畫面無變化）修正 debug-overlay.js 的 window.wxg 除錯 API 在 index.html（未打包、各檔案獨立 <script> 標籤）環境下會直接噴錯導致完全掛掉的問題，改用 getter 延後取值",
+    ],
+  },
+  {
     version: "v48",
     date: "2026/07/12 16:10",
     changes: [

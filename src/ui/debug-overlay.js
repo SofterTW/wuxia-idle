@@ -12,8 +12,15 @@ let __wxgDebugCollapsed = false;
 // S／newGame／recalc 這些東西。DEBUG 模式下把它們掛到 window.wxg，方便直接下指令做戰鬥測試
 // （例如 window.wxg.S.knownInternal[...].invested = 999999; window.wxg.recalc(true)）。
 if(typeof window!=="undefined" && window.DEBUG){
-  window.wxg = { get S(){ return S; }, set S(v){ S=v; }, newGame, recalc, getInternalTier, combatTick,
-    spawnMonster, INTERNAL_POOL, INTERNAL_EFFECT_TABLE, rollInternalTrigger, saveGame, deleteSaveAndRestart, render };
+  // render 定義在 render.js，載入順序在 debug-overlay.js 之後——在 index.html 是各自獨立的
+  // <script> 標籤（不像 dist/ 打包版全部包在同一個 IIFE 裡會整檔提升 function 宣告），
+  // 這裡直接引用 render 會在載入當下就 ReferenceError，所以一律用 getter 延後到呼叫時才取值。
+  window.wxg = { get S(){ return S; }, set S(v){ S=v; },
+    get newGame(){ return newGame; }, get recalc(){ return recalc; }, get getInternalTier(){ return getInternalTier; },
+    get combatTick(){ return combatTick; }, get spawnMonster(){ return spawnMonster; },
+    get INTERNAL_POOL(){ return INTERNAL_POOL; }, get INTERNAL_EFFECT_TABLE(){ return INTERNAL_EFFECT_TABLE; },
+    get rollInternalTrigger(){ return rollInternalTrigger; }, get saveGame(){ return saveGame; },
+    get deleteSaveAndRestart(){ return deleteSaveAndRestart; }, get render(){ return render; } };
 }
 
 function updateDebugOverlay(){
