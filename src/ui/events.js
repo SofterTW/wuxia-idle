@@ -99,7 +99,7 @@ function bindGlobal(){
     if(!c || S.gold<c.price) return;
     S.gold -= c.price;
     addConsumable(c.id, 1);
-    addLog(`向回春堂買了「${c.name}」，花費 ${c.price} 兩`, 'system');
+    addLog(`向回春堂買了「${c.name}」，花費 ${formatMoney(c.price)}`, 'system');
     render();
   });
   document.querySelectorAll('[data-bagsell]').forEach(el=> el.onclick=()=>{
@@ -108,18 +108,18 @@ function bindGlobal(){
     if(!item) return;
     if(item.locked){ addLog(`「${item.name}」已鎖定，無法販售`, 'warn'); render(); return; }
     if(item.kind==="consumable"){
-      if(!confirm(`確定要賣掉一份「${item.name}」換 1 兩嗎？（目前 x${item.qty}）`)) return;
+      if(!confirm(`確定要賣掉一份「${item.name}」換 1 銅錢嗎？（目前 x${item.qty}）`)) return;
       S.gold += 1;
       item.qty -= 1;
       if(item.qty<=0) S.inventory = S.inventory.filter(it=>it!==item);
-      addLog(`把一份「${item.name}」隨手賣了，得金錢 1 兩`, 'system');
+      addLog(`把一份「${item.name}」隨手賣了，得 1 銅錢`, 'system');
       render();
       return;
     }
-    if(!confirm(`確定要把「${item.name}」賣掉換 1 兩嗎？`)) return;
+    if(!confirm(`確定要把「${item.name}」賣掉換 1 銅錢嗎？`)) return;
     S.gold += 1;
     S.inventory = S.inventory.filter((_,i)=>i!==idx);
-    addLog(`把「${item.name}」隨手賣了，得金錢 1 兩`, 'system');
+    addLog(`把「${item.name}」隨手賣了，得 1 銅錢`, 'system');
     render();
   });
   document.querySelectorAll('[data-equipsub]').forEach(el=> el.onclick=()=>{ S.equipSubTab = el.dataset.equipsub; render(); });
@@ -140,10 +140,10 @@ function bindGlobal(){
     if(!item) return;
     if(item.locked){ addLog(`「${item.name}」已鎖定，無法販售`, 'warn'); render(); return; }
     const val = equipSellValue(item);
-    if(!confirm(`確定要把「${item.name}」賣給鑄劍閣換 ${val} 兩嗎？`)) return;
+    if(!confirm(`確定要把「${item.name}」賣給鑄劍閣換 ${formatMoney(val)}嗎？`)) return;
     S.gold += val;
     S.inventory = S.inventory.filter((_,i)=>i!==idx);
-    addLog(`把「${item.name}」賣給了鐵匠鋪，得金錢 ${val} 兩`, 'system');
+    addLog(`把「${item.name}」賣給了鐵匠鋪，得 ${formatMoney(val)}`, 'system');
     render();
   });
   document.querySelectorAll('[data-slotview]').forEach(el=> el.onclick=()=>{ S.pickerSlot = el.dataset.slotview; render(); });

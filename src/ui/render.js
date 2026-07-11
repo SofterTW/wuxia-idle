@@ -8,7 +8,7 @@ function render(){
     <div class="wxg-noise"></div>
     <div class="wxg-banner">
       <div class="wxg-title">江湖夜行<small>${S.sect.name}弟子 · 主修「${INTERNAL_POOL.find(t=>t.id===S.activeInternal).name}」第${getInternalTier(S.activeInternal)+1}層 · 目前所在：${locationName()}</small></div>
-      <div class="wxg-stats-strip"><span>擊殺 <b>${S.killCount}</b></span><span>金錢 <b>${S.gold}</b>兩</span><span>修為 <b>${S.qiPool}</b></span>${S.buffAtkTicks>0?`<span style="color:var(--gold-lt)">培元丹生效中 <b>${S.buffAtkTicks}</b></span>`:''}${S.location!=="jinling"?`<button class="wxg-btn crimson small" data-gotown="1">回城</button>`:''}</div>
+      <div class="wxg-stats-strip"><span>擊殺 <b>${S.killCount}</b></span><span>錢財 <b>${formatMoney(S.gold)}</b></span><span>修為 <b>${S.qiPool}</b></span>${S.buffAtkTicks>0?`<span style="color:var(--gold-lt)">培元丹生效中 <b>${S.buffAtkTicks}</b></span>`:''}${S.location!=="jinling"?`<button class="wxg-btn crimson small" data-gotown="1">回城</button>`:''}</div>
     </div>
     ${renderStage()}
     <div class="wxg-body">
@@ -620,7 +620,7 @@ function renderEquip(){
           <div class="wxg-hint">${c?c.desc:''}</div>
           <div style="display:flex; gap:6px; margin-top:6px;">
             <button class="wxg-btn jade small" data-useconsumable="${idx}">使用</button>
-            <button class="wxg-btn crimson small" data-bagsell="${idx}">販售一份（1兩）</button>
+            <button class="wxg-btn crimson small" data-bagsell="${idx}">販售一份（1銅錢）</button>
           </div></div>`;
       }
       if(it.kind==="manual"){
@@ -629,7 +629,7 @@ function renderEquip(){
           <div class="wxg-hint">${already?'已學過此招／心法，使用後將轉換為熟練度或修為，不會浪費。':'尚未習得，使用後直接學會。'}</div>
           <div style="display:flex; gap:6px; margin-top:6px;">
             <button class="wxg-btn gold small" data-usemanual="${idx}">使用</button>
-            <button class="wxg-btn crimson small" data-bagsell="${idx}">販售（1兩）</button>
+            <button class="wxg-btn crimson small" data-bagsell="${idx}">販售（1銅錢）</button>
           </div></div>`;
       }
       // equipment
@@ -640,7 +640,7 @@ function renderEquip(){
         <div style="display:flex; gap:6px; margin-top:6px;">
           <button class="wxg-btn small" data-equip="${idx}">裝備</button>
           <button class="wxg-btn small" data-locktoggle="${idx}">${it.locked?'解鎖':'鎖定'}</button>
-          ${!it.locked?`<button class="wxg-btn crimson small" data-bagsell="${idx}">販售（1兩）</button>`:''}
+          ${!it.locked?`<button class="wxg-btn crimson small" data-bagsell="${idx}">販售（1銅錢）</button>`:''}
         </div></div>`;
     }).join("") || `<div class="wxg-hint">背包空空如也，繼續戰鬥有機率掉落裝備、藥品與秘笈</div>`;
     return subTabs + inv;
@@ -732,7 +732,7 @@ function renderMap(){
           <div class="wxg-pickitem-list" style="margin-top:8px;">
             ${sellable.map(({it,idx})=>{
               const val = equipSellValue(it);
-              return `<div class="wxg-pickitem"><div>${rarityNameHtml(it)} ${it.locked?'🔒':''}<div class="wxg-hint" style="margin-top:2px;">${it.slot}</div></div><button class="wxg-btn small" data-sellitem="${idx}" ${it.locked?'disabled title="已鎖定"':''}>${it.locked?'已鎖定':`賣出 ${val}兩`}</button></div>`;
+              return `<div class="wxg-pickitem"><div>${rarityNameHtml(it)} ${it.locked?'🔒':''}<div class="wxg-hint" style="margin-top:2px;">${it.slot}</div></div><button class="wxg-btn small" data-sellitem="${idx}" ${it.locked?'disabled title="已鎖定"':''}>${it.locked?'已鎖定':`賣出 ${formatMoney(val)}`}</button></div>`;
             }).join("")}
           </div>` : `<div class="wxg-hint" style="margin-top:6px;">背包空空如也，沒有可賣的裝備</div>`;
       } else if(n.action==="forge"){
@@ -749,7 +749,7 @@ function renderMap(){
           return `<div class="wxg-pickitem" style="flex-direction:column; align-items:stretch;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>${rarityNameHtml(it)} <span class="wxg-hint" style="display:inline;">${label}</span></div>
-              <button class="wxg-btn gold small" data-forgeitem="${it===S.equipment[it.slot]?'eq:'+it.slot:'bag:'+S.inventory.indexOf(it)}" ${disabled?'disabled':''}>開光（${cost.mat}x${cost.amt}、${cost.gold}兩）</button>
+              <button class="wxg-btn gold small" data-forgeitem="${it===S.equipment[it.slot]?'eq:'+it.slot:'bag:'+S.inventory.indexOf(it)}" ${disabled?'disabled':''}>開光（${cost.mat}x${cost.amt}、${formatMoney(cost.gold)}）</button>
             </div>
             ${!allowed?`<div class="wxg-hint" style="color:#ff6b4a;">職業等級不足，無法開光此裝備</div>`:''}
             ${(it.awakened||[]).length>0?`<div class="wxg-hint">已有詞條：${it.awakened.map(a=>`${a.stat}+${a.value}`).join('、')}</div>`:''}
@@ -765,7 +765,7 @@ function renderMap(){
         extra = `<div class="wxg-pickitem-list" style="margin-top:8px;">
           ${CONSUMABLES.map(c=>`<div class="wxg-pickitem">
             <div><b>${c.name}</b><div class="wxg-hint" style="margin-top:2px;">${c.desc}</div></div>
-            <button class="wxg-btn gold small" data-buyitem="${c.id}" ${S.gold<c.price?'disabled':''}>${c.price} 兩</button>
+            <button class="wxg-btn gold small" data-buyitem="${c.id}" ${S.gold<c.price?'disabled':''}>${formatMoney(c.price)}</button>
           </div>`).join("")}
         </div>`;
       } else {
@@ -774,7 +774,7 @@ function renderMap(){
       return `<div class="wxg-panel"><div class="wxg-panel-head"><span class="dot"></span><h3>${n.name}</h3></div>
         <div class="wxg-hint">${n.desc}</div>${extra}</div>`;
     }).join("");
-    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">金凌城，中原第一大城，江湖人往來補給、交易、聽消息的必經之地。目前身上有 <b style="color:var(--gold-lt)">${S.gold}</b> 兩。</div>` + travelCard + npcs;
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">金凌城，中原第一大城，江湖人往來補給、交易、聽消息的必經之地。目前身上有 <b style="color:var(--gold-lt)">${formatMoney(S.gold)}</b>。</div>` + travelCard + npcs;
   }
 
   if(S.mapSubTab==="sects"){
@@ -802,13 +802,13 @@ function renderMap(){
         <div class="wxg-hint">找${titles.rank}可用貢獻度晉升位階。</div>
       </div>` : "";
     const relic = sectUniqueEquipment(key);
-    const owned = relic ? ownsUniqueEquipment(relic.id) : false;
+    const stolen = relic ? ownsUniqueEquipment(relic.id) : false;
     const relicPanel = relic ? `
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot" style="background:#ff8a4a; box-shadow:0 0 5px #ff8a4a;"></span><h3 style="color:#ff8a4a;">門派大殿供奉</h3></div>
-        <div class="wxg-row"><span>${relic.name}</span><b style="color:${owned?'#5eab88':'#8a7d63'};">${owned?'現存於世':'目前不存在'}</b></div>
+        <div class="wxg-row"><span>${relic.name}</span><b style="color:${stolen?'#e2685c':'#5eab88'};">${stolen?'被盜取':'供奉中'}</b></div>
         <div class="wxg-hint">${relic.desc}</div>
-        <div class="wxg-hint">${owned?'此件絕世裝備目前由你持有或已收入背包。':'大殿神龕空懸，尚未有人尋回此物——'+relic.obtain+'。'}</div>
+        <div class="wxg-hint">${stolen?'此件門派至寶已不在大殿之中，目前由你持有或已收入背包。':'此件門派至寶仍安然供奉於大殿神龕之中。 '+relic.obtain}</div>
       </div>` : "";
     const regions = NPC_REGIONS.map(r=>`
       <div class="wxg-hint" style="color:var(--gold-lt); margin-top:12px; letter-spacing:1px;">${r.region}</div>
@@ -857,21 +857,22 @@ function renderCodex(){
     <div class="wxg-subtabs">
       <div class="wxg-subtab ${S.codexSubTab==='slots'?'active':''}" data-codexsub="slots">部位加成</div>
       <div class="wxg-subtab ${S.codexSubTab==='tiers'?'active':''}" data-codexsub="tiers">裝備品級</div>
-      <div class="wxg-subtab ${S.codexSubTab==='unique'?'active':''}" data-codexsub="unique">絕世裝備</div>
+      <div class="wxg-subtab ${S.codexSubTab==='unique'?'active':''}" data-codexsub="unique">門派至寶</div>
       <div class="wxg-subtab ${S.codexSubTab==='items'?'active':''}" data-codexsub="items">藥品道具</div>
     </div>`;
 
   if(S.codexSubTab==="unique"){
     const rows = UNIQUE_EQUIPMENT.map(u=>{
       const bonusText = Object.entries(u.bonus).map(([k,v])=>`<span style="color:${PRIMARY_COLORS[k]||'inherit'}">${k}+${v}</span>`).join("、");
+      const owner = u.sect ? SECTS[u.sect].name+"大殿" : "無門無派";
       return `<div class="wxg-panel">
-        <div class="wxg-panel-head"><span class="dot" style="background:#ff8a4a; box-shadow:0 0 5px #ff8a4a;"></span><h3 style="color:#ff8a4a;">${u.name}</h3><span class="wxg-tag" style="border-color:#ff8a4a; color:#ff8a4a;">${u.slot}</span></div>
+        <div class="wxg-panel-head"><span class="dot" style="background:#ff8a4a; box-shadow:0 0 5px #ff8a4a;"></span><h3 style="color:#ff8a4a;">${u.name}</h3><span class="wxg-tag" style="border-color:#ff8a4a; color:#ff8a4a;">${u.slot}</span><span class="wxg-tag gold" style="margin-left:auto;">${owner}</span></div>
         <div class="wxg-row"><span>固定素質</span><b>${bonusText}</b></div>
         <div class="wxg-hint">${u.desc}</div>
         <div class="wxg-hint">取得方式：${u.obtain}</div>
       </div>`;
     }).join("");
-    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">絕世裝備素質固定，不像一般裝備隨機生成，皆以「玉裝七品」規格計算開光欄位，取得後同樣可以開光強化。</div>` + rows;
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">門派至寶素質固定，不像一般裝備隨機生成，皆以「玉裝七品」規格計算開光欄位。六件分別供奉於各門派大殿，另兩件不屬任何門派。</div>` + rows;
   }
 
   if(S.codexSubTab==="tiers"){
@@ -901,7 +902,7 @@ function renderCodex(){
         <div class="wxg-panel-head"><span class="dot"></span><h3>${c.name}</h3><span class="wxg-tag gold">${CODEX_EFFECT_LABEL[c.effect]||c.effect}</span></div>
         <div class="wxg-row"><span>效果</span><b>${valueTxt}</b></div>
         <div class="wxg-hint">${c.desc}</div>
-        <div class="wxg-hint">取得方式：金凌城「回春堂」購買（${c.price} 兩）${canDrop?'，戰鬥擊殺也有機率掉落':'，目前僅能用金錢購買，不會從戰鬥掉落'}</div>
+        <div class="wxg-hint">取得方式：金凌城「回春堂」購買（${formatMoney(c.price)}）${canDrop?'，戰鬥擊殺也有機率掉落':'，目前僅能用錢財購買，不會從戰鬥掉落'}</div>
       </div>`;
     }).join("");
     return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">藥品與丹藥可在背包內直接使用，也能在「自動回復設定」中指定門檻自動服用。</div>` + rows;

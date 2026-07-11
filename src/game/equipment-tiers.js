@@ -39,7 +39,7 @@ function rarityNameHtml(item){
   const uc = item.unique ? "#ff8a4a" : r.color;
   const gradeTxt = item.tierKey==="jade" ? `${["","一","二","三","四","五","六","七"][item.jadeGrade||1]}品玉` : r.name;
   const filled = (item.awakened||[]).length, slots = tierAwakenSlots(item);
-  const uniqueTag = item.unique ? `<span style="font-size:9px; color:${uc}; border:1px solid ${uc}; border-radius:3px; padding:0 4px; margin-left:3px;">絕世</span>` : '';
+  const uniqueTag = item.unique ? `<span style="font-size:9px; color:${uc}; border:1px solid ${uc}; border-radius:3px; padding:0 4px; margin-left:3px;">至寶</span>` : '';
   return `<span style="color:${uc}; font-weight:800; text-shadow:0 0 6px ${uc}55;">${item.name}</span> <span style="font-size:9px; color:${r.color}; border:1px solid ${r.color}; border-radius:3px; padding:0 4px;">${gradeTxt}</span>${uniqueTag}${slots>0?`<span style="font-size:9px; color:var(--dim-text); margin-left:3px;">開光 ${filled}/${slots}</span>`:''}`;
 }
 

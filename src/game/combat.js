@@ -147,7 +147,7 @@ function onKill(){
   const lvl = S.monster.level;
   const qiGain = 8+lvl*3, goldGain = 4+lvl*2;
   S.qiPool += qiGain; S.gold += goldGain;
-  addLog(`擊殺了 ${S.monster.name}！獲得內功修為 +${qiGain}、金錢 +${goldGain}`, 'loot');
+  addLog(`擊殺了 ${S.monster.name}！獲得內功修為 +${qiGain}、錢財 +${formatMoney(goldGain)}`, 'loot');
   if(Math.random()<0.55) S.materials.淬鍊石 += 1+Math.floor(Math.random()*2);
   if(Math.random()<0.04){ S.materials.洗髓丹 += 1; addLog(`意外獲得「洗髓丹」x1`, 'loot'); }
   if(Math.random()<0.18){ const n=1+Math.floor(Math.random()*2); S.materials.精鐵砂 += n; addLog(`獲得「精鐵砂」x${n}`, 'loot'); }
@@ -196,7 +196,7 @@ function onKill(){
     addConsumable(c.id, 1);
     addLog(`獲得藥品掉落：${c.name}`, 'loot');
   }
-  // 絕世裝備目前預設無法從戰鬥取得，供奉於各門派大殿（見圖鑑／門派拜訪頁），留給日後開放的玩法。
+  // 門派至寶目前預設無法從戰鬥取得，供奉於各門派大殿（見圖鑑／門派拜訪頁），留給日後開放的玩法。
   // 裝備掉落
   if(Math.random() < 0.12){
     const slot = SLOT_LIST[Math.floor(Math.random()*SLOT_LIST.length)];

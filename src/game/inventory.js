@@ -12,16 +12,16 @@ function buyConsumableBulk(refId, amount, isAuto){
   const affordable = Math.min(amount, Math.floor(S.gold/c.price));
   if(affordable<=0){
     if(isAuto){
-      addLog(`[自動購買] 金錢不足，無法補貨「${c.name}」`, 'warn');
+      addLog(`[自動購買] 錢財不足，無法補貨「${c.name}」`, 'warn');
       if(!S.warningModal && S.warningCooldown<=0){
-        S.warningModal = `自動購買失敗：金錢不足，無法購買「${c.name}」（需要 ${c.price} 兩，目前僅有 ${S.gold} 兩）。`;
+        S.warningModal = `自動購買失敗：錢財不足，無法購買「${c.name}」（需要 ${formatMoney(c.price)}，目前僅有 ${formatMoney(S.gold)}）。`;
       }
     }
     return 0;
   }
   S.gold -= c.price*affordable;
   addConsumable(refId, affordable);
-  addLog(`${isAuto?'[自動購買] ':''}購入「${c.name}」x${affordable}，花費 ${c.price*affordable} 兩`, 'system');
+  addLog(`${isAuto?'[自動購買] ':''}購入「${c.name}」x${affordable}，花費 ${formatMoney(c.price*affordable)}`, 'system');
   return affordable;
 }
 
@@ -140,6 +140,19 @@ function equipItem(item){
 }
 
 function fmt(n){ return Math.round(n*10)/10; }
+
+// 貨幣：1000 銅錢 = 1 銀兩，1000 銀兩 = 1 銀錠。S.gold 內部仍以「銅錢」為最小單位存放。
+function formatMoney(amount){
+  amount = Math.max(0, Math.round(amount||0));
+  const ding = Math.floor(amount/1000000);
+  const liang = Math.floor((amount%1000000)/1000);
+  const tong = amount%1000;
+  const parts = [];
+  if(ding>0) parts.push(`${ding}錠`);
+  if(ding>0 || liang>0) parts.push(`${liang}兩`);
+  parts.push(`${tong}銅`);
+  return parts.join(' ');
+}
 
 function locationName(){
   if(S.location==="jinling") return "金凌城";

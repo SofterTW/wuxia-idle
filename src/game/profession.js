@@ -57,7 +57,7 @@ function performAwaken(item){
   if(!canAwakenItem(item)){ addLog(`煉器技藝尚不足以開光「${item.name}」，需提升生活職業等級`, 'warn'); render(); return; }
   const cost = awakenCost(item);
   if(S.gold < cost.gold || (S.materials[cost.mat]||0) < cost.amt){
-    addLog(`開光材料或金錢不足（需要 ${cost.mat} x${cost.amt}、${cost.gold} 兩）`, 'warn'); render(); return;
+    addLog(`開光材料或錢財不足（需要 ${cost.mat} x${cost.amt}、${formatMoney(cost.gold)}）`, 'warn'); render(); return;
   }
   S.gold -= cost.gold;
   S.materials[cost.mat] -= cost.amt;
