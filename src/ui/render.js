@@ -847,8 +847,22 @@ function renderCodex(){
     <div class="wxg-subtabs">
       <div class="wxg-subtab ${S.codexSubTab==='slots'?'active':''}" data-codexsub="slots">部位加成</div>
       <div class="wxg-subtab ${S.codexSubTab==='tiers'?'active':''}" data-codexsub="tiers">裝備品級</div>
+      <div class="wxg-subtab ${S.codexSubTab==='unique'?'active':''}" data-codexsub="unique">絕世裝備</div>
       <div class="wxg-subtab ${S.codexSubTab==='items'?'active':''}" data-codexsub="items">藥品道具</div>
     </div>`;
+
+  if(S.codexSubTab==="unique"){
+    const rows = UNIQUE_EQUIPMENT.map(u=>{
+      const bonusText = Object.entries(u.bonus).map(([k,v])=>`<span style="color:${PRIMARY_COLORS[k]||'inherit'}">${k}+${v}</span>`).join("、");
+      return `<div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot" style="background:#ff8a4a; box-shadow:0 0 5px #ff8a4a;"></span><h3 style="color:#ff8a4a;">${u.name}</h3><span class="wxg-tag" style="border-color:#ff8a4a; color:#ff8a4a;">${u.slot}</span></div>
+        <div class="wxg-row"><span>固定素質</span><b>${bonusText}</b></div>
+        <div class="wxg-hint">${u.desc}</div>
+        <div class="wxg-hint">取得方式：${u.obtain}</div>
+      </div>`;
+    }).join("");
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">絕世裝備素質固定，不像一般裝備隨機生成，皆以「玉裝七品」規格計算開光欄位，取得後同樣可以開光強化。</div>` + rows;
+  }
 
   if(S.codexSubTab==="tiers"){
     const rows = TIER_LIST.map(t=>{
