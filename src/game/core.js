@@ -40,11 +40,16 @@ function recalc(fullRestore){
 }
 function affinityMultiplier(a,m){ if(a==="太極") return 1.16; if(a===m) return 1.20; if(m==="太極") return 1.16; return 1.0; }
 
-function spawnMonster(){
+function spawnMonster(avoidBoss){
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
   const lvl = S.monsterLevel + zone.levelMod;
   const name = zone.monsters[Math.floor(Math.random()*zone.monsters.length)];
-  const isBoss = S.killCount>0 && S.killCount%10===0;
+  const isBoss = !avoidBoss && S.killCount>0 && S.killCount%10===0;
+  if(isBoss && S.combatOptions && S.combatOptions.fleeBoss){
+    addLog(`遇上首領「${name}」，依設定自動逃跑，繼續尋找下一場戰鬥。`, 'system');
+    spawnMonster(true);
+    return;
+  }
   S.monster = { name: isBoss?`【首領】${name}`:name, level:lvl, zone:zone.id,
     hpMax: Math.round((isBoss?3:1)*(60+lvl*35)), hp:0,
     atk: Math.round(6+lvl*3.2), def: Math.round(2+lvl*2), isBoss };

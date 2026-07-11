@@ -411,9 +411,14 @@ function renderSide(){
         <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
           <input type="checkbox" data-autobuy="mp" ${S.autoHeal.mpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
         </label>
+      </div>
+      <div style="margin-top:10px; padding-top:10px; border-top:1px dotted #382c1c;">
+        <label style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--dim-text); cursor:pointer;">
+          <input type="checkbox" data-fleeboss="1" ${S.combatOptions.fleeBoss?'checked':''}> 遇見首領（BOSS）自動逃跑，直接繼續下一場戰鬥
+        </label>
       </div>`;
   const autoPanel = `<div class="wxg-panel">
-    <div class="wxg-panel-head" data-togglenside="autoheal" style="cursor:pointer;"><span class="dot"></span><h3>自動回復設定</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.autoheal?'▾':'▸'}</span></div>
+    <div class="wxg-panel-head" data-togglenside="autoheal" style="cursor:pointer;"><span class="dot"></span><h3>戰鬥選項</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.autoheal?'▾':'▸'}</span></div>
     ${exp.autoheal?autoBody:''}
   </div>`;
 

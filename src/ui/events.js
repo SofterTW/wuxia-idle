@@ -52,6 +52,9 @@ function bindGlobal(){
       S.autoHeal[key]=el.checked; render();
     };
   });
+  document.querySelectorAll('[data-fleeboss]').forEach(el=>{
+    el.onchange = ()=>{ S.combatOptions.fleeBoss = el.checked; render(); };
+  });
   document.querySelectorAll('[data-tab]').forEach(el=> el.onclick = ()=>{ S.tab = el.dataset.tab; render(); });
   document.querySelectorAll('[data-navcollapse]').forEach(el=> el.onclick = ()=>{ S.navCollapsed = !S.navCollapsed; render(); });
   document.querySelectorAll('[data-invest]').forEach(el=> el.onclick = (e)=>{

@@ -20,6 +20,7 @@ function newGame(sectKey){
     profession:{level:1, exp:0}, forgeTarget:null,
     buffAtk:0, buffAtkTicks:0,
     autoHeal:{hpPct:30, hpItem:"", mpPct:30, mpItem:"", hpAutoBuy:false, mpAutoBuy:false},
+    combatOptions:{fleeBoss:false},
     sectContribution:0, sectRank:0, quest:null, warningModal:null, warningCooldown:0,
     shaolinBlockStack:0, wudangProc:false, gaibangComboKills:0, gaibangComboReady:false, gaibangInvuln:false, tangmenPoison:0,
     hp:1, hpMax:1, mp:1, mpMax:1,
