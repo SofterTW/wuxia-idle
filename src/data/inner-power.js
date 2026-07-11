@@ -1,6 +1,9 @@
-// 內功層數表：第 1～6 層是目前實際能透過投入修為練到的範圍（數值跟以前完全一樣，平衡不變）。
-// 第 7～36 層的資料已經先建好（之後會用在別的取得管道上），但目前還沒有辦法練到，
+// 內功層數表：只用來決定「投入多少修為才能練到第幾層」（req），第 1～6 層是目前實際能
+// 透過投入修為練到的範圍，第 7～36 層的門檻先建好（之後會用在別的取得管道上），
 // MAX_OBTAINABLE_TIER 就是用來擋住這件事的上限。
+// mult/hpBonus/mpBonus 這三個欄位是舊版「練到第N層 +X%」公式留下的殘留欄位，
+// 現在已經不會被讀取（各層效果改成 bonusStat／special，見下面 buildInternalLayers()），
+// 保留只是因為 req 成長曲線跟它們寫在同一張表裡，懶得拆開。
 const TIER_TABLE = [
   {req:0, mult:0, hpBonus:0, mpBonus:0},
   {req:500, mult:0.10, hpBonus:0, mpBonus:0.15},
@@ -100,19 +103,29 @@ const INTERNAL_POOL = [
     desc:"錦衣衛秘傳輕身心法，行動如鬼似魅，尋常攻擊很難沾上邊。"},
 ];
 
-// 每門心法各層（1～36）的具體效果，是「練到第幾層」的唯一數值來源——
-// 不再是全門派共用同一張「練到第N層 +X%」公式表。
-// 目前每一層的數字是用下面的 buildInternalLayers() 依 TIER_TABLE 的成長曲線自動生成的佔位內容
-// （所以第 1～6 層數值跟改版前完全一樣，不影響現有平衡），之後要幫某一層寫專屬效果時，
-// 直接改那一層物件的欄位就好（例如幫 layers[2] 加上 desc 文字或調整 bonusStat/mult），不用動這個生成函式。
+// 每門心法各層（1～36）的具體效果，是「練到第幾層」的唯一數值來源。
+// 每一層只有兩件事：
+//   1) bonusStat —— 直接加五大主屬性（臂力／身法／內息／罡氣／體魄），練到那層就拿到那層的數字，
+//      不是套「內功威力／氣血上限／內力上限 +X%」的公式。
+//   2) special —— 這一層的特效文字（目前先沿用心法本身既有的機制性被動當佔位內容，
+//      機制邏輯寫在 game/combat.js，用 techDef.id 判斷，不受層數影響）。
+// 下面的 buildInternalLayers() 只是先生成一組佔位數值：主屬性以心法本身定義的「簽名主屬性」
+// （skill.bonusStat 裡本來就有的 1～2 個屬性）為主、其餘屬性給少量陪襯成長，36 層線性遞增。
+// 之後要幫某一層寫真正的內容時，直接改那一層物件的 bonusStat／special／desc 欄位就好。
+const PRIMARY_STAT_KEYS = ["臂力","身法","內息","罡氣","體魄"];
 function buildInternalLayers(skill){
+  const signature = Object.entries(skill.bonusStat||{});
+  const signatureAvg = signature.length>0 ? signature.reduce((s,[,v])=>s+v,0)/signature.length : 0;
+  const target = {};
+  PRIMARY_STAT_KEYS.forEach(k=>{
+    const sig = skill.bonusStat && skill.bonusStat[k];
+    target[k] = sig!=null ? sig : Math.round(signatureAvg*0.3);
+  });
   return TIER_TABLE.map((row, i)=>{
-    // 第1~6層（index 0~5）維持跟改版前完全一樣的主屬性加成比例（0%、20%、40%…100%）；
-    // 第7層以後暫時沒有取得途徑，先讓比例跟著資質倍率的成長曲線继续微幅增加當佔位值。
-    const frac = i<=5 ? i/5 : 1 + (row.mult - TIER_TABLE[5].mult);
+    const frac = (i+1)/36; // 36 層線性成長，目前只有前 6 層（frac 最高到 6/36）能實際練到
     const bonusStat = {};
-    Object.entries(skill.bonusStat||{}).forEach(([k,v])=>{ bonusStat[k] = Math.round(v*frac); });
-    return {bonusStat, mult:row.mult, hpBonus:row.hpBonus, mpBonus:row.mpBonus, desc:null};
+    PRIMARY_STAT_KEYS.forEach(k=>{ if(target[k]>0) bonusStat[k] = Math.round(target[k]*frac); });
+    return {bonusStat, special:skill.special||null, specialValue:skill.specialValue||null, desc:null};
   });
 }
 INTERNAL_POOL.forEach(skill=>{ skill.layers = buildInternalLayers(skill); });

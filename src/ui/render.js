@@ -519,10 +519,8 @@ function internalLayerDesc(skill, layerIdx){
   const layer = skill.layers[layerIdx];
   if(layer.desc) return `第${layerIdx+1}層：${layer.desc}`;
   const parts = [];
-  if(layer.mult>0) parts.push(`內功威力+${Math.round(layer.mult*100)}%`);
-  if(layer.hpBonus>0) parts.push(`氣血上限+${Math.round(layer.hpBonus*100)}%`);
-  if(layer.mpBonus>0) parts.push(`內力上限+${Math.round(layer.mpBonus*100)}%`);
   Object.entries(layer.bonusStat||{}).forEach(([k,v])=>{ if(v>0) parts.push(`${k}+${v}`); });
+  if(layer.special) parts.push(`特效：${layer.special}`);
   return `第${layerIdx+1}層：${parts.length>0?parts.join('、'):'暫無額外效果'}`;
 }
 
@@ -557,7 +555,7 @@ function renderInternal(){
         <div class="wxg-hint">${t.desc}</div>
         <div class="wxg-row" style="margin-top:4px;"><span>資質</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
         ${t.special?`<div class="wxg-row"><span>被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
-        ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>頂層加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
+        ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
         <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層／共 36 層</b></div>
         <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層</b></div>
         <div class="wxg-row"><span>已投入</span><b>${known.invested} ${!atCap?`／需 ${nextReq}`:'（現有途徑已練滿）'}</b></div>
@@ -1019,9 +1017,9 @@ function renderCodex(){
   }
 
   if(S.codexSubTab==="internal"){
-    const tierExample = INTERNAL_POOL.find(t=>t.id==="tuna");
+    const tierExample = INTERNAL_POOL.find(t=>t.id==="liangyi");
     const tierRows = Array.from({length:MAX_OBTAINABLE_TIER}, (_,i)=>i)
-      .map(i=>`<div class="wxg-row"><span>第 ${i+1} 層</span><b style="font-weight:400;">${internalLayerDesc(tierExample,i).split('：')[1]}</b></div>`).join("");
+      .map(i=>`<div class="wxg-row"><span>第 ${i+1} 層</span><b style="font-weight:400;">${internalLayerDesc(tierExample,i).replace(/^第\d+層：/,'')}</b></div>`).join("");
     const sectDisplayName = (key)=> SECTS[key] ? SECTS[key].name : (COMING_SOON_SECTS.find(s=>s.key===key)?.name || key);
     const poolRows = INTERNAL_POOL.map(t=>{
       const locked = t.sect && !SECTS[t.sect];
@@ -1029,7 +1027,7 @@ function renderCodex(){
       <div class="wxg-panel-head internal"><span class="dot"></span><h3>${t.name}</h3><span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span><span class="wxg-tag" style="margin-left:auto;">${t.sect?`${sectDisplayName(t.sect)}限定${locked?'（門派未開放）':''}`:'各門派通用'}</span></div>
       <div class="wxg-hint">${t.desc}</div>
       <div class="wxg-row" style="margin-top:4px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
-      ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>頂層主屬性加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
+      ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層主屬性加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
       ${t.special?`<div class="wxg-row"><span>獨特被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
       <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層／共 36 層</b></div>
     </div>`;
@@ -1040,11 +1038,11 @@ function renderCodex(){
         <div class="wxg-hint">內功心法最高共 36 層，每一層都有自己專屬的效果，不是統一公式套算出來的——練到第幾層，就是那一層寫好的效果。戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數。目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
       </div>
       <div class="wxg-panel">
-        <div class="wxg-panel-head internal"><span class="dot"></span><h3>境界範例（以「基礎吐納訣」示範第 1～${MAX_OBTAINABLE_TIER} 層）</h3></div>
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>境界範例（以「兩儀護心功」示範第 1～${MAX_OBTAINABLE_TIER} 層）</h3></div>
         <div class="wxg-hint" style="margin-bottom:6px;">每門心法各層的實際效果不同，下面只是舉一門心法示範層數結構。</div>
         ${tierRows}
       </div>
-      <div class="wxg-hint" style="margin:10px 0 -2px;">每門心法有自己的「資質倍率」跟「頂層主屬性加成」（練到頂層才會拿到 100%），有些心法還帶有獨特被動效果，跟門派專屬機制同等級。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。</div>
+      <div class="wxg-hint" style="margin:10px 0 -2px;">每門心法各層直接加五大主屬性跟一段特效，練到第幾層就是那一層自己的效果；心法本身還帶有「資質倍率」跟一個獨特被動機制，跟門派專屬機制同等級。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。</div>
       ${poolRows}
     `;
   }
