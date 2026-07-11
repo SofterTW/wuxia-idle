@@ -28,7 +28,14 @@ function bindGlobal(){
     addLog(`論功考核通過！晉升為本門「${next.name}」`, 'system');
     recalc(false); render();
   });
-  document.querySelectorAll('[data-visitsect]').forEach(el=> el.onclick=()=>{ S.visitingSect = el.dataset.visitsect; render(); });
+  document.querySelectorAll('[data-visitsect]').forEach(el=> el.onclick=()=>{
+    if(S.location!=="jinling"){
+      S.location="jinling"; S.monster=null;
+      addLog(`你先動身返回金凌城，再前往拜訪門派。`, 'system');
+    }
+    S.visitingSect = el.dataset.visitsect;
+    render();
+  });
   document.querySelectorAll('[data-leavesect]').forEach(el=> el.onclick=()=>{ S.visitingSect = null; render(); });
   document.querySelectorAll('[data-npctalk]').forEach(el=> el.onclick=()=>{ S.dialogueNpc = el.dataset.npctalk; render(); });
   document.querySelectorAll('[data-closedialogue]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.dialogueNpc=null; render(); });

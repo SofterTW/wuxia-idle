@@ -433,7 +433,7 @@ function sectMechanicStatus(){
   if(S.sectKey==="wudang") return S.wudangProc ? "以柔克剛已觸發，下次攻擊將追加內功一擊" : "閃避成功後會觸發下次內功追擊";
   if(S.sectKey==="emei") return "內力回復速度 +60%（已生效）";
   if(S.sectKey==="gaibang") return `降龍連擊：${S.gaibangComboKills} / 5（集滿後下擊 +60% 傷害並無敵化解一次攻擊）`;
-  if(S.sectKey==="tangmen") return S.monster ? `目前中毒層數：${S.monster.poisonStacks||0} / 5（每層每回合 4 點持續傷害）` : "普攻會為敵人疊加中毒層數";
+  if(S.sectKey==="tangmen") return S.monster ? `目前中毒層數：${S.monster.poisonStacks||0} / 8（每層每回合 4 點持續傷害，普攻上限 5 層，含沙射影針第 3 層特效可突破至 8 層）` : "普攻會為敵人疊加中毒層數";
   if(S.sectKey==="mingjiao") return S.hpMax && S.hp/S.hpMax<0.5 ? "天魔解體已觸發：威力 +35%" : "氣血低於 50% 時會觸發天魔解體，威力大增";
   return "";
 }

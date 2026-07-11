@@ -82,7 +82,12 @@ function combatTick(){
       else if(special==="流血"){ S.monster.bleedStacks=Math.min(5,(S.monster.bleedStacks||0)+1); S.stageEffects.push(`${moveDef.name}・流血！`); }
       else if(special==="擊退"){ S.monster.staggerTicks=3; S.stageEffects.push(`${moveDef.name}・擊退！`); }
       else if(special==="降低對方防禦"){ S.monster.defReduceTicks=3; S.stageEffects.push(`${moveDef.name}・破防！`); }
-      else if(special==="中毒疊層"){ S.monster.poisonStacks=Math.min(5,(S.monster.poisonStacks||0)+1); S.stageEffects.push(`${moveDef.name}・中毒！`); }
+      else if(special==="中毒疊層"){
+        // 唐門淬毒被動已經會把中毒層數疊到 5 層上限，招式本身的「中毒疊層」效果
+        // 改為突破上限再疊 2 層（最高 8 層），這樣練出來才會跟被動有實際差異。
+        S.monster.poisonStacks=Math.min(8,(S.monster.poisonStacks||0)+2);
+        S.stageEffects.push(`${moveDef.name}・劇毒！`);
+      }
     }
   }
 
