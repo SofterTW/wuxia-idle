@@ -371,6 +371,44 @@ const AUTHORED_LAYERS = {
     {bonusStat:{臂力:52.5, 身法:14.5, 內息:36.9, 罡氣:14.5, 體魄:36}, hpBonus:1876, mpBonus:563, desc:"攻擊時有10%機率使目標「灼傷」：每回合造成65點陽傷害，並降低其外功防禦力12%，持續5回合。"},
     {bonusStat:{臂力:54, 身法:15, 內息:38, 罡氣:13, 體魄:37}, hpBonus:1930, mpBonus:580, desc:"攻擊時有10%機率使目標「灼傷」：每回合造成80點陽傷害，並降低其外功防禦力15%，持續5回合；\n大圓滿額外質變：每次造成灼傷傷害時，將為自身回復同等數值的內力。"},
   ],
+  xiaoyao: [
+    {bonusStat:{臂力:1.5, 身法:1, 內息:0.4, 罡氣:0.4, 體魄:1.5}, hpBonus:53, mpBonus:16, desc:"自身內力低於20%時，受擊有1%機率觸發「逍遙」狀態，每回合回復1點內力，持續5回合。"},
+    {bonusStat:{臂力:3, 身法:2, 內息:0.8, 罡氣:0.8, 體魄:3}, hpBonus:107, mpBonus:32, desc:"自身內力低於20%時，受擊有2%機率觸發「逍遙」狀態，每回合回復2點內力，持續5回合。"},
+    {bonusStat:{臂力:4.5, 身法:3.1, 內息:1.2, 罡氣:1.2, 體魄:4.5}, hpBonus:160, mpBonus:48, desc:"自身內力低於20%時，受擊有3%機率觸發「逍遙」狀態，每回合回復3點內力，持續5回合。"},
+    {bonusStat:{臂力:6, 身法:4.1, 內息:1.7, 罡氣:1.7, 體魄:6}, hpBonus:214, mpBonus:64, desc:"自身內力低於20%時，受擊有4%機率觸發「逍遙」狀態，每回合回復4點內力，持續5回合。"},
+    {bonusStat:{臂力:7.5, 身法:5.1, 內息:2.1, 罡氣:2.1, 體魄:7.5}, hpBonus:268, mpBonus:80, desc:"自身內力低於20%時，受擊有5%機率觸發「逍遙」狀態，每回合回復5點內力，持續5回合。"},
+    {bonusStat:{臂力:9, 身法:6.1, 內息:2.5, 罡氣:2.5, 體魄:9}, hpBonus:322, mpBonus:97, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:10.5, 身法:7.2, 內息:2.9, 罡氣:2.9, 體魄:10.5}, hpBonus:375, mpBonus:113, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:12, 身法:8.2, 內息:3.3, 罡氣:3.3, 體魄:12}, hpBonus:429, mpBonus:129, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:13.5, 身法:9.2, 內息:3.7, 罡氣:3.7, 體魄:13.5}, hpBonus:483, mpBonus:145, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:15, 身法:10.3, 內息:4.2, 罡氣:4.2, 體魄:15}, hpBonus:536, mpBonus:161, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:16.5, 身法:11.3, 內息:4.6, 罡氣:4.6, 體魄:16.5}, hpBonus:590, mpBonus:177, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:18, 身法:12.3, 內息:5, 罡氣:5, 體魄:18}, hpBonus:644, mpBonus:193, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:19.5, 身法:13.3, 內息:5.4, 罡氣:5.4, 體魄:19.5}, hpBonus:697, mpBonus:209, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:21, 身法:14.4, 內息:5.8, 罡氣:5.8, 體魄:21}, hpBonus:751, mpBonus:225, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:22.5, 身法:15.4, 內息:6.2, 罡氣:6.2, 體魄:22.5}, hpBonus:804, mpBonus:241, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復12點內力，且自身招式傷害提升5%，持續5回合。"},
+    {bonusStat:{臂力:24, 身法:16.4, 內息:6.7, 罡氣:6.7, 體魄:24}, hpBonus:858, mpBonus:257, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:25.5, 身法:17.5, 內息:7.1, 罡氣:7.1, 體魄:25.5}, hpBonus:912, mpBonus:273, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:27, 身法:18.5, 內息:7.5, 罡氣:7.5, 體魄:27}, hpBonus:965, mpBonus:289, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:28.5, 身法:19.5, 內息:7.9, 罡氣:7.9, 體魄:28.5}, hpBonus:1019, mpBonus:305, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:30, 身法:20.5, 內息:8.3, 罡氣:8.3, 體魄:30}, hpBonus:1072, mpBonus:322, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:31.5, 身法:21.6, 內息:8.7, 罡氣:8.7, 體魄:31.5}, hpBonus:1126, mpBonus:338, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:33, 身法:22.6, 內息:9.2, 罡氣:9.2, 體魄:33}, hpBonus:1180, mpBonus:354, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:34.5, 身法:23.6, 內息:9.6, 罡氣:9.6, 體魄:34.5}, hpBonus:1233, mpBonus:370, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:36, 身法:24.7, 內息:10, 罡氣:10, 體魄:36}, hpBonus:1287, mpBonus:386, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:37.5, 身法:25.6, 內息:10.4, 罡氣:10.4, 體魄:37.5}, hpBonus:1340, mpBonus:402, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復18點內力，且自身招式傷害提升8%，持續5回合。"},
+    {bonusStat:{臂力:39, 身法:26.6, 內息:10.8, 罡氣:10.8, 體魄:39}, hpBonus:1394, mpBonus:418, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:40.5, 身法:27.7, 內息:11.2, 罡氣:11.2, 體魄:40.5}, hpBonus:1448, mpBonus:434, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:42, 身法:28.7, 內息:11.7, 罡氣:11.7, 體魄:42}, hpBonus:1501, mpBonus:450, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:43.5, 身法:29.7, 內息:12.1, 罡氣:12.1, 體魄:43.5}, hpBonus:1555, mpBonus:466, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:45, 身法:30.8, 內息:12.5, 罡氣:12.5, 體魄:45}, hpBonus:1608, mpBonus:483, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:46.5, 身法:31.8, 內息:12.9, 罡氣:12.9, 體魄:46.5}, hpBonus:1662, mpBonus:499, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:48, 身法:32.8, 內息:13.3, 罡氣:13.3, 體魄:48}, hpBonus:1716, mpBonus:515, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:49.5, 身法:33.9, 內息:13.7, 罡氣:13.7, 體魄:49.5}, hpBonus:1769, mpBonus:531, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:51, 身法:34.9, 內息:14.1, 罡氣:14.1, 體魄:51}, hpBonus:1823, mpBonus:547, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:52.5, 身法:36, 內息:14.5, 罡氣:14.5, 體魄:52.5}, hpBonus:1876, mpBonus:563, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復25點內力，且自身招式傷害提升12%，持續5回合。"},
+    {bonusStat:{臂力:54, 身法:37, 內息:15, 罡氣:15, 體魄:54}, hpBonus:1930, mpBonus:580, desc:"當自身內力低於20%時，受到攻擊有10%機率觸發「逍遙」狀態：每回合回復35點內力，且自身招式傷害提升15%，持續5回合；大圓滿額外質變：內力高於80%時，招式命中有10%機率使目標「酒醉」而降低15%命中率。"},
+  ],
   tonghui: [
     {bonusStat:{臂力:0.5, 身法:1.1, 內息:1.6, 罡氣:0.4, 體魄:0.8}, hpBonus:52, mpBonus:17, desc:"攻擊或施展招式時，1%機率觸發「通慧」狀態：在接下來的 5 回合內，每回合回復 1 點內力。"},
     {bonusStat:{臂力:1, 身法:2.2, 內息:3.2, 罡氣:0.8, 體魄:1.6}, hpBonus:105, mpBonus:34, desc:"攻擊或施展招式時，2%機率觸發「通慧」狀態：在接下來的 5 回合內，每回合回復 2 點內力。"},
@@ -496,3 +534,58 @@ Object.entries(AUTHORED_LAYERS).forEach(([id, layers])=>{
   if(!skill) return;
   layers.forEach((authored, i)=>{ Object.assign(skill.layers[i], authored); });
 });
+
+// 結構化效果參數表：把上面 desc 文字描述的機率／數值抽成程式可讀的資料，供 status-effects.js
+// 的 rollInternalTrigger() 查表使用，讓戰鬥引擎真正執行這些效果（而不是只在 UI 顯示文字）。
+// 每門心法一個 resolve(tier) 函式，依 tier 落在哪個區塊回傳當層的效果參數，數值都是逐層核對
+// AUTHORED_LAYERS 裡的 desc 文字填的。tier 最高只到 36（MAX_OBTAINABLE_TIER=6 是目前可達上限，
+// 7 層以後資料先建好，之後開放上限直接生效）。
+function chandingEffectAt(tier){
+  if(tier<=5) return {kind:'buff', stat:'外功防禦', chance:tier*0.01, value:tier*0.01, duration:5};
+  if(tier<=15) return {kind:'buff', stat:'外功防禦', chance:0.10, value:0.08, staggerReduce:0.10, duration:5};
+  if(tier<=25) return {kind:'buff', stat:'外功防禦', chance:0.10, value:0.12, staggerReduce:0.20, duration:5};
+  if(tier<=35) return {kind:'buff', stat:'外功防禦', chance:0.10, value:0.16, staggerReduce:0.30, duration:5};
+  return {kind:'buff', stat:'外功防禦', chance:0.10, value:0.20, staggerReduce:0.30, duration:5, finale:{immuneChance:0.20}};
+}
+function qizhuangEffectAt(tier){
+  if(tier<=5) return {kind:'buff', stat:'內功防禦', chance:tier*0.01, value:tier*0.01, duration:5};
+  if(tier<=15) return {kind:'buff', stat:'內功防禦', chance:0.10, value:0.05, mitigateFlat:12, duration:5};
+  if(tier<=25) return {kind:'buff', stat:'內功防禦', chance:0.10, value:0.08, mitigateFlat:20, duration:5};
+  if(tier<=35) return {kind:'buff', stat:'內功防禦', chance:0.10, value:0.12, mitigateFlat:30, duration:5};
+  return {kind:'buff', stat:'內功防禦', chance:0.10, value:0.15, mitigateFlat:40, duration:5, finale:{reflectPct:0.15}};
+}
+function liangyiEffectAt(tier){
+  if(tier<=5) return {kind:'shield', chance:tier*0.01, absorbPct:tier*0.01, breakRestorePct:tier*0.01};
+  if(tier<=25) return {kind:'shield', chance:0.10, absorbFlat:100+(tier-6)*5, breakRestorePct:(tier-5)*0.01};
+  if(tier<=35) return {kind:'shield', chance:0.10, absorbFlat:210+(tier-26)*5, breakRestorePct:Math.min(0.25,(tier-5)*0.01)};
+  return {kind:'shield', chance:0.10, absorbFlat:300, breakRestorePct:0.30, finale:{aoeRootTicksRange:[1,3]}};
+}
+function qijueEffectAt(tier){
+  if(tier<=5) return {kind:'dot_debuff', element:'陰', chance:tier*0.01, dmgPerTick:tier, debuffStat:'命中', debuffValue:0, duration:5};
+  if(tier<=15) return {kind:'dot_debuff', element:'陰', chance:0.10, dmgPerTick:15, debuffStat:'命中', debuffValue:0.05, duration:5};
+  if(tier<=25) return {kind:'dot_debuff', element:'陰', chance:0.10, dmgPerTick:25, debuffStat:'命中', debuffValue:0.08, duration:5};
+  if(tier<=35) return {kind:'dot_debuff', element:'陰', chance:0.10, dmgPerTick:40, debuffStat:'命中', debuffValue:0.12, duration:5};
+  return {kind:'dot_debuff', element:'陰', chance:0.10, dmgPerTick:50, debuffStat:'命中', debuffValue:0.15, duration:5, finale:{rootChance:0.15}};
+}
+function chihuoEffectAt(tier){
+  if(tier<=5) return {kind:'dot_debuff', element:'陽', chance:tier*0.01, dmgPerTick:tier*5, debuffStat:'外功防禦', debuffValue:0.05, duration:5};
+  if(tier<=15) return {kind:'dot_debuff', element:'陽', chance:0.10, dmgPerTick:30, debuffStat:'外功防禦', debuffValue:0.05, duration:5};
+  if(tier<=25) return {kind:'dot_debuff', element:'陽', chance:0.10, dmgPerTick:45, debuffStat:'外功防禦', debuffValue:0.08, duration:5};
+  if(tier<=35) return {kind:'dot_debuff', element:'陽', chance:0.10, dmgPerTick:65, debuffStat:'外功防禦', debuffValue:0.12, duration:5};
+  return {kind:'dot_debuff', element:'陽', chance:0.10, dmgPerTick:80, debuffStat:'外功防禦', debuffValue:0.15, duration:5, finale:{selfMpRestoreOnTick:true}};
+}
+function xiaoyaoEffectAt(tier){
+  if(tier<=5) return {kind:'regen', stat:'mp', chance:tier*0.01, valuePerTick:tier, atkBuff:0, duration:5};
+  if(tier<=15) return {kind:'regen', stat:'mp', chance:0.10, valuePerTick:12, atkBuff:0.05, duration:5};
+  if(tier<=25) return {kind:'regen', stat:'mp', chance:0.10, valuePerTick:18, atkBuff:0.08, duration:5};
+  if(tier<=35) return {kind:'regen', stat:'mp', chance:0.10, valuePerTick:25, atkBuff:0.12, duration:5};
+  return {kind:'regen', stat:'mp', chance:0.10, valuePerTick:35, atkBuff:0.15, duration:5, finale:{mpAboveChance:0.10, mpAboveThreshold:0.80, debuffStat:'命中', debuffValue:0.15}};
+}
+const INTERNAL_EFFECT_TABLE = {
+  chanding: {trigger:'onHit', resolve:chandingEffectAt},
+  qizhuang: {trigger:'onHit', resolve:qizhuangEffectAt},
+  liangyi:  {trigger:'onHit', resolve:liangyiEffectAt},
+  qijue:    {trigger:'onAttack', resolve:qijueEffectAt},
+  chihuo:   {trigger:'onAttack', resolve:chihuoEffectAt},
+  xiaoyao:  {trigger:'onHit', resolve:xiaoyaoEffectAt, condition:(S)=> S.mpMax>0 && S.mp/S.mpMax < 0.20},
+};

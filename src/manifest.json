@@ -19,6 +19,7 @@
   "src/data/changelog.js",
   "src/game/state.js",
   "src/game/save.js",
+  "src/game/status-effects.js",
   "src/game/core.js",
   "src/game/combat.js",
   "src/game/inventory.js",

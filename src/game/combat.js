@@ -25,8 +25,12 @@ function combatTick(){
   if(S.buffAtkTicks>0) S.buffAtkTicks--;
   if(S.respecCooldown>0) S.respecCooldown--;
   if(S.warningCooldown>0) S.warningCooldown--;
+  tickStatusEffects(S.statusEffects);
+  tickStatusEffects(S.monster.statusEffects);
   S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.3*regenMultFor(activeTech,"hp"))));
   S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.2*(S.sectKey==="emei"?1.6:1)*regenMultFor(activeTech,"mp")))+1);
+  const xiaoyaoRegen = S.statusEffects.reduce((s,e)=> e.kind==="regen" && e.stat==="mp" ? s+e.value : s, 0);
+  if(xiaoyaoRegen>0) S.mp = Math.min(S.mpMax, S.mp+xiaoyaoRegen);
   checkAutoHeal();
   const moves = equippedMoveList();
   const activeAff = activeTech.affinity;
@@ -42,7 +46,8 @@ function combatTick(){
     const aff = affinityMultiplier(activeAff, moveDef.affinity);
     // 北冥神功：內功招式的內力消耗降低
     const mpCost = Math.max(1, Math.round(5 * (activeTech.id==="beiming" ? activeTech.specialValue.mpCostMult : 1)));
-    let effDef = Math.max(0, S.monster.def * (S.monster.defReduceTicks>0 ? 0.7 : 1) - S.secondary.破防);
+    const monsterDefDebuff = S.monster.statusEffects.reduce((s,e)=> e.debuffStat==="外功防禦" ? s+e.debuffValue : s, 0);
+    let effDef = Math.max(0, S.monster.def * (S.monster.defReduceTicks>0 ? 0.7 : 1) * (1-monsterDefDebuff) - S.secondary.破防);
     let dmg, isCrit;
     if(moveDef.dmgType==="內功"){
       if(S.mp<mpCost){ dmg = Math.max(1, S.secondary.近身威力*0.5); }
@@ -88,6 +93,17 @@ function combatTick(){
     if(S.sectKey==="mingjiao" && !wasLowHp && S.hpMax && S.hp/S.hpMax<tianmoThreshold){
       S.stageEffects.push("天魔解體！");
     }
+    // 一內特效：攻擊觸發（七絕經／赤火功，對怪物附加持續傷害＋減益）
+    if(S.monster.hp>0){
+      // getInternalTier() 回傳的是 layers[] 陣列索引（0-indexed，0=層1），INTERNAL_EFFECT_TABLE
+      // 的區塊邊界是照 desc 文字的「第N層」寫的（1-indexed），這裡要 +1 轉換。
+      const attackTier = getInternalTier(activeTech.id)+1;
+      const invAtkEff = rollInternalTrigger(activeTech, attackTier, 'onAttack');
+      if(invAtkEff){
+        applyMonsterStatusEffect(invAtkEff);
+        S.stageEffects.push(`${activeTech.name}・${invAtkEff.element==="陰"?"中毒":"灼傷"}！`);
+      }
+    }
     // 武學層數 3 以上的附加效果，機率觸發
     if(known.layer>=3 && S.monster.hp>0 && Math.random()<0.3){
       const special = moveDef.special;
@@ -115,6 +131,14 @@ function combatTick(){
     S.monster.hp -= bleedDmg;
     addLog(`${S.monster.name} 傷口崩裂，流血造成 ${bleedDmg} 傷害（${S.monster.bleedStacks} 層）`, 'dot');
   }
+  if(S.monster && S.monster.hp>0){
+    S.monster.statusEffects.forEach(e=>{
+      if(e.kind!=="dot_debuff") return;
+      S.monster.hp -= e.dmgPerTick;
+      addLog(`${S.monster.name} 受到「${activeTech.name}」持續${e.element}傷害 ${e.dmgPerTick}`, 'dot');
+      if(e.selfMpRestoreOnTick) S.mp = Math.min(S.mpMax, S.mp+e.dmgPerTick);
+    });
+  }
 
   if(S.monster.hp > 0){
     if(S.sectKey==="gaibang" && S.gaibangInvuln){
@@ -127,7 +151,8 @@ function combatTick(){
       S.floatEnemy = "被擊暈，無法行動";
       addLog(`${S.monster.name} 被擊暈，無法行動`, 'skill');
     } else {
-      const dodge = Math.random()*100 < Math.min(50, S.secondary.閃避值*0.4);
+      const monsterHitDebuff = S.monster.statusEffects.reduce((s,e)=> e.debuffStat==="命中" ? s+e.debuffValue : s, 0);
+      const dodge = Math.random()*100 < Math.min(50+monsterHitDebuff*100, S.secondary.閃避值*0.4+monsterHitDebuff*100);
       if(dodge){
         S.floatPlayer = "身法閃避！";
         addLog(`${S.monster.name} 攻來，你身法一閃避開了`, 'dodge');
@@ -140,7 +165,8 @@ function combatTick(){
         S.stageEffects.push("禪定功・入定！");
       } else {
         let atkMult = S.monster.staggerTicks>0 ? 0.5 : 1;
-        let mdmg = Math.max(1, Math.round(S.monster.atk*atkMult - S.secondary.外功防禦*0.3));
+        const mitigateFlat = S.statusEffects.reduce((s,e)=> e.kind==="buff" ? s+(e.mitigateFlat||0) : s, 0);
+        let mdmg = Math.max(1, Math.round(S.monster.atk*atkMult - S.secondary.外功防禦*0.3 - mitigateFlat));
         // 太極玄功：受擊時有機率格擋，格擋傷害降低
         if(activeTech.id==="taiji_qi" && Math.random()<activeTech.specialValue.chance){
           mdmg = Math.max(1, Math.round(mdmg*(1-activeTech.specialValue.dmgReduce)));
@@ -151,9 +177,26 @@ function combatTick(){
           mdmg = Math.max(1, Math.round(mdmg*(1-activeTech.specialValue.dmgReduce)));
           S.stageEffects.push("九陽神功・氣血翻湧！");
         }
+        // 一內特效：受擊觸發（禪定功／氣樁功防禦增益、兩儀護心功護盾、逍遙訣內力持續回復）
+        const hitTier = getInternalTier(activeTech.id)+1; // layers[] 索引轉成 1-indexed 層數
+        const invHitEff = rollInternalTrigger(activeTech, hitTier, 'onHit');
+        if(invHitEff){
+          if(invHitEff.kind==="shield"){
+            const absorb = invHitEff.absorbFlat!=null ? invHitEff.absorbFlat : Math.round(S.hpMax*invHitEff.absorbPct);
+            const absorbed = Math.min(mdmg, absorb);
+            mdmg = Math.max(0, mdmg-absorbed);
+            const mpRestore = Math.round(S.mpMax*invHitEff.breakRestorePct);
+            S.mp = Math.min(S.mpMax, S.mp+mpRestore);
+            S.stageEffects.push(`${activeTech.name}・真氣護體（吸收${absorbed}）！`);
+            addLog(`真氣護體吸收了 ${absorbed} 點傷害，碎盾回復 ${mpRestore} 點內力`, 'skill');
+          } else {
+            applyPlayerStatusEffect(invHitEff, activeTech);
+            S.stageEffects.push(`${activeTech.name}・${invHitEff.kind==="regen"?"逍遙":invHitEff.stat+"提升"}！`);
+          }
+        }
         S.hp -= mdmg;
-        S.floatPlayer = `-${mdmg}`;
-        S.hitPlayer = true;
+        S.floatPlayer = mdmg>0 ? `-${mdmg}` : "真氣護體化解！";
+        S.hitPlayer = mdmg>0;
         addLog(`${S.monster.name} 反擊，你受到 ${mdmg} 傷害`, 'enemy');
         if(S.sectKey==="shaolin"){
           S.shaolinBlockStack = Math.min(5, S.shaolinBlockStack+1);

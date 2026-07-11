@@ -8,6 +8,14 @@ window.DEBUG = (typeof window.DEBUG === "boolean")
 let __wxgRenderCount = 0;
 let __wxgDebugCollapsed = false;
 
+// 開發用：因為所有遊戲邏輯都包在 build.sh 產生的單一 IIFE 裡，瀏覽器主控台原本完全碰不到
+// S／newGame／recalc 這些東西。DEBUG 模式下把它們掛到 window.wxg，方便直接下指令做戰鬥測試
+// （例如 window.wxg.S.knownInternal[...].invested = 999999; window.wxg.recalc(true)）。
+if(typeof window!=="undefined" && window.DEBUG){
+  window.wxg = { get S(){ return S; }, set S(v){ S=v; }, newGame, recalc, getInternalTier, combatTick,
+    spawnMonster, INTERNAL_POOL, INTERNAL_EFFECT_TABLE, rollInternalTrigger, saveGame, deleteSaveAndRestart, render };
+}
+
 function updateDebugOverlay(){
   if(!window.DEBUG) return;
   __wxgRenderCount++;

@@ -20,6 +20,8 @@ function patchLoadedSave(){
   if(S.logFilters===undefined) S.logFilters = {};
   if(S.internalExpanded===undefined) S.internalExpanded = {};
   if(S.martialExpanded===undefined) S.martialExpanded = {};
+  if(S.statusEffects===undefined) S.statusEffects = [];
+  if(S.monster && S.monster.statusEffects===undefined) S.monster.statusEffects = [];
 }
 
 function loadGame(){

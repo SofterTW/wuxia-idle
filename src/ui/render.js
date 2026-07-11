@@ -368,6 +368,13 @@ function renderSide(){
   if(S.buffAtkTicks>0){
     buffs.push(`<div class="wxg-row effect-flash"><span>培元丹（威力+${Math.round(S.buffAtk*100)}%）</span><b>${S.buffAtkTicks} 回合</b></div>`);
   }
+  (S.statusEffects||[]).forEach(e=>{
+    if(e.kind==="buff"){
+      buffs.push(`<div class="wxg-row effect-flash"><span>${e.stat}提升 +${Math.round(e.value*100)}%</span><b>${e.remainingTicks} 回合</b></div>`);
+    } else if(e.kind==="regen"){
+      buffs.push(`<div class="wxg-row effect-flash"><span>逍遙（內力回復中${e.atkBuff?`，威力+${Math.round(e.atkBuff*100)}%`:''}）</span><b>${e.remainingTicks} 回合</b></div>`);
+    }
+  });
   const buffBody = buffs.length>0 ? buffs.join("") : `<div class="wxg-hint">暫無生效中的狀態效果（技能／門派特效觸發時會顯示在戰鬥舞台上）</div>`;
   const buffPanel = `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="buffs" style="cursor:pointer;"><span class="dot"></span><h3>目前狀態效果</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.buffs?'▾':'▸'}</span></div>
