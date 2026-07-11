@@ -513,14 +513,18 @@ function renderOverview(){
   `;
 }
 
-const TIER_DESC = [
-  "第一層：內力上限 +0%",
-  "第二層：內力上限 +15%、內功威力 +10%",
-  "第三層：內力上限 +30%、內功威力 +25%、氣血回復 +20%",
-  "第四層：內功防禦 +30%、解鎖「內功反震」被動",
-  "第五層：全屬性 +10%、內力消耗 -15%",
-  "第六層：全屬性 +20%、解鎖門派奧義武學上限",
-];
+// 每門心法各層的效果說明。優先用該層自己寫好的 desc（之後可個別覆寫），
+// 沒寫的話就用該層目前的實際數值自動組一段說明文字當佔位內容。
+function internalLayerDesc(skill, layerIdx){
+  const layer = skill.layers[layerIdx];
+  if(layer.desc) return `第${layerIdx+1}層：${layer.desc}`;
+  const parts = [];
+  if(layer.mult>0) parts.push(`內功威力+${Math.round(layer.mult*100)}%`);
+  if(layer.hpBonus>0) parts.push(`氣血上限+${Math.round(layer.hpBonus*100)}%`);
+  if(layer.mpBonus>0) parts.push(`內力上限+${Math.round(layer.mpBonus*100)}%`);
+  Object.entries(layer.bonusStat||{}).forEach(([k,v])=>{ if(v>0) parts.push(`${k}+${v}`); });
+  return `第${layerIdx+1}層：${parts.length>0?parts.join('、'):'暫無額外效果'}`;
+}
 
 function renderInternal(){
   return `
@@ -534,12 +538,12 @@ function renderInternal(){
       const known = S.knownInternal[t.id];
       const cap = MAX_OBTAINABLE_TIER - 1;
       const tier = getInternalTier(t.id);
-      const tierInfo = TIER_TABLE[tier];
       const atCap = tier>=cap;
       const nextReq = TIER_TABLE[Math.min(tier+1,cap)].req;
       const isMain = S.activeInternal===t.id;
       const expanded = !!S.internalExpanded[t.id];
-      const tierList = TIER_DESC.map((desc,i)=>`<div class="wxg-row" style="${i===tier?'color:var(--gold-lt)':''}">${i===tier?'▶ ':'　'}${desc}</div>`).join("");
+      const tierList = Array.from({length:MAX_OBTAINABLE_TIER}, (_,i)=>i)
+        .map(i=>`<div class="wxg-row" style="${i===tier?'color:var(--gold-lt)':''}">${i===tier?'▶ ':'　'}${internalLayerDesc(t,i)}</div>`).join("");
       const capHint = atCap ? `<div class="wxg-hint" style="margin-top:6px; color:var(--gold-lt);">你的「${t.name}」目前只學到第 ${tier+1} 層，後面的第 ${cap+2}～36 層需要尋得更高深的心法傳承，目前尚無取得途徑，敬請期待日後版本開放。</div>` : '';
       return `
       <div class="wxg-panel ${isMain?'active-main':''}">
@@ -1015,7 +1019,9 @@ function renderCodex(){
   }
 
   if(S.codexSubTab==="internal"){
-    const tierRows = TIER_DESC.map((desc,i)=>`<div class="wxg-row"><span>第 ${i+1} 層</span><b style="font-weight:400;">${desc.split('：')[1]||desc}</b></div>`).join("");
+    const tierExample = INTERNAL_POOL.find(t=>t.id==="tuna");
+    const tierRows = Array.from({length:MAX_OBTAINABLE_TIER}, (_,i)=>i)
+      .map(i=>`<div class="wxg-row"><span>第 ${i+1} 層</span><b style="font-weight:400;">${internalLayerDesc(tierExample,i).split('：')[1]}</b></div>`).join("");
     const sectDisplayName = (key)=> SECTS[key] ? SECTS[key].name : (COMING_SOON_SECTS.find(s=>s.key===key)?.name || key);
     const poolRows = INTERNAL_POOL.map(t=>{
       const locked = t.sect && !SECTS[t.sect];
@@ -1031,10 +1037,11 @@ function renderCodex(){
     return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>內功系統規則</h3></div>
-        <div class="wxg-hint">內功心法最高共 36 層，戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數，層數越高內力上限、內功威力等加成越多。目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
+        <div class="wxg-hint">內功心法最高共 36 層，每一層都有自己專屬的效果，不是統一公式套算出來的——練到第幾層，就是那一層寫好的效果。戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數。目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
       </div>
       <div class="wxg-panel">
-        <div class="wxg-panel-head internal"><span class="dot"></span><h3>目前可練境界（第 1～${MAX_OBTAINABLE_TIER} 層）</h3></div>
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>境界範例（以「基礎吐納訣」示範第 1～${MAX_OBTAINABLE_TIER} 層）</h3></div>
+        <div class="wxg-hint" style="margin-bottom:6px;">每門心法各層的實際效果不同，下面只是舉一門心法示範層數結構。</div>
         ${tierRows}
       </div>
       <div class="wxg-hint" style="margin:10px 0 -2px;">每門心法有自己的「資質倍率」跟「頂層主屬性加成」（練到頂層才會拿到 100%），有些心法還帶有獨特被動效果，跟門派專屬機制同等級。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。</div>

@@ -17,11 +17,10 @@ function recalc(fullRestore){
   const awaken = getAwakenTotals();
   const rankBonus = 1 + (RANK_TABLE[S.sectRank]?.bonus||0);
   const tier = getInternalTier(S.activeInternal);
-  const tierInfo = TIER_TABLE[tier];
   const techDef = INTERNAL_POOL.find(t=>t.id===S.activeInternal) || INTERNAL_POOL[0];
-  const tierProgress = tier/5; // 心法自帶的主屬性加成，練到頂層（第6層）才會拿到 100%
+  const layer = techDef.layers[tier]; // 練到第幾層，就直接用那一層自己的數值——不是套公式算出來的
   const p = {};
-  ["臂力","身法","內息","罡氣","體魄"].forEach(k=> p[k] = (S.primary[k] + eq[k] + (awaken.primary[k]||0) + (techDef.bonusStat[k]||0)*tierProgress) * rankBonus);
+  ["臂力","身法","內息","罡氣","體魄"].forEach(k=> p[k] = (S.primary[k] + eq[k] + (awaken.primary[k]||0) + (layer.bonusStat[k]||0)) * rankBonus);
   S.derivedPrimary = p;
   let atkBuff = 1 + (S.buffAtkTicks>0 ? S.buffAtk : 0);
   // 明教：天魔解體，氣血過低時外功內功攻擊大幅提升（赤火功練成後門檻提高，更容易進入爆發狀態）
@@ -30,7 +29,7 @@ function recalc(fullRestore){
   const asec = awaken.secondary;
   S.secondary = {
     近身威力: p.臂力*atkBuff + (asec.近身威力||0), 遠程威力: p.身法*atkBuff + (asec.遠程威力||0),
-    內功威力: p.內息*(1+tierInfo.mult*techDef.powerMult)*atkBuff + (asec.內功威力||0),
+    內功威力: p.內息*(1+layer.mult*techDef.powerMult)*atkBuff + (asec.內功威力||0),
     外功命中: p.身法 + (asec.外功命中||0), 內功命中: p.罡氣 + (asec.內功命中||0),
     外功暴擊: p.臂力*0.5 + (asec.外功暴擊||0), 內功暴擊: p.罡氣*0.5 + (techDef.id==="qizhuang"?techDef.specialValue.critBonus:0) + (asec.內功暴擊||0),
     閃避值: (p.身法*0.6)*(techDef.id==="xuanyuan"?techDef.specialValue.dodgeMult:1) + (asec.閃避值||0),
@@ -39,8 +38,8 @@ function recalc(fullRestore){
     內功防禦: p.罡氣*0.2*techDef.defMult + (asec.內功防禦||0),
     破防: asec.破防||0,
   };
-  S.hpMax = Math.round(p.臂力*2 + p.體魄*7 + tierInfo.hpBonus*techDef.hpMult*p.體魄*7);
-  S.mpMax = Math.round(p.內息*4 + p.罡氣*1 + tierInfo.mpBonus*techDef.mpMult*(p.內息*4));
+  S.hpMax = Math.round(p.臂力*2 + p.體魄*7 + layer.hpBonus*techDef.hpMult*p.體魄*7);
+  S.mpMax = Math.round(p.內息*4 + p.罡氣*1 + layer.mpBonus*techDef.mpMult*(p.內息*4));
   if(fullRestore){ S.hp=S.hpMax; S.mp=S.mpMax; } else { S.hp=Math.min(S.hp,S.hpMax); S.mp=Math.min(S.mp,S.mpMax); }
 }
 function affinityMultiplier(a,m){ if(a==="太極") return 1.16; if(a===m) return 1.20; if(m==="太極") return 1.16; return 1.0; }

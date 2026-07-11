@@ -99,3 +99,20 @@ const INTERNAL_POOL = [
     special:"閃避值提升 20%", specialValue:{dodgeMult:1.20},
     desc:"錦衣衛秘傳輕身心法，行動如鬼似魅，尋常攻擊很難沾上邊。"},
 ];
+
+// 每門心法各層（1～36）的具體效果，是「練到第幾層」的唯一數值來源——
+// 不再是全門派共用同一張「練到第N層 +X%」公式表。
+// 目前每一層的數字是用下面的 buildInternalLayers() 依 TIER_TABLE 的成長曲線自動生成的佔位內容
+// （所以第 1～6 層數值跟改版前完全一樣，不影響現有平衡），之後要幫某一層寫專屬效果時，
+// 直接改那一層物件的欄位就好（例如幫 layers[2] 加上 desc 文字或調整 bonusStat/mult），不用動這個生成函式。
+function buildInternalLayers(skill){
+  return TIER_TABLE.map((row, i)=>{
+    // 第1~6層（index 0~5）維持跟改版前完全一樣的主屬性加成比例（0%、20%、40%…100%）；
+    // 第7層以後暫時沒有取得途徑，先讓比例跟著資質倍率的成長曲線继续微幅增加當佔位值。
+    const frac = i<=5 ? i/5 : 1 + (row.mult - TIER_TABLE[5].mult);
+    const bonusStat = {};
+    Object.entries(skill.bonusStat||{}).forEach(([k,v])=>{ bonusStat[k] = Math.round(v*frac); });
+    return {bonusStat, mult:row.mult, hpBonus:row.hpBonus, mpBonus:row.mpBonus, desc:null};
+  });
+}
+INTERNAL_POOL.forEach(skill=>{ skill.layers = buildInternalLayers(skill); });
