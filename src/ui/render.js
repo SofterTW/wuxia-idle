@@ -876,6 +876,7 @@ function renderCodex(){
   const subTabs = `
     <div class="wxg-subtabs">
       <div class="wxg-subtab ${S.codexSubTab==='guide'?'active':''}" data-codexsub="guide">新手入門</div>
+      <div class="wxg-subtab ${S.codexSubTab==='stats'?'active':''}" data-codexsub="stats">主屬性</div>
       <div class="wxg-subtab ${S.codexSubTab==='sects'?'active':''}" data-codexsub="sects">門派總覽</div>
       <div class="wxg-subtab ${S.codexSubTab==='internal'?'active':''}" data-codexsub="internal">內功心法</div>
       <div class="wxg-subtab ${S.codexSubTab==='martial'?'active':''}" data-codexsub="martial">武學招式</div>
@@ -924,6 +925,42 @@ function renderCodex(){
         <div class="wxg-hint">戰鬥面板左下「戰鬥選項」可設定氣血／內力低於門檻自動服藥（可勾選存量不足自動購買），以及「遇見首領自動逃跑」，掛機時很實用。</div>
       </div>
     `;
+  }
+
+  if(S.codexSubTab==="stats"){
+    const rows = [
+      {key:"臂力", effect:[
+        "「近身威力」的主要來源 —— 拳掌／劍法／棍法／刀法等非暗器招式的外功傷害都靠它",
+        "小幅提升外功暴擊",
+        "小幅提升外功防禦（貢獻度較體魄低）",
+        "小幅提升氣血上限",
+      ]},
+      {key:"身法", effect:[
+        "「遠程威力」的主要來源 —— 唐門暗器類招式的外功傷害靠它",
+        "提升外功命中",
+        "提升閃避值（降低被敵人打中的機率）",
+      ]},
+      {key:"內息", effect:[
+        "「內功威力」的主要來源 —— 所有內功類招式的傷害核心，會再受主修內功層數加乘",
+        "提升內力上限（影響最大的屬性）",
+      ]},
+      {key:"罡氣", effect:[
+        "提升內功命中",
+        "提升內功暴擊",
+        "提升內功防禦",
+        "小幅提升內力上限",
+      ]},
+      {key:"體魄", effect:[
+        "提升氣血上限（影響最大的屬性）",
+        "外功防禦的主要來源",
+        "提升封勁與招架耐力上限",
+      ]},
+    ];
+    const panels = rows.map(r=>`<div class="wxg-panel">
+      <div class="wxg-panel-head"><span class="dot" style="background:${PRIMARY_COLORS[r.key]}; box-shadow:0 0 5px ${PRIMARY_COLORS[r.key]};"></span><h3 style="color:${PRIMARY_COLORS[r.key]};">${r.key}</h3></div>
+      <div class="wxg-hint" style="line-height:1.8;">${r.effect.map(e=>`・${e}`).join('<br>')}</div>
+    </div>`).join("");
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">五大主屬性來自門派起始值、裝備加成與門派地位加成，數值可在「總覽」的側欄查看。以下是每個屬性實際影響的戰鬥數值。</div>` + panels;
   }
 
   if(S.codexSubTab==="sects"){
