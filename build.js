@@ -40,7 +40,7 @@ const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8").trim();
 // 建置時把圖檔內嵌成 base64，讓輸出的單一 HTML 片段不依賴外部圖檔。
 const jinlingImgB64 = fs.readFileSync(path.join(SRC, "assets/img/jinling-town.jpg")).toString("base64");
 const charImagesSrc = fs.readFileSync(path.join(SRC, "assets/character-images.js"), "utf8");
-const charImagesRest = charImagesSrc.slice(charImagesSrc.indexOf("const SECT_PORTRAIT"));
+const charImagesRest = charImagesSrc.slice(charImagesSrc.indexOf("const DARK_WASH"));
 const heroConsts = [1, 2, 3, 4, 5]
   .map(i => {
     const b64 = fs.readFileSync(path.join(SRC, `assets/img/characters/hero${i}.png`)).toString("base64");

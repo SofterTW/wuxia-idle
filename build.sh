@@ -62,8 +62,8 @@ JS_FILES=(
         HERO_B64=$(base64 -w0 "src/assets/img/characters/hero$i.png")
         echo "const HERO${i}_IMG = \"data:image/png;base64,${HERO_B64}\";"
       done
-      # 保留原檔案中常數宣告以外的內容（SECT_PORTRAIT 對照表與 portraitImgHtml 函式）
-      sed -n '/^const SECT_PORTRAIT/,$p' src/assets/character-images.js
+      # 保留原檔案中常數宣告以外的內容（DARK_WASH／SECT_PORTRAIT 對照表與 portraitImgHtml 函式）
+      sed -n '/^const DARK_WASH/,$p' src/assets/character-images.js
     else
       cat "$f"
     fi
