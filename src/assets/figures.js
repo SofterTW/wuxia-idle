@@ -1,85 +1,190 @@
+// 角色小人採共用「人形模板」產生，只需替換袍色／髮型／武器，
+// 避免六個門派各自手刻座標、風格不一致。
+
+function fighterWeaponMarkup(type, id){
+  const glow = `filter:drop-shadow(0 0 3px rgba(212,175,55,.9))`;
+  if(type==="fist"){
+    return `
+    <path d="M40 26 Q53 29 56 41 Q53 46 47 44 Q43 37 38 29Z" fill="url(#robe-${id})"/>
+    <circle cx="53" cy="43" r="6.5" fill="#e8dcc0" stroke="#8a6d3b" stroke-width="1.4"/>
+    <path d="M49 41 L57 41 M49 45 L57 45" stroke="#5a4325" stroke-width="1"/>
+    <circle cx="53" cy="43" r="9" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.55" style="${glow}"/>`;
+  }
+  if(type==="sword"){
+    return `
+    <path d="M40 26 Q51 30 54 40 Q51 44 46 42 Q42 35 38 29Z" fill="url(#robe-${id})"/>
+    <g transform="rotate(-32 53 40)" style="${glow}">
+      <rect x="51.3" y="6" width="3.4" height="34" rx="1" fill="url(#blade-${id})" stroke="#e9e4d2" stroke-width="0.4"/>
+      <rect x="49.5" y="39" width="7" height="3" rx="1" fill="#7a5a1e"/>
+      <rect x="52" y="41" width="2" height="9" rx="1" fill="#3a2810"/>
+      <circle cx="53" cy="51.5" r="1.8" fill="#d4af37"/>
+    </g>`;
+  }
+  if(type==="staff"){
+    return `
+    <path d="M40 26 Q50 30 53 40 Q50 44 45 41 Q41 35 38 29Z" fill="url(#robe-${id})"/>
+    <g transform="rotate(18 50 40)" style="${glow}">
+      <rect x="48.5" y="2" width="3.2" height="66" rx="1.5" fill="#8a6d3b" stroke="#4a3818" stroke-width="0.4"/>
+      <circle cx="50" cy="4" r="4.2" fill="#d4af37"/>
+      <circle cx="50" cy="66" r="4.2" fill="#d4af37"/>
+    </g>`;
+  }
+  if(type==="dart"){
+    return `
+    <path d="M40 26 Q50 28 53 37 Q50 41 45 39 Q41 33 38 27Z" fill="url(#robe-${id})"/>
+    <g style="${glow}" fill="#d4af37">
+      <path d="M52 26 L60 30 L52 32Z"/>
+      <path d="M53 35 L62 35 L53 37Z"/>
+      <path d="M52 40 L59 45 L51 42Z"/>
+    </g>`;
+  }
+  // blade（明教魔刀）
+  return `
+    <path d="M40 26 Q52 29 55 40 Q52 45 46 43 Q42 36 38 29Z" fill="url(#robe-${id})"/>
+    <g transform="rotate(-18 52 40)" style="${glow}">
+      <path d="M50 6 Q56 20 52 40 L48 40 Q47 20 46 8Z" fill="url(#blade-${id})" stroke="#3a1210" stroke-width="0.4"/>
+      <rect x="46.5" y="39" width="7" height="3" rx="1" fill="#3a1210"/>
+      <rect x="49" y="41" width="2" height="8" rx="1" fill="#2a0d0a"/>
+    </g>`;
+}
+
+function fighterHairMarkup(kind){
+  if(kind==="monk"){
+    // 少林光頭，無髮
+    return `<path d="M21.5 11 Q30 4 38.5 11" fill="none" stroke="#c9a24a" stroke-width="0.6" opacity="0.5"/>`;
+  }
+  if(kind==="topknot"){
+    return `
+    <path d="M21 10 Q30 2 39 10 Q39 6 30 4 Q21 6 21 10Z" fill="#1c140c"/>
+    <circle cx="30" cy="4.5" r="3" fill="#1c140c"/>
+    <rect x="27" y="1.5" width="6" height="2.4" rx="1" fill="#d4af37"/>`;
+  }
+  if(kind==="nun"){
+    return `<path d="M20.5 9 Q30 1.5 39.5 9 Q39 15 36 17 Q30 12 24 17 Q21 15 20.5 9Z" fill="#e9e2cf" opacity="0.94"/>`;
+  }
+  if(kind==="beggar"){
+    return `
+    <path d="M20.5 10 Q30 3 39.5 10 Q38 7 30 5.5 Q22 7 20.5 10Z" fill="#4a3a26"/>
+    <path d="M19 9 L41 9 L39 12.5 L21 12.5Z" fill="#6b5335" opacity="0.85"/>`;
+  }
+  if(kind==="tangmen"){
+    return `<path d="M20.5 10 Q30 2 39.5 10 Q39 5 30 3 Q21 5 20.5 10Z" fill="#160f08"/>`;
+  }
+  // mingjiao：束髮＋火紋額帶
+  return `
+  <path d="M21 10 Q30 3 39 10 Q39 6 30 4 Q21 6 21 10Z" fill="#20130f"/>
+  <path d="M23 9 L37 9 L36 11.5 L24 11.5Z" fill="#a5332c"/>`;
+}
+
+function buildFighter({id, robeTop, robeBot, trim, blade1, blade2, skin, weapon, hair}){
+  return `<svg viewBox="0 0 62 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="robe-${id}" x1="0.1" y1="0" x2="0.4" y2="1">
+        <stop offset="0%" stop-color="${robeTop}"/>
+        <stop offset="100%" stop-color="${robeBot}"/>
+      </linearGradient>
+      <radialGradient id="skin-${id}" cx="35%" cy="28%" r="80%">
+        <stop offset="0%" stop-color="${skin||'#f5e8cf'}"/>
+        <stop offset="100%" stop-color="#d9c4a0"/>
+      </radialGradient>
+      <linearGradient id="blade-${id}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="${blade1||'#eef0e8'}"/>
+        <stop offset="55%" stop-color="${blade2||'#c7cdbf'}"/>
+        <stop offset="100%" stop-color="${blade1||'#eef0e8'}"/>
+      </linearGradient>
+    </defs>
+
+    <!-- 後方衣袖 -->
+    <path d="M21 27 Q10 33 11 49 Q15 52 19 47 Q21 37 23 29Z" fill="${robeBot}" opacity="0.85"/>
+
+    <!-- 雙腿 -->
+    <path d="M23 63 Q17 79 18 95 L27 95 Q28 79 30 63Z" fill="${robeBot}"/>
+    <path d="M39 63 Q45 79 44 95 L35 95 Q34 79 32 63Z" fill="${robeBot}"/>
+    <path d="M23 63 Q17 79 18 95 L21 95 Q21 79 26 63Z" fill="#000" opacity="0.12"/>
+
+    <!-- 靴 -->
+    <path d="M16 91 L28 91 L27 97 L14 97Z" fill="#1c130a"/>
+    <path d="M34 91 L46 91 L48 97 L35 97Z" fill="#1c130a"/>
+    <path d="M16 91 L28 91 L27.5 93.5 L16.5 93.5Z" fill="#3a2810"/>
+    <path d="M34 91 L46 91 L46.4 93.5 L34.4 93.5Z" fill="#3a2810"/>
+
+    <!-- 身軀／長袍 -->
+    <path d="M20 25 Q31 18 42 25 L46 47 Q43 59 31 65 Q19 59 16 47Z" fill="url(#robe-${id})" stroke="#160e07" stroke-width="0.6"/>
+    <path d="M31 25 L31 63" stroke="#000" stroke-width="0.6" opacity="0.15"/>
+
+    <!-- 衣領 -->
+    <path d="M25.5 25 Q31 31.5 36.5 25 L34.5 22.5 Q31 27 27.5 22.5Z" fill="${trim}"/>
+
+    <!-- 腰帶 -->
+    <rect x="19.5" y="45" width="23" height="4.2" rx="1.6" fill="${trim}"/>
+    <circle cx="31" cy="47.1" r="2.1" fill="#d4af37"/>
+
+    <!-- 前方衣袖／武器 -->
+    ${fighterWeaponMarkup(weapon, id)}
+
+    <!-- 頸 -->
+    <rect x="27.5" y="18.5" width="7" height="6.5" fill="url(#skin-${id})"/>
+
+    <!-- 頭 -->
+    <circle cx="31" cy="13" r="9" fill="url(#skin-${id})"/>
+
+    <!-- 髮型／頭飾 -->
+    ${fighterHairMarkup(hair)}
+
+    <!-- 五官 -->
+    <path d="M26.5 14 q1.6 -1.6 3.2 0" stroke="#2a1c10" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+    <path d="M32.3 14 q1.6 -1.6 3.2 0" stroke="#2a1c10" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+    <path d="M29.5 19.5 q1.5 1 3 0" stroke="#8a5a44" stroke-width="0.7" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </svg>`;
+}
+
 const FIGHTER_FIGURES = {
-  // 少林：拳套小人
-  shaolin:`<svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="30" cy="15" r="9" fill="#e8dcc0"/>
-    <path d="M18 26 Q30 21 42 26 L45 62 Q30 70 15 62 Z" fill="#8a6d3b"/>
-    <path d="M20 60 L14 96 L23 96 L28 62 Z" fill="#3a2810"/>
-    <path d="M38 60 L46 92 L38 96 L32 62 Z" fill="#3a2810"/>
-    <path d="M18 32 L6 44 L11 49 L23 38 Z" fill="#e8dcc0"/>
-    <path d="M42 32 L55 38 L52 46 L40 40 Z" fill="#e8dcc0"/>
-    <circle cx="55" cy="40" r="6" fill="none" stroke="#d4af37" stroke-width="2"/>
-  </svg>`,
-  // 武當／峨嵋：持劍小人
-  wudang:`<svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="30" cy="15" r="9" fill="#e8dcc0"/>
-    <path d="M19 26 Q30 22 41 26 L44 62 Q30 70 16 62 Z" fill="#3f5d4e"/>
-    <path d="M20 60 L15 96 L23 96 L27 62 Z" fill="#241708"/>
-    <path d="M37 60 L44 92 L36 96 L31 62 Z" fill="#241708"/>
-    <path d="M19 32 L9 48 L15 52 L24 37 Z" fill="#e8dcc0"/>
-    <path d="M40 32 L52 36 L50 43 L38 40 Z" fill="#e8dcc0"/>
-    <line x1="50" y1="39" x2="72" y2="30" stroke="#d4af37" stroke-width="2.5"/>
-    <line x1="46" y1="41" x2="50" y2="39" stroke="#8a6d3b" stroke-width="4"/>
-  </svg>`,
-  emei:`<svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="30" cy="15" r="9" fill="#e8dcc0"/>
-    <path d="M19 26 Q30 22 41 26 L44 62 Q30 70 16 62 Z" fill="#8a6d9b"/>
-    <path d="M20 60 L15 96 L23 96 L27 62 Z" fill="#241708"/>
-    <path d="M37 60 L44 92 L36 96 L31 62 Z" fill="#241708"/>
-    <path d="M19 32 L9 48 L15 52 L24 37 Z" fill="#e8dcc0"/>
-    <path d="M40 32 L52 36 L50 43 L38 40 Z" fill="#e8dcc0"/>
-    <line x1="50" y1="39" x2="72" y2="30" stroke="#d4af37" stroke-width="2.5"/>
-    <line x1="46" y1="41" x2="50" y2="39" stroke="#8a6d3b" stroke-width="4"/>
-  </svg>`,
-  // 丐幫：持棒小人
-  gaibang:`<svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="30" cy="15" r="9" fill="#e8dcc0"/>
-    <path d="M18 26 Q30 22 42 26 L45 62 Q30 70 15 62 Z" fill="#5a4530"/>
-    <path d="M19 60 L13 96 L22 96 L27 62 Z" fill="#241708"/>
-    <path d="M38 60 L46 92 L38 96 L32 62 Z" fill="#241708"/>
-    <path d="M18 32 L8 46 L13 51 L23 38 Z" fill="#e8dcc0"/>
-    <path d="M41 32 L53 37 L50 44 L39 40 Z" fill="#e8dcc0"/>
-    <line x1="50" y1="41" x2="70" y2="16" stroke="#8a6d3b" stroke-width="3"/>
-    <circle cx="70" cy="16" r="4" fill="#d4af37"/>
-  </svg>`,
-  // 唐門：暗器小人
-  tangmen:`<svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="30" cy="15" r="9" fill="#e8dcc0"/>
-    <path d="M19 26 Q30 22 41 26 L43 60 Q30 68 17 60 Z" fill="#241708"/>
-    <path d="M20 58 L15 96 L23 96 L27 60 Z" fill="#160f08"/>
-    <path d="M36 58 L43 92 L35 96 L30 60 Z" fill="#160f08"/>
-    <path d="M19 32 L9 46 L14 51 L24 38 Z" fill="#e8dcc0"/>
-    <path d="M40 32 L54 34 L53 41 L39 39 Z" fill="#e8dcc0"/>
-    <g fill="#d4af37"><path d="M54 30 L62 34 L54 36Z"/><path d="M54 38 L64 38 L54 40Z"/><path d="M54 40 L60 46 L53 42Z"/></g>
-  </svg>`,
-  // 明教：魔刀小人
-  mingjiao:`<svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="30" cy="15" r="9" fill="#e8dcc0"/>
-    <path d="M18 26 Q30 21 42 26 L45 62 Q30 70 15 62 Z" fill="#5c1a15"/>
-    <path d="M19 60 L14 96 L23 96 L27 62 Z" fill="#241708"/>
-    <path d="M38 60 L46 92 L38 96 L32 62 Z" fill="#241708"/>
-    <path d="M18 32 L7 47 L13 52 L23 38 Z" fill="#e8dcc0"/>
-    <path d="M42 32 L54 36 L51 43 L40 40 Z" fill="#e8dcc0"/>
-    <path d="M51 40 Q66 30 70 15 Q64 32 78 34 Q62 38 51 40Z" fill="#a5332c"/>
-  </svg>`,
+  shaolin: buildFighter({id:"shaolin", robeTop:"#a8845a", robeBot:"#6b4f28", trim:"#d4af37", skin:"#f2e0bd", weapon:"fist", hair:"monk"}),
+  wudang: buildFighter({id:"wudang", robeTop:"#4d7364", robeBot:"#26463a", trim:"#d4af37", blade1:"#f3f6ee", blade2:"#b9c7bd", weapon:"sword", hair:"topknot"}),
+  emei: buildFighter({id:"emei", robeTop:"#a58bc4", robeBot:"#6b5390", trim:"#e8dcc0", blade1:"#f3f6ee", blade2:"#c9b9df", weapon:"sword", hair:"nun"}),
+  gaibang: buildFighter({id:"gaibang", robeTop:"#8a7550", robeBot:"#5a4a30", trim:"#8a6d3b", weapon:"staff", hair:"beggar"}),
+  tangmen: buildFighter({id:"tangmen", robeTop:"#3a3a42", robeBot:"#17171c", trim:"#8a6d9b", weapon:"dart", hair:"tangmen"}),
+  mingjiao: buildFighter({id:"mingjiao", robeTop:"#8c3a2f", robeBot:"#4a1712", trim:"#d4af37", blade1:"#f3d878", blade2:"#a5332c", weapon:"blade", hair:"mingjiao"}),
 };
 
-const MONSTER_FIGURE = `<svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-  <path d="M30 8 Q42 6 44 16 Q54 20 50 34 Q56 46 46 58 Q48 76 30 82 Q12 76 14 58 Q4 46 10 34 Q6 20 16 16 Q18 6 30 8Z" fill="#3f5d4e"/>
-  <circle cx="22" cy="34" r="4.5" fill="#0d0906"/><circle cx="38" cy="34" r="4.5" fill="#0d0906"/>
-  <circle cx="22" cy="33" r="1.6" fill="#c9622a"/><circle cx="38" cy="33" r="1.6" fill="#c9622a"/>
-  <path d="M18 50 Q30 58 42 50" stroke="#0d0906" stroke-width="2.5" fill="none"/>
-  <path d="M14 58 L4 78 L14 74Z" fill="#2e4a3c"/><path d="M46 58 L56 78 L46 74Z" fill="#2e4a3c"/>
-  <path d="M18 78 L12 98 L22 98 L26 80Z" fill="#26392e"/><path d="M42 78 L48 98 L38 98 L34 80Z" fill="#26392e"/>
+const MONSTER_FIGURE = `<svg viewBox="0 0 62 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="mon-body" cx="35%" cy="25%" r="80%">
+      <stop offset="0%" stop-color="#6fb894"/>
+      <stop offset="100%" stop-color="#33513f"/>
+    </radialGradient>
+  </defs>
+  <path d="M31 8 Q43 6 45 16 Q55 20 51 34 Q57 46 47 58 Q49 76 31 82 Q13 76 15 58 Q5 46 11 34 Q7 20 17 16 Q19 6 31 8Z" fill="url(#mon-body)" stroke="#1c2d22" stroke-width="0.6"/>
+  <path d="M20 22 Q31 15 42 22" fill="none" stroke="#1c2d22" stroke-width="1.1" opacity="0.5"/>
+  <circle cx="23" cy="34" r="4.6" fill="#0d0906"/><circle cx="39" cy="34" r="4.6" fill="#0d0906"/>
+  <circle cx="23" cy="33" r="1.7" fill="#e8823a"/><circle cx="39" cy="33" r="1.7" fill="#e8823a"/>
+  <path d="M19 50 Q31 59 43 50" stroke="#0d0906" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M15 58 L5 78 L15 74Z" fill="#2e4a3c"/><path d="M47 58 L57 78 L47 74Z" fill="#2e4a3c"/>
+  <path d="M19 78 L13 98 L23 98 L27 80Z" fill="#26392e"/><path d="M43 78 L49 98 L39 98 L35 80Z" fill="#26392e"/>
+  <path d="M19 78 L13 98 L16.5 98 L21.5 79.5Z" fill="#152019"/>
 </svg>`;
 
-const BOSS_FIGURE = `<svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-  <path d="M30 6 Q46 4 48 16 Q60 20 55 36 Q62 50 50 62 Q53 80 30 86 Q7 80 10 62 Q-2 50 5 36 Q0 20 12 16 Q14 4 30 6Z" fill="#8c2f2f"/>
-  <path d="M18 14 L10 2 L20 10Z" fill="#5c1a15"/><path d="M42 14 L50 2 L40 10Z" fill="#5c1a15"/>
-  <circle cx="21" cy="36" r="5.5" fill="#f3d878"/><circle cx="39" cy="36" r="5.5" fill="#f3d878"/>
-  <circle cx="21" cy="36" r="2" fill="#3a1210"/><circle cx="39" cy="36" r="2" fill="#3a1210"/>
-  <path d="M16 54 Q30 64 44 54" stroke="#3a1210" stroke-width="3" fill="none"/>
-  <path d="M10 62 L-2 84 L12 80Z" fill="#6b2320"/><path d="M50 62 L62 84 L48 80Z" fill="#6b2320"/>
-  <path d="M16 84 L9 100 L21 100 L26 86Z" fill="#4a1815"/><path d="M44 84 L51 100 L39 100 L34 86Z" fill="#4a1815"/>
+const BOSS_FIGURE = `<svg viewBox="0 0 62 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="boss-body" cx="35%" cy="25%" r="80%">
+      <stop offset="0%" stop-color="#c14a3f"/>
+      <stop offset="100%" stop-color="#5c1a15"/>
+    </radialGradient>
+    <radialGradient id="boss-eye" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#fff3c9"/>
+      <stop offset="100%" stop-color="#e8b23c"/>
+    </radialGradient>
+  </defs>
+  <path d="M31 6 Q47 4 49 16 Q61 20 56 36 Q63 50 51 62 Q54 80 31 86 Q8 80 11 62 Q-1 50 6 36 Q1 20 13 16 Q15 4 31 6Z" fill="url(#boss-body)" stroke="#2c0a08" stroke-width="0.7"/>
+  <path d="M19 14 L11 2 L21 10Z" fill="#5c1a15"/><path d="M43 14 L51 2 L41 10Z" fill="#5c1a15"/>
+  <path d="M19 14 L11 2 L15 9Z" fill="#8a2b23"/><path d="M43 14 L51 2 L47 9Z" fill="#8a2b23"/>
+  <circle cx="22" cy="36" r="5.6" fill="url(#boss-eye)"/><circle cx="40" cy="36" r="5.6" fill="url(#boss-eye)"/>
+  <circle cx="22" cy="36" r="2" fill="#3a1210"/><circle cx="40" cy="36" r="2" fill="#3a1210"/>
+  <circle cx="22" cy="36" r="8" fill="none" stroke="#f3d878" stroke-width="0.6" opacity="0.4"/>
+  <circle cx="40" cy="36" r="8" fill="none" stroke="#f3d878" stroke-width="0.6" opacity="0.4"/>
+  <path d="M17 55 Q31 65 45 55" stroke="#2c0a08" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+  <path d="M11 62 L-1 84 L13 80Z" fill="#6b2320"/><path d="M51 62 L63 84 L49 80Z" fill="#6b2320"/>
+  <path d="M17 84 L10 100 L22 100 L27 86Z" fill="#4a1815"/><path d="M45 84 L52 100 L40 100 L35 86Z" fill="#4a1815"/>
 </svg>`;
 
 const ICONS = {

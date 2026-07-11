@@ -25,7 +25,7 @@ function newGame(sectKey){
     hp:1, hpMax:1, mp:1, mpMax:1,
     monster:null, monsterLevel:1, killCount:0,
     log:[], tab:"overview", tick:0, floatPlayer:"", floatEnemy:"",
-    equipSubTab:"gear", pickerSlot:null,
+    equipSubTab:"gear", pickerSlot:null, codexSubTab:"slots",
     mapSubTab:"zones", huntingZone:"heifeng", location:"heifeng", visitingSect:null, dialogueNpc:null,
     internalExpanded:{}, martialExpanded:{}, sideExpanded:{primary:true, buffs:true, autoheal:true}, logFilters:{}, navCollapsed:false,
     hitEnemy:false, hitEnemyCrit:false, hitPlayer:false, lastUsedMoveId:null, stageEffects:[],

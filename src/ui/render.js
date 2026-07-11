@@ -148,53 +148,103 @@ function renderNpcDialogue(){
 
 const ZONE_SCENES = {
   jinling:`<svg viewBox="0 0 500 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="skyJl" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#3a2410"/><stop offset="60%" stop-color="#1c1108"/><stop offset="100%" stop-color="#100a05"/>
-    </linearGradient></defs>
+    <defs>
+      <linearGradient id="skyJl" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#4a3018"/><stop offset="45%" stop-color="#2a1a0c"/><stop offset="100%" stop-color="#120a05"/>
+      </linearGradient>
+      <radialGradient id="moonJl" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fff3cf"/><stop offset="60%" stop-color="#f3d878"/><stop offset="100%" stop-color="#f3d878" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
     <rect width="500" height="150" fill="url(#skyJl)"/>
-    <circle cx="420" cy="30" r="16" fill="#f3d878" opacity="0.85"/>
-    <circle cx="420" cy="30" r="26" fill="#f3d878" opacity="0.15"/>
-    <path d="M0 110 L20 95 L40 108 L60 88 L85 106 L110 92 L140 110 L170 90 L200 108 L230 94 L260 110 L290 92 L320 108 L350 90 L380 106 L410 92 L440 108 L470 96 L500 110 L500 150 L0 150 Z" fill="#0d0805" opacity="0.9"/>
-    <path d="M60 88 L60 70 L54 70 L67 55 L80 70 L74 70 L74 88Z" fill="#241708"/>
-    <path d="M230 94 L230 76 L224 76 L237 60 L250 76 L244 76 L244 94Z" fill="#241708"/>
-    <path d="M380 106 L380 84 L373 84 L389 66 L405 84 L398 84 L398 106Z" fill="#241708"/>
-    <circle cx="67" cy="82" r="2.4" fill="#d4af37" opacity="0.8"/>
-    <circle cx="237" cy="88" r="2.4" fill="#d4af37" opacity="0.8"/>
-    <circle cx="389" cy="98" r="2.4" fill="#d4af37" opacity="0.8"/>
+    <circle cx="420" cy="30" r="40" fill="url(#moonJl)"/>
+    <circle cx="420" cy="30" r="14" fill="#fff8e0"/>
+    <path d="M0 100 Q80 92 160 100 Q240 90 320 100 Q400 92 500 100 L500 150 L0 150Z" fill="#1a0f08" opacity="0.55"/>
+    <path d="M0 112 L18 98 L36 110 L58 90 L82 108 L108 94 L138 112 L168 92 L200 110 L232 96 L264 112 L296 94 L328 110 L360 92 L392 108 L424 94 L458 110 L500 98 L500 150 L0 150 Z" fill="#0d0805"/>
+    <path d="M58 90 L58 68 L52 68 L67 50 L82 68 L76 68 L76 90Z" fill="#241708"/>
+    <path d="M232 96 L232 74 L226 74 L241 56 L256 74 L250 74 L250 96Z" fill="#241708"/>
+    <path d="M392 108 L392 82 L385 82 L403 62 L421 82 L414 82 L414 108Z" fill="#241708"/>
+    <path d="M67 50 L82 68 L76 68 L76 90 L58 90 L58 68Z" fill="none" stroke="#3a2810" stroke-width="0.6" opacity="0.5"/>
+    <circle cx="67" cy="80" r="2.6" fill="#f3d878" opacity="0.9"/>
+    <circle cx="241" cy="86" r="2.6" fill="#f3d878" opacity="0.9"/>
+    <circle cx="403" cy="98" r="2.6" fill="#f3d878" opacity="0.9"/>
+    <circle cx="67" cy="80" r="6" fill="#f3d878" opacity="0.25"/>
+    <circle cx="241" cy="86" r="6" fill="#f3d878" opacity="0.25"/>
+    <circle cx="403" cy="98" r="6" fill="#f3d878" opacity="0.25"/>
+    <ellipse cx="250" cy="146" rx="260" ry="10" fill="#000" opacity="0.35"/>
   </svg>`,
   heifeng:`<svg viewBox="0 0 500 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="skyHf" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#141810"/><stop offset="70%" stop-color="#0d0f0a"/><stop offset="100%" stop-color="#080907"/>
-    </linearGradient></defs>
+    <defs>
+      <linearGradient id="skyHf" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1c2416"/><stop offset="55%" stop-color="#10140c"/><stop offset="100%" stop-color="#080907"/>
+      </linearGradient>
+      <radialGradient id="fireHf" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#f3a03c"/><stop offset="100%" stop-color="#c9622a" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
     <rect width="500" height="150" fill="url(#skyHf)"/>
-    <path d="M0 120 Q60 90 120 118 Q180 85 260 116 Q330 88 400 118 Q460 95 500 120 L500 150 L0 150Z" fill="#1a1f14" opacity="0.85"/>
-    <path d="M420 105 L420 60 L414 60 L390 105Z" fill="#0d0f0a"/>
-    <path d="M420 60 L436 40 L420 40Z" fill="#0d0f0a"/>
-    <circle cx="120" cy="130" r="10" fill="#c9622a" opacity="0.5"/>
-    <circle cx="120" cy="130" r="4" fill="#f3a03c" opacity="0.7"/>
+    <path d="M0 95 Q70 78 140 96 Q220 74 300 94 Q380 76 460 94 L500 90 L500 150 L0 150Z" fill="#141a10" opacity="0.75"/>
+    <path d="M0 118 Q60 92 120 116 Q180 86 260 114 Q330 90 400 116 Q460 96 500 118 L500 150 L0 150Z" fill="#1a1f14"/>
+    <path d="M420 104 L420 58 L414 58 L390 104Z" fill="#0d0f0a"/>
+    <path d="M420 58 L436 38 L420 38Z" fill="#0d0f0a"/>
+    <path d="M70 116 L70 82 L64 82 L48 116Z" fill="#10140c"/>
+    <path d="M64 82 L78 60 L64 60Z" fill="#10140c"/>
+    <circle cx="120" cy="128" r="26" fill="url(#fireHf)"/>
+    <circle cx="120" cy="130" r="9" fill="#c9622a" opacity="0.75"/>
+    <circle cx="120" cy="130" r="4" fill="#f3d878" opacity="0.9"/>
+    <circle cx="112" cy="116" r="1" fill="#f3a03c" opacity="0.8"/>
+    <circle cx="128" cy="108" r="0.8" fill="#f3a03c" opacity="0.6"/>
+    <circle cx="118" cy="98" r="0.7" fill="#f3a03c" opacity="0.5"/>
+    <ellipse cx="250" cy="145" rx="260" ry="10" fill="#000" opacity="0.4"/>
   </svg>`,
   xueyu:`<svg viewBox="0 0 500 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="skyXy" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#3a1210"/><stop offset="60%" stop-color="#1c0806"/><stop offset="100%" stop-color="#0d0403"/>
-    </linearGradient></defs>
+    <defs>
+      <linearGradient id="skyXy" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#4a1712"/><stop offset="55%" stop-color="#22090b"/><stop offset="100%" stop-color="#0d0403"/>
+      </linearGradient>
+      <radialGradient id="moonXy" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#d1564c"/><stop offset="100%" stop-color="#a5332c" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
     <rect width="500" height="150" fill="url(#skyXy)"/>
-    <circle cx="90" cy="35" r="20" fill="#a5332c" opacity="0.6"/>
-    <path d="M180 120 L180 55 L172 55 L172 120Z" fill="#160705"/>
-    <path d="M220 120 L220 45 L210 45 L210 120Z" fill="#160705"/>
-    <path d="M260 120 L260 55 L252 55 L252 120Z" fill="#160705"/>
-    <path d="M160 55 L280 55 L270 42 L170 42Z" fill="#1c0a08"/>
-    <path d="M0 122 L500 122 L500 150 L0 150Z" fill="#0d0403"/>
+    <circle cx="90" cy="35" r="42" fill="url(#moonXy)"/>
+    <circle cx="90" cy="35" r="17" fill="#a5332c" opacity="0.85"/>
+    <path d="M0 118 L500 118 L500 150 L0 150Z" fill="#1c0806" opacity="0.6"/>
+    <path d="M170 120 L170 50 L162 50 L162 120Z" fill="#160705"/>
+    <path d="M215 120 L215 40 L205 40 L205 120Z" fill="#160705"/>
+    <path d="M260 120 L260 50 L252 50 L252 120Z" fill="#160705"/>
+    <path d="M155 50 L285 50 L273 36 L167 36Z" fill="#20090a"/>
+    <path d="M162 50 L170 50 L166 42Z" fill="#3a1210" opacity="0.6"/>
+    <path d="M205 40 L215 40 L210 30Z" fill="#3a1210" opacity="0.6"/>
+    <path d="M252 50 L260 50 L256 42Z" fill="#3a1210" opacity="0.6"/>
+    <path d="M162 62 Q160 90 164 118" stroke="#3a1210" stroke-width="1" fill="none" opacity="0.5"/>
+    <path d="M252 62 Q250 90 254 118" stroke="#3a1210" stroke-width="1" fill="none" opacity="0.5"/>
+    <ellipse cx="250" cy="130" rx="220" ry="16" fill="#5c1a15" opacity="0.35"/>
+    <ellipse cx="250" cy="146" rx="260" ry="10" fill="#000" opacity="0.45"/>
   </svg>`,
   jile:`<svg viewBox="0 0 500 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="skyJc" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#2a1030"/><stop offset="60%" stop-color="#150a1c"/><stop offset="100%" stop-color="#0c0810"/>
-    </linearGradient></defs>
+    <defs>
+      <linearGradient id="skyJc" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#3a1240"/><stop offset="55%" stop-color="#1c0d26"/><stop offset="100%" stop-color="#0c0810"/>
+      </linearGradient>
+      <radialGradient id="glowJc" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#5eab88"/><stop offset="100%" stop-color="#5eab88" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
     <rect width="500" height="150" fill="url(#skyJc)"/>
-    <path d="M0 115 L50 70 L100 112 L150 60 L210 110 L270 75 L330 114 L390 65 L440 110 L500 80 L500 150 L0 150Z" fill="#1a0f22" opacity="0.9"/>
-    <ellipse cx="100" cy="130" rx="220" ry="18" fill="#3f7d63" opacity="0.18"/>
-    <circle cx="150" cy="55" r="3" fill="#5eab88" opacity="0.7"/>
-    <circle cx="330" cy="70" r="2.2" fill="#5eab88" opacity="0.6"/>
-    <circle cx="420" cy="90" r="2.6" fill="#8a6d9b" opacity="0.6"/>
+    <path d="M0 105 L45 65 L95 100 L145 55 L205 98 L265 68 L325 102 L385 58 L435 98 L500 72 L500 150 L0 150 Z" fill="#241130" opacity="0.6"/>
+    <path d="M0 118 L50 72 L100 114 L150 62 L210 112 L270 78 L330 116 L390 68 L440 112 L500 82 L500 150 L0 150Z" fill="#1a0f22"/>
+    <ellipse cx="100" cy="132" rx="240" ry="20" fill="#3f7d63" opacity="0.22"/>
+    <ellipse cx="380" cy="128" rx="150" ry="14" fill="#8a6d9b" opacity="0.16"/>
+    <circle cx="150" cy="55" r="14" fill="url(#glowJc)"/>
+    <circle cx="150" cy="55" r="3" fill="#8fe0b8" opacity="0.9"/>
+    <circle cx="330" cy="70" r="10" fill="url(#glowJc)"/>
+    <circle cx="330" cy="70" r="2.2" fill="#8fe0b8" opacity="0.8"/>
+    <circle cx="420" cy="90" r="10" fill="#8a6d9b" opacity="0.2"/>
+    <circle cx="420" cy="90" r="2.6" fill="#c9a8e0" opacity="0.8"/>
+    <circle cx="60" cy="100" r="1.6" fill="#8fe0b8" opacity="0.7"/>
+    <circle cx="260" cy="118" r="1.4" fill="#8fe0b8" opacity="0.6"/>
+    <ellipse cx="250" cy="146" rx="260" ry="10" fill="#000" opacity="0.4"/>
   </svg>`,
 };
 
@@ -292,8 +342,8 @@ function renderStage(){
 }
 
 function renderNavList(){
-  const tabColors = {overview:"#d4af37", internal:"#5eab88", martial:"#d1564c", equip:"#a78bd6", map:"#4dd0c8", quest:"#4a86c0"};
-  const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務"};
+  const tabColors = {overview:"#d4af37", internal:"#5eab88", martial:"#d1564c", equip:"#a78bd6", map:"#4dd0c8", quest:"#4a86c0", codex:"#f3a03c"};
+  const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務", codex:"圖鑑"};
   const badges = {
     overview: "",
     internal: `第${getInternalTier(S.activeInternal)+1}層`,
@@ -301,8 +351,9 @@ function renderNavList(){
     equip: `${Object.values(S.equipment).filter(Boolean).length}/${SLOT_LIST.length}`,
     map: locationName(),
     quest: S.quest ? (S.quest.killsDone>=S.quest.killsNeeded ? "可回報" : `${S.quest.killsDone}/${S.quest.killsNeeded}`) : "",
+    codex: "",
   };
-  const items = ["overview","internal","martial","equip","map","quest"].map(t=>{
+  const items = ["overview","internal","martial","equip","map","quest","codex"].map(t=>{
     const c = tabColors[t];
     const active = S.tab===t;
     const badge = badges[t];
@@ -386,6 +437,7 @@ function renderTab(){
   if(S.tab==="equip") return renderEquip();
   if(S.tab==="map") return renderMap();
   if(S.tab==="quest") return renderQuest();
+  if(S.tab==="codex") return renderCodex();
 }
 
 function sectMechanicStatus(){
@@ -786,6 +838,73 @@ function renderMap(){
     </div>`;
   }).join("");
   return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">魔教勢力範圍分布，等級加成越高代表敵人越強、掉落也越好。</div>` + townCard + zoneCards;
+}
+
+const CODEX_EFFECT_LABEL = {healHp:"恢復氣血", healMp:"恢復內力", healFull:"氣血內力全滿", buffAtk:"暫時提升外功／內功威力"};
+
+function renderCodex(){
+  const subTabs = `
+    <div class="wxg-subtabs">
+      <div class="wxg-subtab ${S.codexSubTab==='slots'?'active':''}" data-codexsub="slots">部位加成</div>
+      <div class="wxg-subtab ${S.codexSubTab==='tiers'?'active':''}" data-codexsub="tiers">裝備品級</div>
+      <div class="wxg-subtab ${S.codexSubTab==='items'?'active':''}" data-codexsub="items">藥品道具</div>
+    </div>`;
+
+  if(S.codexSubTab==="tiers"){
+    const rows = TIER_LIST.map(t=>{
+      const awakenTxt = t.key==="jade" ? "依品級而定（一～七品，對應開光欄位 1～7）" : `${t.awakenSlots} 欄`;
+      return `<div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot" style="background:${t.color}; box-shadow:0 0 5px ${t.color};"></span><h3 style="color:${t.color};">${t.name}裝</h3></div>
+        <div class="wxg-row"><span>屬性倍率</span><b>x${t.mult.toFixed(2)}</b></div>
+        <div class="wxg-row"><span>開光欄位</span><b>${awakenTxt}</b></div>
+      </div>`;
+    }).join("");
+    return subTabs + `
+      <div class="wxg-hint" style="margin-bottom:8px;">裝備品級由低到高共六階，品級越高基礎加成與可開光欄位越多。</div>
+      ${rows}
+      <div class="wxg-hint">取得方式：狩獵各地魔教勢力，擊殺後約有 12% 機率掉落裝備，品級隨機；前往等級加成較高的狩獵區，掉落高品級裝備的機率會提升。</div>
+    `;
+  }
+
+  if(S.codexSubTab==="items"){
+    const dropPool = CONSUMABLES.slice(0, CONSUMABLES.length-1); // 與 onKill() 掉落機率池一致
+    const rows = CONSUMABLES.map(c=>{
+      const canDrop = dropPool.includes(c);
+      const valueTxt = c.effect==="buffAtk" ? `威力 +${Math.round(c.value*100)}%，持續 ${c.duration} 次交手`
+        : c.effect==="healFull" ? "氣血、內力當場全滿"
+        : `恢復上限的 ${Math.round(c.value*100)}%`;
+      return `<div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>${c.name}</h3><span class="wxg-tag gold">${CODEX_EFFECT_LABEL[c.effect]||c.effect}</span></div>
+        <div class="wxg-row"><span>效果</span><b>${valueTxt}</b></div>
+        <div class="wxg-hint">${c.desc}</div>
+        <div class="wxg-hint">取得方式：金凌城「回春堂」購買（${c.price} 兩）${canDrop?'，戰鬥擊殺也有機率掉落':'，目前僅能用金錢購買，不會從戰鬥掉落'}</div>
+      </div>`;
+    }).join("");
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">藥品與丹藥可在背包內直接使用，也能在「自動回復設定」中指定門檻自動服用。</div>` + rows;
+  }
+
+  // slots
+  const weaponRows = WEAPON_SLOTS.map(slot=>{
+    const leans = WEAPON_SLOT_LEAN[slot].map(k=>`<span style="color:${PRIMARY_COLORS[k]};">${k}</span>`).join('、');
+    return `<div class="wxg-row"><span>${slot}</span><b>${leans}</b></div>`;
+  }).join("");
+  const armorRows = ARMOR_SLOTS.map(slot=>{
+    const leans = ARMOR_SLOT_LEAN[slot].map(k=>`<span style="color:${PRIMARY_COLORS[k]};">${k}</span>`).join('、');
+    return `<div class="wxg-row"><span>${slot}</span><b>${leans}</b></div>`;
+  }).join("");
+  return subTabs + `
+    <div class="wxg-panel">
+      <div class="wxg-panel-head martial"><span class="dot"></span><h3>武器部位</h3></div>
+      ${weaponRows}
+      <div class="wxg-hint">武器類部位主要加成近身／遠程威力方向，門派限定的兵刃種類（拳掌／劍法／棍法／暗器／刀法）也由此決定。</div>
+    </div>
+    <div class="wxg-panel">
+      <div class="wxg-panel-head"><span class="dot"></span><h3>防具部位</h3></div>
+      ${armorRows}
+      <div class="wxg-hint">防具部位主要提升五大主屬性；兩個戒指部位則可隨機加成任一屬性。</div>
+    </div>
+    <div class="wxg-hint">所有部位皆會隨機生成「木／銅／鐵／銀／金／玉」品級，詳見「裝備品級」頁籤。取得方式：狩獵各地魔教勢力，擊殺後有機率掉落。</div>
+  `;
 }
 
 function renderSectPick(){

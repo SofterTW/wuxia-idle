@@ -123,6 +123,7 @@ function bindGlobal(){
     render();
   });
   document.querySelectorAll('[data-equipsub]').forEach(el=> el.onclick=()=>{ S.equipSubTab = el.dataset.equipsub; render(); });
+  document.querySelectorAll('[data-codexsub]').forEach(el=> el.onclick=()=>{ S.codexSubTab = el.dataset.codexsub; render(); });
   document.querySelectorAll('[data-mapsub]').forEach(el=> el.onclick=()=>{ S.mapSubTab = el.dataset.mapsub; render(); });
   document.querySelectorAll('[data-gotown]').forEach(el=> el.onclick=()=>{
     S.location="jinling"; S.monster=null; addLog(`你動身返回金凌城休整。`, 'system'); render();
