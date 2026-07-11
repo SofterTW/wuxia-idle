@@ -196,12 +196,7 @@ function onKill(){
     addConsumable(c.id, 1);
     addLog(`獲得藥品掉落：${c.name}`, 'loot');
   }
-  // 絕世裝備掉落（極樂谷擊殺首領限定）
-  if(S.monster.isBoss && S.monster.zone==="jile" && Math.random() < 0.02){
-    const u = UNIQUE_EQUIPMENT[Math.floor(Math.random()*UNIQUE_EQUIPMENT.length)];
-    S.inventory.push(instantiateUniqueEquipment(u));
-    addLog(`【奇遇】擊殺首領時意外獲得絕世裝備：「${u.name}」！`, 'loot');
-  }
+  // 絕世裝備目前預設無法從戰鬥取得，供奉於各門派大殿（見圖鑑／門派拜訪頁），留給日後開放的玩法。
   // 裝備掉落
   if(Math.random() < 0.12){
     const slot = SLOT_LIST[Math.floor(Math.random()*SLOT_LIST.length)];

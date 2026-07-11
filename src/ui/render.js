@@ -801,6 +801,15 @@ function renderMap(){
         <div class="wxg-row"><span>門派貢獻度</span><b>${S.sectContribution}</b></div>
         <div class="wxg-hint">找${titles.rank}可用貢獻度晉升位階。</div>
       </div>` : "";
+    const relic = sectUniqueEquipment(key);
+    const owned = relic ? ownsUniqueEquipment(relic.id) : false;
+    const relicPanel = relic ? `
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot" style="background:#ff8a4a; box-shadow:0 0 5px #ff8a4a;"></span><h3 style="color:#ff8a4a;">門派大殿供奉</h3></div>
+        <div class="wxg-row"><span>${relic.name}</span><b style="color:${owned?'#5eab88':'#8a7d63'};">${owned?'現存於世':'目前不存在'}</b></div>
+        <div class="wxg-hint">${relic.desc}</div>
+        <div class="wxg-hint">${owned?'此件絕世裝備目前由你持有或已收入背包。':'大殿神龕空懸，尚未有人尋回此物——'+relic.obtain+'。'}</div>
+      </div>` : "";
     const regions = NPC_REGIONS.map(r=>`
       <div class="wxg-hint" style="color:var(--gold-lt); margin-top:12px; letter-spacing:1px;">${r.region}</div>
       <div class="wxg-slotgrid">
@@ -815,6 +824,7 @@ function renderMap(){
         <div class="wxg-panel-head"><span class="dot"></span><h3>${s.name}</h3>${isMine?'<span class="wxg-tag gold">本門</span>':''}<button class="wxg-btn small" data-leavesect="1" style="margin-left:auto;">返回列表</button></div>
         <div class="wxg-hint">限定兵刃：${s.weapon}　門派機制：${s.passive}</div>
       </div>
+      ${relicPanel}
       ${rankPanel}
       ${regions}
     `;
