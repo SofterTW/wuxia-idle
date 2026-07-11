@@ -10,6 +10,10 @@ mkdir -p dist
 JS_FILES=(
   src/data/sects.js
   src/assets/figures.js
+  src/data/weapon.js
+  src/data/armor.js
+  src/data/inner-power.js
+  src/data/martial-techniques.js
   src/data/tables.js
   src/game/helpers.js
   src/game/equipment-tiers.js

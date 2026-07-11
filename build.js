@@ -10,6 +10,10 @@ const OUT = path.join(__dirname, "dist", process.argv[2] || "wuxia_idle.html");
 const JS_FILES = [
   "data/sects.js",
   "assets/figures.js",
+  "data/weapon.js",
+  "data/armor.js",
+  "data/inner-power.js",
+  "data/martial-techniques.js",
   "data/tables.js",
   "game/helpers.js",
   "game/equipment-tiers.js",
