@@ -242,7 +242,7 @@ function pillbar(tag, tagCls, cur, max, fillCls, flashCls){
 }
 
 function renderStage(){
-  const sectIcon = FIGHTER_FIGURES[S.sectKey];
+  const sectIcon = portraitImgHtml(SECT_PORTRAIT[S.sectKey]);
   const zoneKey = zoneBgClass();
   const sceneSvg = zoneKey==="jinling"
     ? `<div class="wxg-scene bg-photo" style="background-image:url('${JINLING_BG_IMG}')"></div>`
@@ -268,13 +268,13 @@ function renderStage(){
         <div class="wxg-stage-hint">氣血、內力自動恢復中 · 前往「地圖」選擇狩獵區才能繼續戰鬥</div>
       </div>
       <div class="wxg-fighter">
-        <div class="wxg-portrait-wrap"><div class="wxg-portrait big enemy" style="opacity:.25;">${MONSTER_FIGURE}</div></div>
+        <div class="wxg-portrait-wrap"><div class="wxg-portrait big enemy" style="opacity:.25;">${portraitImgHtml(MONSTER_PORTRAIT)}</div></div>
         <div class="wxg-fname" style="color:#8a7d63;">（尚無目標）</div>
       </div>
     </div>`;
   }
   const m = S.monster;
-  const monsterIcon = m && m.isBoss ? BOSS_FIGURE : MONSTER_FIGURE;
+  const monsterIcon = portraitImgHtml(m && m.isBoss ? BOSS_PORTRAIT : MONSTER_PORTRAIT);
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
   const stageShake = (S.hitEnemyCrit)?' wxg-stage-shake':'';
   const playerHitCls = S.hitPlayer ? ' hit-shake hit-flash' : '';
@@ -699,16 +699,17 @@ function renderMap(){
     </div>`;
 
   if(S.mapSubTab==="town"){
-    const inTown = S.location==="jinling";
+    const inTown = S.location==="jinling" && !S.visitingSect;
+    const awayAtSect = S.location==="jinling" && S.visitingSect;
     const travelCard = `<div class="wxg-panel ${inTown?'active-main':''}">
       <div class="wxg-panel-head"><span class="dot"></span><h3>金凌城城門</h3>${inTown?'<span class="wxg-tag gold">已抵達</span>':''}</div>
-      <div class="wxg-hint">${inTown?'你人在城中，可自由與各家商戶交易。':'你目前在外地，需先動身前往金凌城，才能與城內商家交易。'}</div>
-      ${!inTown?`<button class="wxg-btn gold small" data-gotown="1" style="margin-top:8px;">前往金凌城</button>`:''}
+      <div class="wxg-hint">${inTown?'你人在城中，可自由與各家商戶交易。':awayAtSect?`你人正在「${SECTS[S.visitingSect].name}」拜訪，分身乏術，無法同時在金凌城交易——先從門派頁面「返回列表」離開才行。`:'你目前在外地，需先動身前往金凌城，才能與城內商家交易。'}</div>
+      ${!inTown && !awayAtSect?`<button class="wxg-btn gold small" data-gotown="1" style="margin-top:8px;">前往金凌城</button>`:''}
     </div>`;
     const npcs = TOWN_NPCS.map(n=>{
       let extra = "";
       if(!inTown){
-        extra = `<div class="wxg-hint" style="margin-top:6px; color:#8a7d63;">（需先前往金凌城才能交易）</div>`;
+        extra = `<div class="wxg-hint" style="margin-top:6px; color:#8a7d63;">（${awayAtSect?'你正在拜訪門派，分身乏術':'需先前往金凌城才能交易'}）</div>`;
       } else if(n.action==="sell"){
         const sellable = S.inventory.map((it,idx)=>({it,idx})).filter(x=>x.it.kind==="equipment");
         extra = sellable.length>0 ? `
@@ -802,7 +803,14 @@ function renderMap(){
         </div>`).join("")}
       </div>
     `).join("");
-    return subTabs + `
+    const bg = SECT_BG[key];
+    const banner = `
+      <div class="wxg-sect-banner">
+        <div class="wxg-sect-banner-bg" style="background-image:url('${bg.src}'); filter:${bg.filter};"></div>
+        <div class="wxg-sect-banner-overlay"></div>
+        <div class="wxg-sect-banner-title">${s.name}</div>
+      </div>`;
+    return subTabs + banner + `
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>${s.name}</h3>${isMine?'<span class="wxg-tag gold">本門</span>':''}<button class="wxg-btn small" data-leavesect="1" style="margin-left:auto;">返回列表</button></div>
         <div class="wxg-hint">限定兵刃：${s.weapon}　門派機制：${s.passive}</div>

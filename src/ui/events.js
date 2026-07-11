@@ -95,6 +95,7 @@ function bindGlobal(){
   document.querySelectorAll('[data-useconsumable]').forEach(el=> el.onclick=()=> useConsumable(parseInt(el.dataset.useconsumable)));
   document.querySelectorAll('[data-usemanual]').forEach(el=> el.onclick=()=> useManual(parseInt(el.dataset.usemanual)));
   document.querySelectorAll('[data-forgeitem]').forEach(el=> el.onclick=()=>{
+    if(S.location!=="jinling" || S.visitingSect) return;
     const ref = el.dataset.forgeitem;
     let item = null;
     if(ref.startsWith('eq:')) item = S.equipment[ref.slice(3)];
@@ -102,6 +103,7 @@ function bindGlobal(){
     performAwaken(item);
   });
   document.querySelectorAll('[data-buyitem]').forEach(el=> el.onclick=()=>{
+    if(S.location!=="jinling" || S.visitingSect) return;
     const c = findConsumable(el.dataset.buyitem);
     if(!c || S.gold<c.price) return;
     S.gold -= c.price;
@@ -142,6 +144,7 @@ function bindGlobal(){
     spawnMonster(); render();
   });
   document.querySelectorAll('[data-sellitem]').forEach(el=> el.onclick=()=>{
+    if(S.location!=="jinling" || S.visitingSect) return;
     const idx = parseInt(el.dataset.sellitem);
     const item = S.inventory[idx];
     if(!item) return;
