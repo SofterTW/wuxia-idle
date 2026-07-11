@@ -22,6 +22,7 @@ function render(){
     ${S.pickerSlot?renderPicker():""}
     ${S.dialogueNpc?renderNpcDialogue():""}
     ${S.warningModal?renderWarningModal():""}
+    ${S.monsterInfoOpen?renderMonsterInfoModal():""}
   `;
   const newLogEl = document.getElementById('wxgLogScroll');
   if(newLogEl && prevScrollTop>4) newLogEl.scrollTop = prevScrollTop;
@@ -76,6 +77,34 @@ function renderWarningModal(){
       <div class="wxg-panel-head" style="border-bottom-color:var(--crimson);"><span class="dot" style="background:var(--crimson);"></span><h3 style="color:#ff8a7a;">⚠ 自動購買警告</h3></div>
       <div class="wxg-hint" style="margin:10px 0; line-height:1.8; color:var(--ink-text); font-size:12.5px;">${S.warningModal}</div>
       <button class="wxg-btn crimson small" data-closewarning="1">知道了</button>
+    </div>
+  </div>`;
+}
+
+function renderMonsterInfoModal(){
+  const m = S.monster;
+  if(!m) return "";
+  const statusRows = [];
+  if(m.poisonStacks>0) statusRows.push(`<div class="wxg-row"><span>中毒</span><b style="font-weight:400;">${m.poisonStacks} 層（每回合 ${m.poisonStacks*4} 傷害）</b></div>`);
+  if(m.bleedStacks>0) statusRows.push(`<div class="wxg-row"><span>流血</span><b style="font-weight:400;">${m.bleedStacks} 層（每回合 ${m.bleedStacks*3} 傷害）</b></div>`);
+  if(m.stunned) statusRows.push(`<div class="wxg-row"><span>暈眩</span><b style="font-weight:400;">下回合無法行動</b></div>`);
+  if(m.staggerTicks>0) statusRows.push(`<div class="wxg-row"><span>擊退</span><b style="font-weight:400;">攻擊力減半，剩 ${m.staggerTicks} 回合</b></div>`);
+  if(m.defReduceTicks>0) statusRows.push(`<div class="wxg-row"><span>破防</span><b style="font-weight:400;">防禦力降低，剩 ${m.defReduceTicks} 回合</b></div>`);
+  (m.statusEffects||[]).forEach(e=>{
+    if(e.kind==="dot_debuff"){
+      statusRows.push(`<div class="wxg-row"><span>${e.element}屬性中毒／灼傷</span><b style="font-weight:400;">每回合 ${e.dmgPerTick} 傷害${e.debuffValue?`，${e.debuffStat}降低 ${Math.round(e.debuffValue*100)}%`:''}，剩 ${e.remainingTicks} 回合</b></div>`);
+    }
+  });
+  return `
+  <div class="wxg-modal-overlay" data-closemonsterinfo="1">
+    <div class="wxg-modal" data-stop="1">
+      <div class="wxg-panel-head"><span class="dot"></span><h3>${m.name}</h3>${m.isBoss?`<span class="wxg-tag crimson" style="margin-left:auto;">首領</span>`:''}</div>
+      <div class="wxg-row"><span>等級</span><b>Lv.${m.level}</b></div>
+      <div class="wxg-row"><span>氣血</span><b>${Math.round(m.hp)} / ${m.hpMax}</b></div>
+      <div class="wxg-row"><span>攻擊力</span><b>${m.atk}</b></div>
+      <div class="wxg-row"><span>防禦力</span><b>${m.def}</b></div>
+      ${statusRows.length>0?`<div class="wxg-hint" style="margin:8px 0 2px;">目前異常狀態</div>${statusRows.join("")}`:`<div class="wxg-hint" style="margin-top:8px;">目前沒有中毒、流血等異常狀態。</div>`}
+      <button class="wxg-btn small" style="margin-top:10px;" data-closemonsterinfo="1">關閉</button>
     </div>
   </div>`;
 }
@@ -317,13 +346,14 @@ function renderStage(){
       ${S.stageEffects && S.stageEffects.length>0 ? S.stageEffects.map((t,i)=>`<div class="wxg-effect-banner" style="animation-delay:${i*0.15}s;">${t}</div>`).join("") : ""}
     </div>
     <div class="wxg-fighter">
-      <div class="wxg-portrait-wrap">
+      <div class="wxg-portrait-wrap"${m?` data-openmonsterinfo="1" style="cursor:pointer;" title="點擊查看敵人屬性"`:''}>
         ${S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
         <div class="wxg-portrait big enemy${enemyHitCls}">${monsterIcon}</div>
         <div class="wxg-ground-shadow"></div>
       </div>
       <div class="wxg-fname">${m?m.name:"—"}</div>
       <div class="wxg-fsub">Lv.${m?m.level:0}</div>
+      ${m?`<div class="wxg-stage-hint" style="font-size:10px; opacity:.75;">👆 點擊頭像查看屬性</div>`:''}
       <div class="wxg-gauge-wrap">
         ${pillbar('氣','en',m?m.hp:0,m?m.hpMax:1,'en',S.hitEnemy?'gauge-flash':'')}
       </div>

@@ -23,6 +23,7 @@ function patchLoadedSave(){
   if(S.statusEffects===undefined) S.statusEffects = [];
   if(S.monster && S.monster.statusEffects===undefined) S.monster.statusEffects = [];
   if(S.triggerFlash===undefined) S.triggerFlash = {};
+  if(S.monsterInfoOpen===undefined) S.monsterInfoOpen = false;
   if(S.codexInternalSect===undefined) S.codexInternalSect = null;
   if(S.codexInternalSkillId===undefined) S.codexInternalSkillId = null;
   if(S.changelogPage===undefined) S.changelogPage = 0;

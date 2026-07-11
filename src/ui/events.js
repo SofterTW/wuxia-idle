@@ -206,6 +206,9 @@ function bindGlobal(){
     S.pickerSnapshot = S.inventory.filter(it=>it.slot===slot);
     render();
   });
+  document.querySelectorAll('[data-openmonsterinfo]').forEach(el=> el.onclick=()=>{ S.monsterInfoOpen = true; render(); });
+  document.querySelectorAll('[data-closemonsterinfo]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.monsterInfoOpen=false; render(); });
+  document.querySelectorAll('.wxg-modal button[data-closemonsterinfo]').forEach(el=> el.onclick=()=>{ S.monsterInfoOpen=false; render(); });
   document.querySelectorAll('[data-closewarning]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.warningModal=null; S.warningCooldown=20; render(); });
   document.querySelectorAll('.wxg-modal button[data-closewarning]').forEach(el=> el.onclick=()=>{ S.warningModal=null; S.warningCooldown=20; render(); });
   document.querySelectorAll('[data-closepicker]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.pickerSlot=null; S.pickerSnapshot=[]; render(); });
