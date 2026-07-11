@@ -1,7 +1,8 @@
 function equippedMoveList(){ return S.martialSlots.filter(id=>id && S.knownMartial[id]); }
 
 function combatTick(){
-  if(S.location==="jinling"){
+  if(S.location==="jinling" || S.visitingSect){
+    // 拜訪門派中視同在城裡休整，不會有戰鬥發生（一個人不能同時在門派裡又在外地打鬥）。
     recalc(false);
     if(S.warningCooldown>0) S.warningCooldown--;
     S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.5)));
