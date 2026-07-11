@@ -3,6 +3,13 @@
 // date 格式為 "YYYY/MM/DD HH:MM"（含更新時間，不是只有日期）。
 const CHANGELOG = [
   {
+    version: "v42",
+    date: "2026/07/11 21:00",
+    changes: [
+      "（開發用，玩家畫面無變化）新增載入順序的單一設定檔 src/manifest.json，避免 index.html／build.sh／build.js 三處手動同步順序不一致；本機開發環境會在角落顯示除錯用資料面板",
+    ],
+  },
+  {
     version: "v41",
     date: "2026/07/11 20:15",
     changes: [
