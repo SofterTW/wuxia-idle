@@ -364,18 +364,46 @@ function renderNavList(){
 
 function renderSide(){
   const exp = S.sideExpanded;
-  const buffs = [];
+  const flash = S.triggerFlash || {};
+  const rows = [];
+
+  // 目前生效中的倒數計時效果（培元丹、內功特效觸發後的持續狀態）
   if(S.buffAtkTicks>0){
-    buffs.push(`<div class="wxg-row effect-flash"><span>培元丹（威力+${Math.round(S.buffAtk*100)}%）</span><b>${S.buffAtkTicks} 回合</b></div>`);
+    rows.push(`<div class="wxg-row effect-flash"><span>培元丹（威力+${Math.round(S.buffAtk*100)}%）</span><b>${S.buffAtkTicks} 回合</b></div>`);
   }
   (S.statusEffects||[]).forEach(e=>{
     if(e.kind==="buff"){
-      buffs.push(`<div class="wxg-row effect-flash"><span>${e.stat}提升 +${Math.round(e.value*100)}%</span><b>${e.remainingTicks} 回合</b></div>`);
+      rows.push(`<div class="wxg-row effect-flash"><span>${e.stat}提升 +${Math.round(e.value*100)}%</span><b>${e.remainingTicks} 回合</b></div>`);
     } else if(e.kind==="regen"){
-      buffs.push(`<div class="wxg-row effect-flash"><span>逍遙（內力回復中${e.atkBuff?`，威力+${Math.round(e.atkBuff*100)}%`:''}）</span><b>${e.remainingTicks} 回合</b></div>`);
+      rows.push(`<div class="wxg-row effect-flash"><span>逍遙（內力回復中${e.atkBuff?`，威力+${Math.round(e.atkBuff*100)}%`:''}）</span><b>${e.remainingTicks} 回合</b></div>`);
     }
   });
-  const buffBody = buffs.length>0 ? buffs.join("") : `<div class="wxg-hint">暫無生效中的狀態效果（技能／門派特效觸發時會顯示在戰鬥舞台上）</div>`;
+
+  // 門派天賦：常駐顯示，觸發時（金剛護體疊層／以柔克剛追擊／降龍霸體／淬毒／天魔解體等）閃一下
+  rows.push(`<div class="wxg-row ${flash.sectPassive?'effect-flash':''}"><span>門派天賦・${S.sect.passive}</span></div>`);
+
+  // 內功特效：主修心法本身的固定被動 + 目前層數對應的機率觸發特效，兩者都是「擁有」就常駐顯示
+  const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal);
+  if(activeTech){
+    if(activeTech.special){
+      rows.push(`<div class="wxg-row ${flash.internalSpecial?'effect-flash':''}"><span>內功・${activeTech.name}：${activeTech.special}</span></div>`);
+    }
+    const tier = getInternalTier(activeTech.id);
+    const layerDesc = activeTech.layers[tier] && activeTech.layers[tier].desc;
+    if(layerDesc){
+      rows.push(`<div class="wxg-row ${flash.internalLayer?'effect-flash':''}"><span>內功・${activeTech.name}（第${tier+1}層）：${layerDesc}</span></div>`);
+    }
+  }
+
+  // 武學特效：已裝備且練到第3層以上（解鎖附加效果）的招式，各自獨立一行
+  equippedMoveList().forEach(moveId=>{
+    const moveDef = Object.values(MARTIAL_POOL).flat().find(m=>m.id===moveId);
+    const known = S.knownMartial[moveId];
+    if(!moveDef || !known || known.layer<3) return;
+    rows.push(`<div class="wxg-row ${flash[`martial_${moveId}`]?'effect-flash':''}"><span>武學・${moveDef.name}：${moveDef.special}</span></div>`);
+  });
+
+  const buffBody = rows.length>0 ? rows.join("") : `<div class="wxg-hint">尚未擁有任何生效中的特效。</div>`;
   const buffPanel = `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="buffs" style="cursor:pointer;"><span class="dot"></span><h3>目前狀態效果</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.buffs?'▾':'▸'}</span></div>
     ${exp.buffs?buffBody:''}

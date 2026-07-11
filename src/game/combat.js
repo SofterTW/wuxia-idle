@@ -36,6 +36,7 @@ function combatTick(){
   const activeAff = activeTech.affinity;
   S.floatPlayer = ""; S.floatEnemy = ""; S.hitEnemy=false; S.hitEnemyCrit=false; S.hitPlayer=false;
   S.stageEffects = [];
+  S.triggerFlash = {}; // 側欄「目前狀態效果」清單用：這個 tick 哪些擁有的特效真的觸發了，觸發就閃一下
   const wasLowHp = S.hpMax && (S.hp/S.hpMax < (activeTech.id==="chihuo" ? activeTech.specialValue.hpThreshold : 0.5));
 
   if(moves.length>0){
@@ -64,6 +65,7 @@ function combatTick(){
     if(S.sectKey==="gaibang" && S.gaibangComboReady){
       dmg *= 1.6; S.gaibangComboReady=false; comboTag="（降龍霸體！）";
       S.stageEffects.push("降龍霸體・強化一擊！");
+      S.triggerFlash.sectPassive = true;
     }
     dmg = Math.max(1, Math.round(dmg*(isCrit?1.5:1)));
     S.monster.hp -= dmg;
@@ -80,18 +82,20 @@ function combatTick(){
       addLog(`以柔克剛：順勢內功追擊，追加 ${bonusDmg} 傷害`, 'skill');
       S.wudangProc = false;
       S.stageEffects.push("以柔克剛！");
+      S.triggerFlash.sectPassive = true;
     }
     // 唐門：淬毒，普攻附加中毒疊層（七絕經練成後額外多疊一層）
     if(S.sectKey==="tangmen" && S.monster.hp>0){
       const before = S.monster.poisonStacks||0;
       const gain = 1 + (activeTech.id==="qijue" ? activeTech.specialValue.extraPoisonStack : 0);
       S.monster.poisonStacks = Math.min(5, before+gain);
-      if(S.monster.poisonStacks>before) S.stageEffects.push(`淬毒！（${S.monster.poisonStacks}層）`);
+      if(S.monster.poisonStacks>before){ S.stageEffects.push(`淬毒！（${S.monster.poisonStacks}層）`); S.triggerFlash.sectPassive = true; }
     }
     // 明教：天魔解體，跨過門檻時觸發提示（僅在剛進入低血狀態當下顯示一次；赤火功會提高門檻）
     const tianmoThreshold = activeTech.id==="chihuo" ? activeTech.specialValue.hpThreshold : 0.5;
     if(S.sectKey==="mingjiao" && !wasLowHp && S.hpMax && S.hp/S.hpMax<tianmoThreshold){
       S.stageEffects.push("天魔解體！");
+      S.triggerFlash.sectPassive = true;
     }
     // 一內特效：攻擊觸發（七絕經／赤火功，對怪物附加持續傷害＋減益）
     if(S.monster.hp>0){
@@ -102,11 +106,13 @@ function combatTick(){
       if(invAtkEff){
         applyMonsterStatusEffect(invAtkEff);
         S.stageEffects.push(`${activeTech.name}・${invAtkEff.element==="陰"?"中毒":"灼傷"}！`);
+        S.triggerFlash.internalLayer = true;
       }
     }
     // 武學層數 3 以上的附加效果，機率觸發
     if(known.layer>=3 && S.monster.hp>0 && Math.random()<0.3){
       const special = moveDef.special;
+      let fired = true;
       if(special==="暈眩"){ S.monster.stunned=true; S.stageEffects.push(`${moveDef.name}・暈眩！`); }
       else if(special==="流血"){ S.monster.bleedStacks=Math.min(5,(S.monster.bleedStacks||0)+1); S.stageEffects.push(`${moveDef.name}・流血！`); }
       else if(special==="擊退"){ S.monster.staggerTicks=3; S.stageEffects.push(`${moveDef.name}・擊退！`); }
@@ -116,7 +122,8 @@ function combatTick(){
         // 改為突破上限再疊 2 層（最高 8 層），這樣練出來才會跟被動有實際差異。
         S.monster.poisonStacks=Math.min(8,(S.monster.poisonStacks||0)+2);
         S.stageEffects.push(`${moveDef.name}・劇毒！`);
-      }
+      } else { fired = false; }
+      if(fired) S.triggerFlash[`martial_${moveId}`] = true;
     }
   }
 
@@ -146,6 +153,7 @@ function combatTick(){
       S.floatPlayer = "攻擊被無敵化解";
       addLog(`降龍霸體護體，${S.monster.name} 的攻擊被完全化解`, 'skill');
       S.stageEffects.push("降龍霸體・無敵化解！");
+      S.triggerFlash.sectPassive = true;
     } else if(S.monster.stunned){
       S.monster.stunned = false;
       S.floatEnemy = "被擊暈，無法行動";
@@ -163,6 +171,7 @@ function combatTick(){
         S.floatPlayer = "禪定・免疫！";
         addLog(`${S.monster.name} 攻來，你禪定入靜，這一擊渾然不覺`, 'skill');
         S.stageEffects.push("禪定功・入定！");
+        S.triggerFlash.internalSpecial = true;
       } else {
         let atkMult = S.monster.staggerTicks>0 ? 0.5 : 1;
         const mitigateFlat = S.statusEffects.reduce((s,e)=> e.kind==="buff" ? s+(e.mitigateFlat||0) : s, 0);
@@ -171,6 +180,7 @@ function combatTick(){
         if(activeTech.id==="taiji_qi" && Math.random()<activeTech.specialValue.chance){
           mdmg = Math.max(1, Math.round(mdmg*(1-activeTech.specialValue.dmgReduce)));
           S.stageEffects.push("太極玄功・格擋！");
+          S.triggerFlash.internalSpecial = true;
         }
         // 九陽神功：氣血過低時受到的傷害降低
         if(activeTech.id==="jiuyang" && S.hpMax && S.hp/S.hpMax < activeTech.specialValue.hpThreshold){
@@ -193,6 +203,7 @@ function combatTick(){
             applyPlayerStatusEffect(invHitEff, activeTech);
             S.stageEffects.push(`${activeTech.name}・${invHitEff.kind==="regen"?"逍遙":invHitEff.stat+"提升"}！`);
           }
+          S.triggerFlash.internalLayer = true;
         }
         S.hp -= mdmg;
         S.floatPlayer = mdmg>0 ? `-${mdmg}` : "真氣護體化解！";
@@ -201,6 +212,7 @@ function combatTick(){
         if(S.sectKey==="shaolin"){
           S.shaolinBlockStack = Math.min(5, S.shaolinBlockStack+1);
           if(S.shaolinBlockStack===1 || S.shaolinBlockStack===5) S.stageEffects.push(`金剛護體（${S.shaolinBlockStack}層）！`);
+          S.triggerFlash.sectPassive = true;
         }
       }
     }
@@ -238,6 +250,7 @@ function onKill(){
       S.gaibangComboReady = true;
       S.gaibangInvuln = true;
       addLog(`降龍霸體！連擊蓄勢已滿，下一擊威力大增，並可無敵化解一次攻擊`, 'skill');
+      S.triggerFlash.sectPassive = true;
     }
   }
 
