@@ -1002,13 +1002,17 @@ function renderCodex(){
 
   if(S.codexSubTab==="internal"){
     const tierRows = TIER_DESC.map((desc,i)=>`<div class="wxg-row"><span>第 ${i+1} 層</span><b style="font-weight:400;">${desc.split('：')[1]||desc}</b></div>`).join("");
-    const poolRows = INTERNAL_POOL.map(t=>`<div class="wxg-panel">
-      <div class="wxg-panel-head internal"><span class="dot"></span><h3>${t.name}</h3><span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span><span class="wxg-tag" style="margin-left:auto;">${t.sect?`${SECTS[t.sect].name}限定`:'各門派通用'}</span></div>
+    const sectDisplayName = (key)=> SECTS[key] ? SECTS[key].name : (COMING_SOON_SECTS.find(s=>s.key===key)?.name || key);
+    const poolRows = INTERNAL_POOL.map(t=>{
+      const locked = t.sect && !SECTS[t.sect];
+      return `<div class="wxg-panel" style="${locked?'opacity:0.55;':''}">
+      <div class="wxg-panel-head internal"><span class="dot"></span><h3>${t.name}</h3><span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span><span class="wxg-tag" style="margin-left:auto;">${t.sect?`${sectDisplayName(t.sect)}限定${locked?'（門派未開放）':''}`:'各門派通用'}</span></div>
       <div class="wxg-hint">${t.desc}</div>
       <div class="wxg-row" style="margin-top:4px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
       ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>頂層主屬性加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
       ${t.special?`<div class="wxg-row"><span>獨特被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
-    </div>`).join("");
+    </div>`;
+    }).join("");
     return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>內功系統規則</h3></div>

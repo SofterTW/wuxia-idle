@@ -31,4 +31,54 @@ const INTERNAL_POOL = [
     bonusStat:{罡氣:30, 體魄:30}, powerMult:1.05, hpMult:1.05, mpMult:1.05, defMult:1.30,
     special:"受擊時有 15% 機率格擋，格擋傷害降低 50%", specialValue:{chance:0.15, dmgReduce:0.50},
     desc:"武當不傳之秘，以柔克剛、以靜制動，各項均衡，內功防禦尤其出色。"},
+
+  // 以下為各門派專屬的第一本心法（對應使用者提供的「一內」名稱），每門派限定。
+
+  {id:"chanding", name:"禪定功", sect:"shaolin", affinity:"太極",
+    bonusStat:{體魄:35, 內息:20}, powerMult:1.00, hpMult:1.20, mpMult:1.00, defMult:1.15,
+    special:"受擊時有 12% 機率入定，直接免疫該次傷害", specialValue:{chance:0.12},
+    desc:"少林入門必修，靜坐觀心、萬念歸一，受創之際偶有一瞬渾然不覺。"},
+
+  {id:"liangyi", name:"兩儀護心功", sect:"wudang", affinity:"太極",
+    bonusStat:{內息:25, 罡氣:25}, powerMult:1.00, hpMult:1.00, mpMult:1.15, defMult:1.15,
+    special:"內力低於 50% 時，內力回復速度提升一倍", specialValue:{mpThreshold:0.50, regenMult:2.00},
+    desc:"武當基礎護心心法，陰陽兩儀相生相濟，內力將盡時反而能加速回轉。"},
+
+  {id:"qizhuang", name:"氣樁功", sect:"emei", affinity:"陰柔",
+    bonusStat:{內息:35, 罡氣:20}, powerMult:1.10, hpMult:0.95, mpMult:1.10, defMult:1.00,
+    special:"內功爆擊率固定 +15", specialValue:{critBonus:15},
+    desc:"峨嵋樁功打底，氣沉丹田、意隨氣走，內功招式格外容易找準破綻。"},
+
+  {id:"xiaoyao", name:"逍遙訣", sect:"gaibang", affinity:"陽剛",
+    bonusStat:{體魄:30, 身法:25}, powerMult:1.00, hpMult:1.15, mpMult:1.00, defMult:1.00,
+    special:"氣血回復速度提升 50%", specialValue:{regenMult:1.50},
+    desc:"丐幫弟子四海為家、風餐露宿練出來的底子，氣血消耗總能很快補回來。"},
+
+  {id:"qijue", name:"七絕經", sect:"tangmen", affinity:"陰柔",
+    bonusStat:{身法:30, 罡氣:25}, powerMult:1.05, hpMult:0.95, mpMult:1.05, defMult:1.00,
+    special:"普攻額外疊加 1 層中毒", specialValue:{extraPoisonStack:1},
+    desc:"唐門不傳之秘，七步之內見血封喉，出手便已下毒，毒上加毒。"},
+
+  {id:"chihuo", name:"赤火功", sect:"mingjiao", affinity:"陽剛",
+    bonusStat:{內息:35, 臂力:20}, powerMult:1.10, hpMult:1.00, mpMult:0.95, defMult:1.00,
+    special:"天魔解體觸發門檻由氣血低於 50% 提高到 65%，更容易進入爆發狀態", specialValue:{hpThreshold:0.65},
+    desc:"明教聖火根本心法，體內赤焰時刻蠢動，稍有損傷便烈焰翻騰。"},
+
+  // 以下 3 門對應尚未開放的門派（君子堂／極樂／錦衣衛），資料先建好，
+  // 因為 COMING_SOON_SECTS 目前無法被選為 S.sectKey，這幾門心法暫時沒有玩家能實際使用。
+
+  {id:"tonghui", name:"通慧功", sect:"junzitang", affinity:"太極",
+    bonusStat:{內息:30, 罡氣:30}, powerMult:1.05, hpMult:1.00, mpMult:1.05, defMult:1.05,
+    special:"武學招式的熟練度獲取速度提升 50%", specialValue:{proficiencyMult:1.50},
+    desc:"君子堂看家心法，讀書明理、觸類旁通，練起招式來比旁人領悟得快。"},
+
+  {id:"shuangxiu", name:"雙修訣", sect:"jile_sect", affinity:"陰柔",
+    bonusStat:{內息:30, 體魄:25}, powerMult:1.05, hpMult:1.10, mpMult:1.10, defMult:0.95,
+    special:"氣血與內力回復速度同時提升 30%", specialValue:{regenMult:1.30},
+    desc:"極樂宗門獨有法門，陰陽調和、氣血雙補，恢復能力遠勝常人。"},
+
+  {id:"xuanyuan", name:"玄元經", sect:"jinyiwei", affinity:"陰柔",
+    bonusStat:{身法:35, 罡氣:20}, powerMult:1.00, hpMult:0.95, mpMult:1.00, defMult:1.05,
+    special:"閃避值提升 20%", specialValue:{dodgeMult:1.20},
+    desc:"錦衣衛秘傳輕身心法，行動如鬼似魅，尋常攻擊很難沾上邊。"},
 ];

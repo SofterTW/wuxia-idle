@@ -23,15 +23,17 @@ function recalc(fullRestore){
   ["臂力","身法","內息","罡氣","體魄"].forEach(k=> p[k] = (S.primary[k] + eq[k] + (awaken.primary[k]||0) + (techDef.bonusStat[k]||0)*tierProgress) * rankBonus);
   S.derivedPrimary = p;
   let atkBuff = 1 + (S.buffAtkTicks>0 ? S.buffAtk : 0);
-  // 明教：天魔解體，氣血低於50%時外功內功攻擊大幅提升
-  if(S.sectKey==="mingjiao" && S.hpMax>0 && S.hp/S.hpMax < 0.5) atkBuff *= 1.35;
+  // 明教：天魔解體，氣血過低時外功內功攻擊大幅提升（赤火功練成後門檻提高，更容易進入爆發狀態）
+  const tianmoThreshold = techDef.id==="chihuo" ? techDef.specialValue.hpThreshold : 0.5;
+  if(S.sectKey==="mingjiao" && S.hpMax>0 && S.hp/S.hpMax < tianmoThreshold) atkBuff *= 1.35;
   const asec = awaken.secondary;
   S.secondary = {
     近身威力: p.臂力*atkBuff + (asec.近身威力||0), 遠程威力: p.身法*atkBuff + (asec.遠程威力||0),
     內功威力: p.內息*(1+tierInfo.mult*techDef.powerMult)*atkBuff + (asec.內功威力||0),
     外功命中: p.身法 + (asec.外功命中||0), 內功命中: p.罡氣 + (asec.內功命中||0),
-    外功暴擊: p.臂力*0.5 + (asec.外功暴擊||0), 內功暴擊: p.罡氣*0.5 + (asec.內功暴擊||0),
-    閃避值: p.身法*0.6 + (asec.閃避值||0), 封勁: p.體魄*0.5 + (asec.封勁||0), 招架耐力上限: p.體魄*21,
+    外功暴擊: p.臂力*0.5 + (asec.外功暴擊||0), 內功暴擊: p.罡氣*0.5 + (techDef.id==="qizhuang"?techDef.specialValue.critBonus:0) + (asec.內功暴擊||0),
+    閃避值: (p.身法*0.6)*(techDef.id==="xuanyuan"?techDef.specialValue.dodgeMult:1) + (asec.閃避值||0),
+    封勁: p.體魄*0.5 + (asec.封勁||0), 招架耐力上限: p.體魄*21,
     外功防禦: p.體魄*0.8+p.臂力*0.2 + (S.sectKey==="shaolin"?S.shaolinBlockStack*3:0) + (asec.外功防禦||0),
     內功防禦: p.罡氣*0.2*techDef.defMult + (asec.內功防禦||0),
     破防: asec.破防||0,

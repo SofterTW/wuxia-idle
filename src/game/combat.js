@@ -1,12 +1,21 @@
 function equippedMoveList(){ return S.martialSlots.filter(id=>id && S.knownMartial[id]); }
 
+function regenMultFor(activeTech, kind){
+  // 兩儀護心功：內力低於門檻時加速回復；逍遙訣：氣血回復加速；雙修訣：氣血內力都加速
+  if(activeTech.id==="liangyi" && kind==="mp" && S.mpMax && S.mp/S.mpMax < activeTech.specialValue.mpThreshold) return activeTech.specialValue.regenMult;
+  if(activeTech.id==="xiaoyao" && kind==="hp") return activeTech.specialValue.regenMult;
+  if(activeTech.id==="shuangxiu") return activeTech.specialValue.regenMult;
+  return 1;
+}
+
 function combatTick(){
+  const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal);
   if(S.location==="jinling" || S.visitingSect){
     // 拜訪門派中視同在城裡休整，不會有戰鬥發生（一個人不能同時在門派裡又在外地打鬥）。
     recalc(false);
     if(S.warningCooldown>0) S.warningCooldown--;
-    S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.5)));
-    S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.3)+1));
+    S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.5*regenMultFor(activeTech,"hp"))));
+    S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.3*regenMultFor(activeTech,"mp")))+1);
     S.floatPlayer=""; S.floatEnemy=""; S.stageEffects=[];
     checkAutoHeal();
     return;
@@ -16,15 +25,14 @@ function combatTick(){
   if(S.buffAtkTicks>0) S.buffAtkTicks--;
   if(S.respecCooldown>0) S.respecCooldown--;
   if(S.warningCooldown>0) S.warningCooldown--;
-  S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.3)));
-  S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.2*(S.sectKey==="emei"?1.6:1)))+1);
+  S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.3*regenMultFor(activeTech,"hp"))));
+  S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.2*(S.sectKey==="emei"?1.6:1)*regenMultFor(activeTech,"mp")))+1);
   checkAutoHeal();
   const moves = equippedMoveList();
-  const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal);
   const activeAff = activeTech.affinity;
   S.floatPlayer = ""; S.floatEnemy = ""; S.hitEnemy=false; S.hitEnemyCrit=false; S.hitPlayer=false;
   S.stageEffects = [];
-  const wasLowHp = S.hpMax && (S.hp/S.hpMax < 0.5);
+  const wasLowHp = S.hpMax && (S.hp/S.hpMax < (activeTech.id==="chihuo" ? activeTech.specialValue.hpThreshold : 0.5));
 
   if(moves.length>0){
     const moveId = moves[S.tick % moves.length];
@@ -57,7 +65,8 @@ function combatTick(){
     S.floatEnemy = `-${dmg}${isCrit?"（爆擊）":""}${comboTag}`;
     S.hitEnemy = true; S.hitEnemyCrit = isCrit;
     addLog(`你以「${moveDef.name}」擊中${S.monster.name}，造成 ${dmg} 傷害${isCrit?"（爆擊！）":""}${comboTag}`, 'attack');
-    if(known.layer < 9) known.proficiency += 1;
+    // 君子堂：通慧功，招式熟練度獲取加快
+    if(known.layer < 9) known.proficiency += (activeTech.id==="tonghui" ? activeTech.specialValue.proficiencyMult : 1);
 
     // 武當：以柔克剛，剛才閃避成功則本次追加內功一擊
     if(S.sectKey==="wudang" && S.wudangProc){
@@ -67,14 +76,16 @@ function combatTick(){
       S.wudangProc = false;
       S.stageEffects.push("以柔克剛！");
     }
-    // 唐門：淬毒，普攻附加中毒疊層
+    // 唐門：淬毒，普攻附加中毒疊層（七絕經練成後額外多疊一層）
     if(S.sectKey==="tangmen" && S.monster.hp>0){
       const before = S.monster.poisonStacks||0;
-      S.monster.poisonStacks = Math.min(5, before+1);
+      const gain = 1 + (activeTech.id==="qijue" ? activeTech.specialValue.extraPoisonStack : 0);
+      S.monster.poisonStacks = Math.min(5, before+gain);
       if(S.monster.poisonStacks>before) S.stageEffects.push(`淬毒！（${S.monster.poisonStacks}層）`);
     }
-    // 明教：天魔解體，跨過50%門檻時觸發提示（僅在剛進入低血狀態當下顯示一次）
-    if(S.sectKey==="mingjiao" && !wasLowHp && S.hpMax && S.hp/S.hpMax<0.5){
+    // 明教：天魔解體，跨過門檻時觸發提示（僅在剛進入低血狀態當下顯示一次；赤火功會提高門檻）
+    const tianmoThreshold = activeTech.id==="chihuo" ? activeTech.specialValue.hpThreshold : 0.5;
+    if(S.sectKey==="mingjiao" && !wasLowHp && S.hpMax && S.hp/S.hpMax<tianmoThreshold){
       S.stageEffects.push("天魔解體！");
     }
     // 武學層數 3 以上的附加效果，機率觸發
@@ -122,6 +133,11 @@ function combatTick(){
         addLog(`${S.monster.name} 攻來，你身法一閃避開了`, 'dodge');
         if(S.sectKey==="wudang") S.wudangProc = true;
         if(S.sectKey==="shaolin") S.shaolinBlockStack = 0;
+      } else if(activeTech.id==="chanding" && Math.random()<activeTech.specialValue.chance){
+        // 禪定功：受擊時有機率入定，直接免疫該次傷害
+        S.floatPlayer = "禪定・免疫！";
+        addLog(`${S.monster.name} 攻來，你禪定入靜，這一擊渾然不覺`, 'skill');
+        S.stageEffects.push("禪定功・入定！");
       } else {
         let atkMult = S.monster.staggerTicks>0 ? 0.5 : 1;
         let mdmg = Math.max(1, Math.round(S.monster.atk*atkMult - S.secondary.外功防禦*0.3));
