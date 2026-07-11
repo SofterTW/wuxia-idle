@@ -4,6 +4,10 @@ function render(){
   recalc(false);
   const prevLogEl = document.getElementById('wxgLogScroll');
   const prevScrollTop = prevLogEl ? prevLogEl.scrollTop : 0;
+  const prevPickerModalEl = document.getElementById('wxgPickerModalScroll');
+  const prevPickerModalScroll = prevPickerModalEl ? prevPickerModalEl.scrollTop : 0;
+  const prevPickerListEl = document.getElementById('wxgPickerListScroll');
+  const prevPickerListScroll = prevPickerListEl ? prevPickerListEl.scrollTop : 0;
   root.innerHTML = `
     <div class="wxg-noise"></div>
     <div class="wxg-banner">
@@ -21,6 +25,10 @@ function render(){
   `;
   const newLogEl = document.getElementById('wxgLogScroll');
   if(newLogEl && prevScrollTop>4) newLogEl.scrollTop = prevScrollTop;
+  const newPickerModalEl = document.getElementById('wxgPickerModalScroll');
+  if(newPickerModalEl && prevPickerModalScroll>4) newPickerModalEl.scrollTop = prevPickerModalScroll;
+  const newPickerListEl = document.getElementById('wxgPickerListScroll');
+  if(newPickerListEl && prevPickerListScroll>4) newPickerListEl.scrollTop = prevPickerListScroll;
   bindGlobal();
 }
 
@@ -51,10 +59,10 @@ function renderPicker(){
 
   return `
   <div class="wxg-modal-overlay" data-closepicker="1">
-    <div class="wxg-modal" data-stop="1">
+    <div class="wxg-modal" data-stop="1" id="wxgPickerModalScroll">
       <div class="wxg-panel-head"><span class="dot"></span><h3>選擇「${slot}」裝備</h3></div>
       <div class="wxg-hint" style="margin-bottom:8px;">目前裝備：${cur?rarityNameHtml(cur):"（無）"}　${curBonus} ${cur&&cur.locked?'🔒':''}</div>
-      <div class="wxg-pickitem-list">${rows}</div>
+      <div class="wxg-pickitem-list" id="wxgPickerListScroll">${rows}</div>
       <button class="wxg-btn crimson small" data-closepicker="1" style="margin-top:10px;">關閉</button>
     </div>
   </div>`;
