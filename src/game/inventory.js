@@ -100,8 +100,16 @@ function useManual(idx){
 }
 
 function investQi(techId, amount){
-  const avail = Math.min(amount, S.qiPool); if(avail<=0) return;
-  S.qiPool -= avail; S.knownInternal[techId].invested += avail;
+  const known = S.knownInternal[techId];
+  const capReq = TIER_TABLE[MAX_OBTAINABLE_TIER-1].req;
+  const room = Math.max(0, capReq - known.invested); // 現有途徑練滿後就不能再投入，避免浪費修為
+  const avail = Math.min(amount, S.qiPool, room);
+  if(avail<=0){
+    if(room<=0) addLog(`「${INTERNAL_POOL.find(t=>t.id===techId).name}」已練滿目前可練到的層數，暫時無法再投入`, 'warn');
+    render();
+    return;
+  }
+  S.qiPool -= avail; known.invested += avail;
   addLog(`投入 ${avail} 點內功修為到「${INTERNAL_POOL.find(t=>t.id===techId).name}」`, 'system');
   recalc(false); render();
 }

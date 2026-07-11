@@ -1,3 +1,6 @@
+// 內功層數表：第 1～6 層是目前實際能透過投入修為練到的範圍（數值跟以前完全一樣，平衡不變）。
+// 第 7～36 層的資料已經先建好（之後會用在別的取得管道上），但目前還沒有辦法練到，
+// MAX_OBTAINABLE_TIER 就是用來擋住這件事的上限。
 const TIER_TABLE = [
   {req:0, mult:0, hpBonus:0, mpBonus:0},
   {req:500, mult:0.10, hpBonus:0, mpBonus:0.15},
@@ -6,6 +9,20 @@ const TIER_TABLE = [
   {req:25000, mult:0.45, hpBonus:0.20, mpBonus:0.30},
   {req:80000, mult:0.60, hpBonus:0.20, mpBonus:0.30},
 ];
+const MAX_OBTAINABLE_TIER = TIER_TABLE.length; // 目前 = 6
+
+(function extendTierTableTo36(){
+  let prev = TIER_TABLE[TIER_TABLE.length-1];
+  for(let layer=TIER_TABLE.length+1; layer<=36; layer++){
+    const req = Math.round(prev.req * 1.35);
+    const mult = Math.round((prev.mult + 0.03) * 100) / 100;
+    const hpBonus = Math.round((prev.hpBonus + 0.01) * 100) / 100;
+    const mpBonus = Math.round((prev.mpBonus + 0.01) * 100) / 100;
+    const tierRow = {req, mult, hpBonus, mpBonus};
+    TIER_TABLE.push(tierRow);
+    prev = tierRow;
+  }
+})();
 
 // 內功心法表：一橫排就是一門心法，參考《九陰真經 Online》的內功設計方式——
 // 除了「資質倍率」之外，每門心法還會：

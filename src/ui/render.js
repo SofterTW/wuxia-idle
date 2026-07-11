@@ -520,15 +520,18 @@ function renderInternal(){
       <div class="wxg-row" style="margin-top:6px;"><span>持有洗髓丹</span><b>${S.materials.洗髓丹}</b></div>
       <div class="wxg-row"><span>洗點冷卻</span><b>${S.respecCooldown>0?S.respecCooldown+' 次戰鬥':'可用'}</b></div>
     </div>
-    ${INTERNAL_POOL.map(t=>{
+    ${Object.keys(S.knownInternal).length===0?`<div class="wxg-panel"><div class="wxg-hint">尚未習得任何內功心法，擊殺 Boss 有機率掉落秘笈，於背包使用後習得。</div></div>`:''}
+    ${INTERNAL_POOL.filter(t=>S.knownInternal[t.id]).map(t=>{
       const known = S.knownInternal[t.id];
-      if(!known) return `<div class="wxg-panel" style="opacity:.4"><div class="wxg-panel-head internal"><span class="dot"></span><h3>未知心法</h3></div><div class="wxg-hint">擊殺 Boss 有機率習得</div></div>`;
+      const cap = MAX_OBTAINABLE_TIER - 1;
       const tier = getInternalTier(t.id);
       const tierInfo = TIER_TABLE[tier];
-      const nextReq = TIER_TABLE[Math.min(tier+1,5)].req;
+      const atCap = tier>=cap;
+      const nextReq = TIER_TABLE[Math.min(tier+1,cap)].req;
       const isMain = S.activeInternal===t.id;
       const expanded = !!S.internalExpanded[t.id];
       const tierList = TIER_DESC.map((desc,i)=>`<div class="wxg-row" style="${i===tier?'color:var(--gold-lt)':''}">${i===tier?'▶ ':'　'}${desc}</div>`).join("");
+      const capHint = atCap ? `<div class="wxg-hint" style="margin-top:6px; color:var(--gold-lt);">你的「${t.name}」目前只學到第 ${tier+1} 層，後面的第 ${cap+2}～36 層需要尋得更高深的心法傳承，目前尚無取得途徑，敬請期待日後版本開放。</div>` : '';
       return `
       <div class="wxg-panel ${isMain?'active-main':''}">
         <div class="wxg-panel-head internal" data-toggleint="${t.id}" style="cursor:pointer;">
@@ -542,10 +545,11 @@ function renderInternal(){
         <div class="wxg-row" style="margin-top:4px;"><span>資質</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
         ${t.special?`<div class="wxg-row"><span>被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
         ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>頂層加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
-        <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層</b></div>
-        <div class="wxg-row"><span>已投入</span><b>${known.invested} ${tier<5?`／需 ${nextReq}`:'（頂層）'}</b></div>
-        <div class="wxg-progress-wrap"><div class="wxg-progress jade" style="width:${tier<5?Math.min(100,(known.invested-TIER_TABLE[tier].req)/(nextReq-TIER_TABLE[tier].req)*100):100}%"></div></div>
+        <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層／共 36 層</b></div>
+        <div class="wxg-row"><span>已投入</span><b>${known.invested} ${!atCap?`／需 ${nextReq}`:'（現有途徑已練滿）'}</b></div>
+        <div class="wxg-progress-wrap"><div class="wxg-progress jade" style="width:${!atCap?Math.min(100,(known.invested-TIER_TABLE[tier].req)/(nextReq-TIER_TABLE[tier].req)*100):100}%"></div></div>
         <div class="wxg-hint" style="line-height:1.7; margin-top:6px;">${tierList}</div>
+        ${capHint}
         <div style="display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;">
           <button class="wxg-btn jade small" data-invest="${t.id}" data-amt="100">投入100</button>
           <button class="wxg-btn jade small" data-invest="${t.id}" data-amt="all">全投入</button>
@@ -1016,10 +1020,10 @@ function renderCodex(){
     return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>內功系統規則</h3></div>
-        <div class="wxg-hint">戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數，層數越高內力上限、內功威力等加成越多（六層境界的曲線由 TIER_TABLE 決定，每門心法一致）。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
+        <div class="wxg-hint">內功心法最高共 36 層，戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數，層數越高內力上限、內功威力等加成越多。目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
       </div>
       <div class="wxg-panel">
-        <div class="wxg-panel-head internal"><span class="dot"></span><h3>六層境界</h3></div>
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>目前可練境界（第 1～${MAX_OBTAINABLE_TIER} 層）</h3></div>
         ${tierRows}
       </div>
       <div class="wxg-hint" style="margin:10px 0 -2px;">每門心法有自己的「資質倍率」跟「頂層主屬性加成」（練到頂層才會拿到 100%），有些心法還帶有獨特被動效果，跟門派專屬機制同等級。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。</div>

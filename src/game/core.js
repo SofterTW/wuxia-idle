@@ -7,8 +7,9 @@ function getEquipTotal(){
 }
 function getInternalTier(techId){
   const inv = S.knownInternal[techId]?.invested || 0;
+  const cap = MAX_OBTAINABLE_TIER - 1; // 目前只有前 6 層能透過投入修為練到
   let tier = 0;
-  for(let i=TIER_TABLE.length-1;i>=0;i--){ if(inv >= TIER_TABLE[i].req){ tier=i; break; } }
+  for(let i=cap;i>=0;i--){ if(inv >= TIER_TABLE[i].req){ tier=i; break; } }
   return tier;
 }
 function recalc(fullRestore){
