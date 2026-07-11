@@ -20,22 +20,23 @@ function recalc(fullRestore){
   S.derivedPrimary = p;
   const tier = getInternalTier(S.activeInternal);
   const tierInfo = TIER_TABLE[tier];
+  const techDef = INTERNAL_POOL.find(t=>t.id===S.activeInternal) || INTERNAL_POOL[0];
   let atkBuff = 1 + (S.buffAtkTicks>0 ? S.buffAtk : 0);
   // 明教：天魔解體，氣血低於50%時外功內功攻擊大幅提升
   if(S.sectKey==="mingjiao" && S.hpMax>0 && S.hp/S.hpMax < 0.5) atkBuff *= 1.35;
   const asec = awaken.secondary;
   S.secondary = {
     近身威力: p.臂力*atkBuff + (asec.近身威力||0), 遠程威力: p.身法*atkBuff + (asec.遠程威力||0),
-    內功威力: p.內息*(1+tierInfo.mult)*atkBuff + (asec.內功威力||0),
+    內功威力: p.內息*(1+tierInfo.mult*techDef.powerMult)*atkBuff + (asec.內功威力||0),
     外功命中: p.身法 + (asec.外功命中||0), 內功命中: p.罡氣 + (asec.內功命中||0),
     外功暴擊: p.臂力*0.5 + (asec.外功暴擊||0), 內功暴擊: p.罡氣*0.5 + (asec.內功暴擊||0),
     閃避值: p.身法*0.6 + (asec.閃避值||0), 封勁: p.體魄*0.5 + (asec.封勁||0), 招架耐力上限: p.體魄*21,
     外功防禦: p.體魄*0.8+p.臂力*0.2 + (S.sectKey==="shaolin"?S.shaolinBlockStack*3:0) + (asec.外功防禦||0),
-    內功防禦: p.罡氣*0.2 + (asec.內功防禦||0),
+    內功防禦: p.罡氣*0.2*techDef.defMult + (asec.內功防禦||0),
     破防: asec.破防||0,
   };
-  S.hpMax = Math.round(p.臂力*2 + p.體魄*7 + tierInfo.hpBonus*p.體魄*7);
-  S.mpMax = Math.round(p.內息*4 + p.罡氣*1 + tierInfo.mpBonus*(p.內息*4));
+  S.hpMax = Math.round(p.臂力*2 + p.體魄*7 + tierInfo.hpBonus*techDef.hpMult*p.體魄*7);
+  S.mpMax = Math.round(p.內息*4 + p.罡氣*1 + tierInfo.mpBonus*techDef.mpMult*(p.內息*4));
   if(fullRestore){ S.hp=S.hpMax; S.mp=S.mpMax; } else { S.hp=Math.min(S.hp,S.hpMax); S.mp=Math.min(S.mp,S.mpMax); }
 }
 function affinityMultiplier(a,m){ if(a==="太極") return 1.16; if(a===m) return 1.20; if(m==="太極") return 1.16; return 1.0; }

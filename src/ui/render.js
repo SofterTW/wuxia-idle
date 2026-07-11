@@ -538,6 +538,8 @@ function renderInternal(){
           ${isMain?`<span class="wxg-tag gold" style="margin-left:auto;">主修中</span>`:`<button class="wxg-btn gold small" data-setmain="${t.id}" style="margin-left:auto;">使用</button>`}
         </div>
         ${expanded?`
+        <div class="wxg-hint">${t.desc}</div>
+        <div class="wxg-row" style="margin-top:4px;"><span>資質</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
         <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層</b></div>
         <div class="wxg-row"><span>已投入</span><b>${known.invested} ${tier<5?`／需 ${nextReq}`:'（頂層）'}</b></div>
         <div class="wxg-progress-wrap"><div class="wxg-progress jade" style="width:${tier<5?Math.min(100,(known.invested-TIER_TABLE[tier].req)/(nextReq-TIER_TABLE[tier].req)*100):100}%"></div></div>
@@ -994,21 +996,22 @@ function renderCodex(){
 
   if(S.codexSubTab==="internal"){
     const tierRows = TIER_DESC.map((desc,i)=>`<div class="wxg-row"><span>第 ${i+1} 層</span><b style="font-weight:400;">${desc.split('：')[1]||desc}</b></div>`).join("");
-    const poolRows = INTERNAL_POOL.map(t=>`<div class="wxg-row"><span>${t.name}</span><b style="font-weight:400;">${t.affinity}屬性${t.sect?`・${SECTS[t.sect].name}限定`:'・各門派通用'}</b></div>`).join("");
+    const poolRows = INTERNAL_POOL.map(t=>`<div class="wxg-panel">
+      <div class="wxg-panel-head internal"><span class="dot"></span><h3>${t.name}</h3><span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span><span class="wxg-tag" style="margin-left:auto;">${t.sect?`${SECTS[t.sect].name}限定`:'各門派通用'}</span></div>
+      <div class="wxg-hint">${t.desc}</div>
+      <div class="wxg-row" style="margin-top:4px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
+    </div>`).join("");
     return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>內功系統規則</h3></div>
-        <div class="wxg-hint">戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數，層數越高內力上限、內功威力等加成越多。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
+        <div class="wxg-hint">戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數，層數越高內力上限、內功威力等加成越多（六層境界的曲線由 TIER_TABLE 決定，每門心法一致）。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
       </div>
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>六層境界</h3></div>
         ${tierRows}
       </div>
-      <div class="wxg-panel">
-        <div class="wxg-panel-head internal"><span class="dot"></span><h3>心法列表</h3></div>
-        ${poolRows}
-        <div class="wxg-hint">「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。</div>
-      </div>
+      <div class="wxg-hint" style="margin:10px 0 -2px;">每門心法有自己的「資質倍率」，同樣練到頂層，資質越高效果越強。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。</div>
+      ${poolRows}
     `;
   }
 
