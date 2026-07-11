@@ -934,12 +934,21 @@ function renderCodex(){
     </div>`;
 
   if(S.codexSubTab==="changelog"){
-    const rows = CHANGELOG.map(v=>`
+    const perPage = 10;
+    const totalPages = Math.max(1, Math.ceil(CHANGELOG.length/perPage));
+    const page = Math.min(S.changelogPage||0, totalPages-1);
+    const pageItems = CHANGELOG.slice(page*perPage, page*perPage+perPage);
+    const rows = pageItems.map(v=>`
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>${v.version}</h3><span class="wxg-tag" style="margin-left:auto;">${v.date}</span></div>
-        <div class="wxg-hint" style="line-height:1.8;">${v.changes.map(c=>`・${c}`).join('<br>')}</div>
+        <div class="wxg-hint" style="line-height:1.8;">${v.changes.map(c=>`・${escapeHtml(c)}`).join('<br>')}</div>
       </div>`).join("");
-    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">每次更新的內容都會記錄在這裡，越新的版本排越前面。</div>` + rows;
+    const pager = `<div style="display:flex; align-items:center; justify-content:center; gap:10px; margin:12px 0 4px;">
+      <button class="wxg-btn small" data-changelogpage="prev" ${page<=0?'disabled':''}>◀ 上一頁</button>
+      <span style="color:var(--dim-text); font-size:12px;">第 ${page+1} / ${totalPages} 頁</span>
+      <button class="wxg-btn small" data-changelogpage="next" ${page>=totalPages-1?'disabled':''}>下一頁 ▶</button>
+    </div>`;
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">每次更新的內容都會記錄在這裡，越新的版本排越前面。共 ${CHANGELOG.length} 筆，每頁 ${perPage} 筆。</div>` + rows + pager;
   }
 
   if(S.codexSubTab==="guide"){
@@ -1026,33 +1035,101 @@ function renderCodex(){
   }
 
   if(S.codexSubTab==="internal"){
-    const tierExample = INTERNAL_POOL.find(t=>t.id==="liangyi");
-    const tierRows = Array.from({length:MAX_OBTAINABLE_TIER}, (_,i)=>i)
-      .map(i=>`<div class="wxg-row"><span>第 ${i+1} 層</span><b style="font-weight:400;">${internalLayerDesc(tierExample,i).replace(/^第\d+層：/,'')}</b></div>`).join("");
-    const sectDisplayName = (key)=> SECTS[key] ? SECTS[key].name : (COMING_SOON_SECTS.find(s=>s.key===key)?.name || key);
-    const poolRows = INTERNAL_POOL.map(t=>{
-      const locked = t.sect && !SECTS[t.sect];
-      return `<div class="wxg-panel" style="${locked?'opacity:0.55;':''}">
-      <div class="wxg-panel-head internal"><span class="dot"></span><h3>${t.name}</h3><span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span><span class="wxg-tag" style="margin-left:auto;">${t.sect?`${sectDisplayName(t.sect)}限定${locked?'（門派未開放）':''}`:'各門派通用'}</span></div>
-      <div class="wxg-hint">${t.desc}</div>
-      <div class="wxg-row" style="margin-top:4px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
-      ${Object.keys(t.layers[35].bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層主屬性加成</span><b style="font-weight:400;">${Object.entries(t.layers[35].bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
-      ${t.special?`<div class="wxg-row"><span>獨特被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
-      <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層／共 36 層</b></div>
-    </div>`;
-    }).join("");
+    const RANK_LABELS = ["一內","二內","三內","四內","五內","六內"];
+    const allSectEntries = [
+      ...Object.keys(SECTS).map(k=>({key:k, name:SECTS[k].name, locked:false})),
+      ...COMING_SOON_SECTS.map(s=>({key:s.key, name:s.name, locked:true})),
+    ];
+
+    // 第三層：單一心法的完整 1～36 層效果
+    if(S.codexInternalSkillId){
+      const skill = INTERNAL_POOL.find(t=>t.id===S.codexInternalSkillId);
+      if(skill){
+        const layerRows = Array.from({length:36}, (_,i)=>i).map(i=>{
+          const beyondCap = i>=MAX_OBTAINABLE_TIER;
+          return `<div class="wxg-row" style="${beyondCap?'opacity:0.5;':''}"><span>${internalLayerDesc(skill,i)}</span>${beyondCap?'<b style="font-weight:400; color:var(--dim-text); font-size:10px;">尚無取得途徑</b>':''}</div>`;
+        }).join("");
+        return subTabs + `
+          <div class="wxg-panel"><button class="wxg-btn small" data-codexinternalback="skill">◀ 返回「${sectDisplayNameFor(skill.sect)}」心法列表</button></div>
+          <div class="wxg-panel">
+            <div class="wxg-panel-head internal"><span class="dot"></span><h3>${skill.name}</h3><span class="wxg-tag ${skill.affinity==='太極'?'gold':'jade'}">${skill.affinity}</span></div>
+            <div class="wxg-hint">${skill.desc}</div>
+            <div class="wxg-row" style="margin-top:4px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${skill.powerMult.toFixed(2)}　氣血 x${skill.hpMult.toFixed(2)}　內力 x${skill.mpMult.toFixed(2)}　內功防禦 x${skill.defMult.toFixed(2)}</b></div>
+            ${skill.special?`<div class="wxg-row"><span>獨特被動</span><b style="font-weight:400; color:var(--gold-lt);">${skill.special}</b></div>`:''}
+            <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層／共 36 層</b></div>
+          </div>
+          <div class="wxg-panel">
+            <div class="wxg-panel-head internal"><span class="dot"></span><h3>逐層效果（第 1～36 層）</h3></div>
+            <div style="line-height:1.8;">${layerRows}</div>
+          </div>
+        `;
+      }
+      S.codexInternalSkillId = null;
+    }
+
+    // 第二層：選定門派後，一內～六內的簡介列表
+    if(S.codexInternalSect){
+      const sectInfo = allSectEntries.find(s=>s.key===S.codexInternalSect);
+      if(sectInfo){
+        const starterId = STARTER_INTERNAL_ID[sectInfo.key];
+        const rankRows = RANK_LABELS.map((label, idx)=>{
+          const rank = idx+1;
+          const id = rank===1 ? starterId : `${sectInfo.key}_${rank}`;
+          const skill = INTERNAL_POOL.find(t=>t.id===id);
+          if(!skill){
+            return `<div class="wxg-panel" style="opacity:0.5;">
+              <div class="wxg-panel-head internal"><span class="dot"></span><h3>${label}</h3><span class="wxg-tag" style="margin-left:auto;">尚未開放</span></div>
+            </div>`;
+          }
+          const isPlaceholder = rank>=2 && skill.desc && skill.desc.includes("效果待補");
+          return `<div class="wxg-panel" style="cursor:pointer;" data-codexinternalskill="${skill.id}">
+            <div class="wxg-panel-head internal"><span class="dot"></span><h3>${label}・${skill.name}</h3><span class="wxg-tag ${skill.affinity==='太極'?'gold':'jade'}">${skill.affinity}</span><span class="wxg-tag" style="margin-left:auto;">查看36層 ▸</span></div>
+            <div class="wxg-hint">${isPlaceholder?'資質與特效尚未正式設計，目前是佔位內容':skill.desc}</div>
+            <div class="wxg-row" style="margin-top:2px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${skill.powerMult.toFixed(2)}　氣血 x${skill.hpMult.toFixed(2)}　內力 x${skill.mpMult.toFixed(2)}　內功防禦 x${skill.defMult.toFixed(2)}</b></div>
+          </div>`;
+        }).join("");
+        // 少數心法（例如武當「太極玄功」）是門派限定但不屬於一～六內排序，額外列在下面避免找不到。
+        const rankedIds = new Set([starterId, ...RANK_LABELS.slice(1).map((_,i)=>`${sectInfo.key}_${i+2}`)]);
+        const extraSkills = INTERNAL_POOL.filter(t=>t.sect===sectInfo.key && !rankedIds.has(t.id));
+        const extraRows = extraSkills.map(skill=>`<div class="wxg-panel" style="cursor:pointer;" data-codexinternalskill="${skill.id}">
+            <div class="wxg-panel-head internal"><span class="dot"></span><h3>${skill.name}</h3><span class="wxg-tag ${skill.affinity==='太極'?'gold':'jade'}">${skill.affinity}</span><span class="wxg-tag" style="margin-left:auto;">查看36層 ▸</span></div>
+            <div class="wxg-hint">${skill.desc}</div>
+            <div class="wxg-row" style="margin-top:2px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${skill.powerMult.toFixed(2)}　氣血 x${skill.hpMult.toFixed(2)}　內力 x${skill.mpMult.toFixed(2)}　內功防禦 x${skill.defMult.toFixed(2)}</b></div>
+          </div>`).join("");
+        return subTabs + `
+          <div class="wxg-panel"><button class="wxg-btn small" data-codexinternalback="sect">◀ 返回門派列表</button></div>
+          <div class="wxg-panel">
+            <div class="wxg-panel-head internal"><span class="dot"></span><h3>${sectInfo.name}${sectInfo.locked?'（尚未開放）':''}</h3></div>
+            <div class="wxg-hint">點下方任一心法可查看完整 1～36 層效果。</div>
+          </div>
+          ${rankRows}
+          ${extraSkills.length>0?`<div class="wxg-hint" style="margin:10px 0 6px;">其他門派限定心法</div>${extraRows}`:''}
+        `;
+      }
+      S.codexInternalSect = null;
+    }
+
+    // 第一層：通用心法 + 門派列表
+    const genericRows = INTERNAL_POOL.filter(t=>!t.sect).map(t=>`
+      <div class="wxg-panel">
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>${t.name}</h3><span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span><span class="wxg-tag" style="margin-left:auto;">各門派通用</span></div>
+        <div class="wxg-hint">${t.desc}</div>
+        <div class="wxg-row" style="margin-top:2px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
+        ${t.special?`<div class="wxg-row"><span>獨特被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
+      </div>`).join("");
+    const sectCards = allSectEntries.map(s=>`
+      <div class="wxg-panel" style="cursor:pointer; ${s.locked?'opacity:0.6;':''}" data-codexinternalsect="${s.key}">
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>${s.name}${s.locked?'（敬請期待）':''}</h3><span class="wxg-tag" style="margin-left:auto;">查看一～六內 ▸</span></div>
+      </div>`).join("");
     return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>內功系統規則</h3></div>
-        <div class="wxg-hint">內功心法最高共 36 層，每一層都有自己專屬的效果，不是統一公式套算出來的——練到第幾層，就是那一層寫好的效果。戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數。目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
+        <div class="wxg-hint">每個門派各有一到六本專屬心法（一內～六內），每本最高 36 層，每一層都有自己專屬的效果，不是統一公式套算出來的。點下方門派可查看該門所有心法，再點心法可查看完整 1～36 層效果。目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。</div>
       </div>
-      <div class="wxg-panel">
-        <div class="wxg-panel-head internal"><span class="dot"></span><h3>境界範例（以「兩儀護心功」示範第 1～${MAX_OBTAINABLE_TIER} 層）</h3></div>
-        <div class="wxg-hint" style="margin-bottom:6px;">每門心法各層的實際效果不同，下面只是舉一門心法示範層數結構。</div>
-        ${tierRows}
-      </div>
-      <div class="wxg-hint" style="margin:10px 0 -2px;">每門心法各層直接加五大主屬性跟一段特效，練到第幾層就是那一層自己的效果；心法本身還帶有「資質倍率」跟一個獨特被動機制，跟門派專屬機制同等級。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。</div>
-      ${poolRows}
+      <div class="wxg-hint" style="margin:6px 0;">通用心法（各門派皆可習得）</div>
+      ${genericRows}
+      <div class="wxg-hint" style="margin:10px 0 6px;">門派專屬心法（點門派查看）</div>
+      ${sectCards}
     `;
   }
 

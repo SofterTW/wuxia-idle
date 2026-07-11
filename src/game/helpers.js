@@ -1,3 +1,9 @@
+// 把純文字塞進 innerHTML 前先跳脫 HTML 特殊字元，避免文字裡剛好出現 <script> 之類的字樣
+// 被瀏覽器當成真的標籤解析（曾經因為更新紀錄文字裡提到「<script>」導致後面內容整段消失）。
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
 function bonusTextHtml(bonus){
   return Object.entries(bonus).map(([k,v])=>`<span style="color:${PRIMARY_COLORS[k]||'inherit'}">${k}+${v}</span>`).join("、");
 }

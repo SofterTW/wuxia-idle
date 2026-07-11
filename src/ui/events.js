@@ -153,7 +153,25 @@ function bindGlobal(){
   });
   document.querySelectorAll('[data-equipsub]').forEach(el=> el.onclick=()=>{ S.equipSubTab = el.dataset.equipsub; render(); });
   document.querySelectorAll('[data-bagfilter]').forEach(el=> el.onclick=()=>{ S.bagFilter = el.dataset.bagfilter; render(); });
-  document.querySelectorAll('[data-codexsub]').forEach(el=> el.onclick=()=>{ S.codexSubTab = el.dataset.codexsub; render(); });
+  document.querySelectorAll('[data-codexsub]').forEach(el=> el.onclick=()=>{
+    S.codexSubTab = el.dataset.codexsub;
+    S.codexInternalSect = null; S.codexInternalSkillId = null; // 切換百科分類時重置內功心法的鑽入層級
+    render();
+  });
+  document.querySelectorAll('[data-codexinternalsect]').forEach(el=> el.onclick=()=>{ S.codexInternalSect = el.dataset.codexinternalsect; S.codexInternalSkillId = null; render(); });
+  document.querySelectorAll('[data-codexinternalskill]').forEach(el=> el.onclick=()=>{ S.codexInternalSkillId = el.dataset.codexinternalskill; render(); });
+  document.querySelectorAll('[data-codexinternalback]').forEach(el=> el.onclick=()=>{
+    if(el.dataset.codexinternalback==="skill") S.codexInternalSkillId = null;
+    else { S.codexInternalSect = null; S.codexInternalSkillId = null; }
+    render();
+  });
+  document.querySelectorAll('[data-changelogpage]').forEach(el=> el.onclick=()=>{
+    const perPage = 10;
+    const totalPages = Math.max(1, Math.ceil(CHANGELOG.length/perPage));
+    const dir = el.dataset.changelogpage==="next" ? 1 : -1;
+    S.changelogPage = Math.min(totalPages-1, Math.max(0, (S.changelogPage||0)+dir));
+    render();
+  });
   document.querySelectorAll('[data-mapsub]').forEach(el=> el.onclick=()=>{
     S.mapSubTab = el.dataset.mapsub;
     if(S.mapSubTab!=="sects") S.visitingSect = null; // 切到金凌城／狩獵區視同離開門派

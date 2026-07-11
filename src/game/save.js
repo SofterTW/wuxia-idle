@@ -22,6 +22,9 @@ function patchLoadedSave(){
   if(S.martialExpanded===undefined) S.martialExpanded = {};
   if(S.statusEffects===undefined) S.statusEffects = [];
   if(S.monster && S.monster.statusEffects===undefined) S.monster.statusEffects = [];
+  if(S.codexInternalSect===undefined) S.codexInternalSect = null;
+  if(S.codexInternalSkillId===undefined) S.codexInternalSkillId = null;
+  if(S.changelogPage===undefined) S.changelogPage = 0;
 }
 
 function loadGame(){
