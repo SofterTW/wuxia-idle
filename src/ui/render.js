@@ -363,8 +363,10 @@ function renderNavList(){
       ${badge?`<span class="wxg-navbadge" style="color:${c}; border-color:${c}55;">${badge}</span>`:''}
     </div>`;
   }).join("");
+  const hintBubble = (!S.navHintSeen && !S.navCollapsed) ? `<div class="wxg-navhint-bubble">◀ <b>新手提示</b>：點下面的頁籤可以查看<b>武學</b>、<b>裝備</b>、<b>地圖</b>等內容！</div>` : '';
   return `
-    <div class="wxg-navlist">
+    ${hintBubble}
+    <div class="wxg-navlist ${(!S.navHintSeen && !S.navCollapsed)?'hint':''}">
       <div class="wxg-navcollapse" data-navcollapse="1" title="收合／展開導覽列">${S.navCollapsed?'»':'«'}</div>
       ${items}
     </div>`;

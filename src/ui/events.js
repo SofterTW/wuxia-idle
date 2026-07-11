@@ -55,7 +55,11 @@ function bindGlobal(){
   document.querySelectorAll('[data-fleeboss]').forEach(el=>{
     el.onchange = ()=>{ S.combatOptions.fleeBoss = el.checked; render(); };
   });
-  document.querySelectorAll('[data-tab]').forEach(el=> el.onclick = ()=>{ S.tab = el.dataset.tab; render(); });
+  document.querySelectorAll('[data-tab]').forEach(el=> el.onclick = ()=>{
+    S.tab = el.dataset.tab;
+    if(S.tab!=="overview") S.navHintSeen = true;
+    render();
+  });
   document.querySelectorAll('[data-navcollapse]').forEach(el=> el.onclick = ()=>{ S.navCollapsed = !S.navCollapsed; render(); });
   document.querySelectorAll('[data-invest]').forEach(el=> el.onclick = (e)=>{
     e.stopPropagation();

@@ -29,6 +29,7 @@ function newGame(sectKey){
     equipSubTab:"gear", pickerSlot:null, codexSubTab:"slots",
     mapSubTab:"zones", huntingZone:"heifeng", location:"heifeng", visitingSect:null, dialogueNpc:null,
     internalExpanded:{}, martialExpanded:{}, sideExpanded:{primary:true, buffs:true, autoheal:true}, logFilters:{}, navCollapsed:false,
+    navHintSeen:false,
     hitEnemy:false, hitEnemyCrit:false, hitPlayer:false, lastUsedMoveId:null, stageEffects:[],
   };
   spawnMonster(); recalc(true); render();
