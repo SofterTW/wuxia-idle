@@ -147,32 +147,6 @@ function renderNpcDialogue(){
 }
 
 const ZONE_SCENES = {
-  jinling:`<svg viewBox="0 0 500 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="skyJl" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#4a3018"/><stop offset="45%" stop-color="#2a1a0c"/><stop offset="100%" stop-color="#120a05"/>
-      </linearGradient>
-      <radialGradient id="moonJl" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#fff3cf"/><stop offset="60%" stop-color="#f3d878"/><stop offset="100%" stop-color="#f3d878" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <rect width="500" height="150" fill="url(#skyJl)"/>
-    <circle cx="420" cy="30" r="40" fill="url(#moonJl)"/>
-    <circle cx="420" cy="30" r="14" fill="#fff8e0"/>
-    <path d="M0 100 Q80 92 160 100 Q240 90 320 100 Q400 92 500 100 L500 150 L0 150Z" fill="#1a0f08" opacity="0.55"/>
-    <path d="M0 112 L18 98 L36 110 L58 90 L82 108 L108 94 L138 112 L168 92 L200 110 L232 96 L264 112 L296 94 L328 110 L360 92 L392 108 L424 94 L458 110 L500 98 L500 150 L0 150 Z" fill="#0d0805"/>
-    <path d="M58 90 L58 68 L52 68 L67 50 L82 68 L76 68 L76 90Z" fill="#241708"/>
-    <path d="M232 96 L232 74 L226 74 L241 56 L256 74 L250 74 L250 96Z" fill="#241708"/>
-    <path d="M392 108 L392 82 L385 82 L403 62 L421 82 L414 82 L414 108Z" fill="#241708"/>
-    <path d="M67 50 L82 68 L76 68 L76 90 L58 90 L58 68Z" fill="none" stroke="#3a2810" stroke-width="0.6" opacity="0.5"/>
-    <circle cx="67" cy="80" r="2.6" fill="#f3d878" opacity="0.9"/>
-    <circle cx="241" cy="86" r="2.6" fill="#f3d878" opacity="0.9"/>
-    <circle cx="403" cy="98" r="2.6" fill="#f3d878" opacity="0.9"/>
-    <circle cx="67" cy="80" r="6" fill="#f3d878" opacity="0.25"/>
-    <circle cx="241" cy="86" r="6" fill="#f3d878" opacity="0.25"/>
-    <circle cx="403" cy="98" r="6" fill="#f3d878" opacity="0.25"/>
-    <ellipse cx="250" cy="146" rx="260" ry="10" fill="#000" opacity="0.35"/>
-  </svg>`,
   heifeng:`<svg viewBox="0 0 500 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="skyHf" x1="0" y1="0" x2="0" y2="1">
@@ -270,7 +244,9 @@ function pillbar(tag, tagCls, cur, max, fillCls, flashCls){
 function renderStage(){
   const sectIcon = FIGHTER_FIGURES[S.sectKey];
   const zoneKey = zoneBgClass();
-  const sceneSvg = `<div class="wxg-scene">${ZONE_SCENES[zoneKey]}</div>`;
+  const sceneSvg = zoneKey==="jinling"
+    ? `<div class="wxg-scene bg-photo" style="background-image:url('${JINLING_BG_IMG}')"></div>`
+    : `<div class="wxg-scene">${ZONE_SCENES[zoneKey]}</div>`;
   if(S.location==="jinling"){
     return `
     <div class="wxg-stage bg-${zoneKey}">

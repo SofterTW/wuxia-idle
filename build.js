@@ -10,6 +10,7 @@ const OUT = path.join(__dirname, "dist", process.argv[2] || "wuxia_idle.html");
 const JS_FILES = [
   "data/sects.js",
   "assets/figures.js",
+  "__SCENE_IMAGES__",
   "data/weapon.js",
   "data/armor.js",
   "data/inner-power.js",
@@ -31,8 +32,12 @@ const JS_FILES = [
 ];
 
 const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8").trim();
+// 建置時把圖檔內嵌成 base64，讓輸出的單一 HTML 片段不依賴外部圖檔。
+const jinlingImgB64 = fs.readFileSync(path.join(SRC, "assets/img/jinling-town.jpg")).toString("base64");
 const js = JS_FILES
-  .map(f => fs.readFileSync(path.join(SRC, f), "utf8").trimEnd())
+  .map(f => f === "__SCENE_IMAGES__"
+    ? `const JINLING_BG_IMG = "data:image/jpeg;base64,${jinlingImgB64}";`
+    : fs.readFileSync(path.join(SRC, f), "utf8").trimEnd())
   .join("\n\n");
 
 const output = `<style>

@@ -11,6 +11,7 @@ Write-Host "Serving $Root at http://localhost:$Port/"
 $mime = @{
   ".html"="text/html"; ".css"="text/css"; ".js"="application/javascript";
   ".svg"="image/svg+xml"; ".json"="application/json";
+  ".jpg"="image/jpeg"; ".jpeg"="image/jpeg"; ".png"="image/png";
 }
 
 try {

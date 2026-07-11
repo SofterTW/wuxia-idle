@@ -56,6 +56,7 @@
 }
 .wxg-scene{position:absolute; inset:0; z-index:0; overflow:hidden;}
 .wxg-scene svg{width:100%; height:100%; display:block;}
+.wxg-scene.bg-photo{background-size:cover; background-position:center 42%;}
 .wxg-stage::before{
   content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
   background:

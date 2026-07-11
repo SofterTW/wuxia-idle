@@ -10,6 +10,7 @@ mkdir -p dist
 JS_FILES=(
   src/data/sects.js
   src/assets/figures.js
+  __SCENE_IMAGES__
   src/data/weapon.js
   src/data/armor.js
   src/data/inner-power.js
@@ -41,7 +42,13 @@ JS_FILES=(
   echo "(function(){"
   echo
   for f in "${JS_FILES[@]}"; do
-    cat "$f"
+    if [ "$f" = "__SCENE_IMAGES__" ]; then
+      # 建置時把圖檔內嵌成 base64，讓輸出的單一 HTML 片段不依賴外部圖檔。
+      IMG_B64=$(base64 -w0 src/assets/img/jinling-town.jpg)
+      echo "const JINLING_BG_IMG = \"data:image/jpeg;base64,${IMG_B64}\";"
+    else
+      cat "$f"
+    fi
     echo
   done
   echo "})();"
