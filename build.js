@@ -15,6 +15,7 @@ const JS_FILES = [
   "data/inner-power.js",
   "data/martial-techniques.js",
   "data/tables.js",
+  "data/etcitem.js",
   "game/helpers.js",
   "game/equipment-tiers.js",
   "game/profession.js",

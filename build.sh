@@ -15,6 +15,7 @@ JS_FILES=(
   src/data/inner-power.js
   src/data/martial-techniques.js
   src/data/tables.js
+  src/data/etcitem.js
   src/game/helpers.js
   src/game/equipment-tiers.js
   src/game/profession.js
