@@ -311,7 +311,7 @@
 .wxg-sect-icon{width:50px; height:50px; margin:0 auto; filter:drop-shadow(0 2px 3px #000);}
 
 /* ---- 裝備子頁籤 ---- */
-.wxg-subtabs{display:flex; gap:6px; margin-bottom:10px;}
+.wxg-subtabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
 .wxg-subtab{
   padding:5px 14px; font-size:11px; letter-spacing:2px; font-weight:700; cursor:pointer; border-radius:4px;
   color:var(--dim-text); background:linear-gradient(160deg,#221808,#140d05); border:1px solid #3a2a17;

@@ -343,7 +343,7 @@ function renderStage(){
 
 function renderNavList(){
   const tabColors = {overview:"#d4af37", internal:"#5eab88", martial:"#d1564c", equip:"#a78bd6", map:"#4dd0c8", quest:"#4a86c0", codex:"#f3a03c"};
-  const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務", codex:"圖鑑"};
+  const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務", codex:"遊戲百科"};
   const badges = {
     overview: "",
     internal: `第${getInternalTier(S.activeInternal)+1}層`,
@@ -862,11 +862,136 @@ const CODEX_EFFECT_LABEL = {healHp:"恢復氣血", healMp:"恢復內力", healFu
 function renderCodex(){
   const subTabs = `
     <div class="wxg-subtabs">
+      <div class="wxg-subtab ${S.codexSubTab==='guide'?'active':''}" data-codexsub="guide">新手入門</div>
+      <div class="wxg-subtab ${S.codexSubTab==='sects'?'active':''}" data-codexsub="sects">門派總覽</div>
+      <div class="wxg-subtab ${S.codexSubTab==='internal'?'active':''}" data-codexsub="internal">內功心法</div>
+      <div class="wxg-subtab ${S.codexSubTab==='martial'?'active':''}" data-codexsub="martial">武學招式</div>
       <div class="wxg-subtab ${S.codexSubTab==='slots'?'active':''}" data-codexsub="slots">部位加成</div>
       <div class="wxg-subtab ${S.codexSubTab==='tiers'?'active':''}" data-codexsub="tiers">裝備品級</div>
       <div class="wxg-subtab ${S.codexSubTab==='unique'?'active':''}" data-codexsub="unique">門派至寶</div>
       <div class="wxg-subtab ${S.codexSubTab==='items'?'active':''}" data-codexsub="items">藥品道具</div>
+      <div class="wxg-subtab ${S.codexSubTab==='misc'?'active':''}" data-codexsub="misc">貨幣與其他</div>
     </div>`;
+
+  if(S.codexSubTab==="guide"){
+    return subTabs + `
+      <div class="wxg-panel active-main">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>遊戲流程</h3></div>
+        <div class="wxg-hint" style="line-height:1.9;">
+          1. 選擇門派入門，六大門派各有限定兵刃與專屬機制，選定後無法更改。<br>
+          2. 選定狩獵區後會自動進入戰鬥，每 1.2 秒結算一回合，擊殺會獲得<b style="color:var(--gold-lt)">內功修為</b>、<b style="color:var(--gold-lt)">錢財</b>，並有機率掉落裝備、藥品、秘笈。<br>
+          3. 修為可投入「內功」提升層數，秘笈可在背包使用學會新的「武學」招式，兩者都會直接提升戰鬥屬性。<br>
+          4. 「裝備」分部位、品級，撿到更好的可以替換；生活職業(煉器)升級後能為裝備「開光」附加詞條。<br>
+          5. 「地圖」可以切換狩獵區、拜訪各大門派、回金凌城交易或休整；「任務」可向本門知客領取剿滅魔教委託換取貢獻度。<br>
+          6. 這份「遊戲百科」隨時可查閱所有系統的詳細規則與數值。
+        </div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>左側導覽列</h3></div>
+        <div class="wxg-row"><span>總覽</span><b style="font-weight:400; color:var(--dim-text);">二級戰鬥屬性與戰鬥紀錄</b></div>
+        <div class="wxg-row"><span>內功</span><b style="font-weight:400; color:var(--dim-text);">投入修為、切換主修心法</b></div>
+        <div class="wxg-row"><span>武學</span><b style="font-weight:400; color:var(--dim-text);">裝上／升級招式</b></div>
+        <div class="wxg-row"><span>裝備</span><b style="font-weight:400; color:var(--dim-text);">穿戴部位、查看背包</b></div>
+        <div class="wxg-row"><span>地圖</span><b style="font-weight:400; color:var(--dim-text);">金凌城、各大門派、狩獵區</b></div>
+        <div class="wxg-row"><span>任務</span><b style="font-weight:400; color:var(--dim-text);">目前接取的委託進度</b></div>
+        <div class="wxg-row"><span>遊戲百科</span><b style="font-weight:400; color:var(--dim-text);">你現在看的地方</b></div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>戰鬥選項小提醒</h3></div>
+        <div class="wxg-hint">戰鬥面板左下「戰鬥選項」可設定氣血／內力低於門檻自動服藥（可勾選存量不足自動購買），以及「遇見首領自動逃跑」，掛機時很實用。</div>
+      </div>
+    `;
+  }
+
+  if(S.codexSubTab==="sects"){
+    const rows = Object.entries(SECTS).map(([key,s])=>{
+      const statTxt = ["臂力","身法","內息","罡氣","體魄"].map(k=>`<span style="color:${PRIMARY_COLORS[k]};">${k}${s.base[k]}</span>`).join('　');
+      return `<div class="wxg-panel ${key===S.sectKey?'active-main':''}">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>${s.name}</h3>${key===S.sectKey?'<span class="wxg-tag gold">本門</span>':''}</div>
+        <div class="wxg-row"><span>限定兵刃</span><b>${s.weapon}（${s.weaponType}）</b></div>
+        <div class="wxg-row"><span>門派機制</span><b style="font-weight:400;">${s.passive}</b></div>
+        <div class="wxg-hint" style="margin-top:4px;">起始五圍：${statTxt}</div>
+      </div>`;
+    }).join("");
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">六大門派各有限定兵刃種類與專屬戰鬥機制，決定了可學的武學招式方向。</div>` + rows;
+  }
+
+  if(S.codexSubTab==="internal"){
+    const tierRows = TIER_DESC.map((desc,i)=>`<div class="wxg-row"><span>第 ${i+1} 層</span><b style="font-weight:400;">${desc.split('：')[1]||desc}</b></div>`).join("");
+    const poolRows = INTERNAL_POOL.map(t=>`<div class="wxg-row"><span>${t.name}</span><b style="font-weight:400;">${t.affinity}屬性${t.sect?`・${SECTS[t.sect].name}限定`:'・各門派通用'}</b></div>`).join("");
+    return subTabs + `
+      <div class="wxg-panel">
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>內功系統規則</h3></div>
+        <div class="wxg-hint">戰鬥獲得的「內功修為」可投入任一已習得心法，累積到門檻會晉升層數，層數越高內力上限、內功威力等加成越多。投入無法收回，需消耗「洗髓丹」洗點（返還七折，冷卻 20 次戰鬥）。</div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>六層境界</h3></div>
+        ${tierRows}
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>心法列表</h3></div>
+        ${poolRows}
+        <div class="wxg-hint">「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。</div>
+      </div>
+    `;
+  }
+
+  if(S.codexSubTab==="martial"){
+    const layerRows = [1,3,5,9].map(li=>`<div class="wxg-row"><span>第 ${li} 層</span><b style="font-weight:400;">${martialLayerDesc({special:'（依招式而定）'}, li)}</b></div>`).join("");
+    const groups = Object.entries(MARTIAL_POOL).map(([weaponType, moves])=>{
+      const rows = moves.map(m=>`<div class="wxg-row"><span>${m.name}</span><b style="font-weight:400;">${m.dmgType}・${m.affinity}・附加效果：${m.special}${m.need?`（需先升級至第${m.need+1}招解鎖）`:''}</b></div>`).join("");
+      return `<div class="wxg-panel">
+        <div class="wxg-panel-head martial"><span class="dot"></span><h3>${weaponType}</h3></div>
+        ${rows}
+      </div>`;
+    }).join("");
+    return subTabs + `
+      <div class="wxg-panel">
+        <div class="wxg-panel-head martial"><span class="dot"></span><h3>武學系統規則</h3></div>
+        <div class="wxg-hint">最多同時裝備 4 招，戰鬥時依序輪流施展。每次施展會累積熟練度，達門檻可消耗「淬鍊石」升級（1～9 層），層數越高傷害越高，第 3 層解鎖附加效果、第 9 層為大成。</div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head martial"><span class="dot"></span><h3>升級門檻（熟練度）</h3></div>
+        <div class="wxg-row"><span>各層所需熟練度</span><b style="font-weight:400;">${MARTIAL_TIER_TABLE.join(' → ')}</b></div>
+        ${layerRows}
+      </div>
+      ${groups}
+    `;
+  }
+
+  if(S.codexSubTab==="misc"){
+    const rankRows = RANK_TABLE.map((r,i)=>`<div class="wxg-row"><span>${r.name}</span><b style="font-weight:400;">${i===0?'預設位階':`需貢獻度 ${r.req}、淬鍊石 ${r.mat}，加成 +${Math.round(r.bonus*100)}%`}</b></div>`).join("");
+    const zoneRows = HUNTING_ZONES.map(z=>`<div class="wxg-row"><span>${z.name}</span><b style="font-weight:400;">${z.tag}・等級加成 +${z.levelMod}</b></div>`).join("");
+    const questRows = QUEST_TEMPLATES.map(q=>`<div class="wxg-row"><span>剿滅魔教：${q.zoneName}</span><b style="font-weight:400;">擊殺 ${q.killsNeeded} 名，獎勵貢獻度 +${q.reward}</b></div>`).join("");
+    return subTabs + `
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>貨幣系統</h3></div>
+        <div class="wxg-row"><span>1 銀兩</span><b>= 1000 銅錢</b></div>
+        <div class="wxg-row"><span>1 銀錠</span><b>= 1000 銀兩（= 1,000,000 銅錢）</b></div>
+        <div class="wxg-hint">身上錢財會依金額自動顯示為銅／兩／錠的組合。</div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>門派地位</h3></div>
+        ${rankRows}
+        <div class="wxg-hint">在本門「論功堂首座」處，用門派貢獻度＋淬鍊石晉升位階，位階越高戰鬥屬性加成越多。</div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>生活職業・煉器</h3></div>
+        <div class="wxg-row"><span>升級所需經驗</span><b style="font-weight:400;">${PROFESSION_EXP_TABLE.slice(1).join(' → ')}</b></div>
+        <div class="wxg-hint">於金凌城「煉器閣」為裝備開光可獲得煉器經驗。等級 1～4 依序解鎖木銅／鐵／銀／金裝開光，等級 5～7 依序解鎖一～二品／五品／七品玉裝開光。</div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>狩獵區</h3></div>
+        ${zoneRows}
+        <div class="wxg-hint">等級加成越高，敵人越強、裝備掉落品級越好；每擊殺 10 隻會遇到一次首領（三倍血量）。</div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>任務範本</h3></div>
+        ${questRows}
+        <div class="wxg-hint">須先前往本門找知客領取，一次只能接一個委託。</div>
+      </div>
+    `;
+  }
 
   if(S.codexSubTab==="unique"){
     const rows = UNIQUE_EQUIPMENT.map(u=>{
