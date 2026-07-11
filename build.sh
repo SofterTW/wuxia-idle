@@ -25,6 +25,7 @@ JS_FILES=(
   src/game/profession.js
   src/data/npc-tables.js
   src/data/monster-roster.js
+  src/data/changelog.js
   src/game/state.js
   src/game/core.js
   src/game/combat.js

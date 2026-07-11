@@ -25,6 +25,7 @@ const JS_FILES = [
   "game/profession.js",
   "data/npc-tables.js",
   "data/monster-roster.js",
+  "data/changelog.js",
   "game/state.js",
   "game/core.js",
   "game/combat.js",

@@ -855,7 +855,17 @@ function renderCodex(){
       <div class="wxg-subtab ${S.codexSubTab==='unique'?'active':''}" data-codexsub="unique">門派至寶</div>
       <div class="wxg-subtab ${S.codexSubTab==='items'?'active':''}" data-codexsub="items">藥品道具</div>
       <div class="wxg-subtab ${S.codexSubTab==='misc'?'active':''}" data-codexsub="misc">貨幣與其他</div>
+      <div class="wxg-subtab ${S.codexSubTab==='changelog'?'active':''}" data-codexsub="changelog">更新紀錄</div>
     </div>`;
+
+  if(S.codexSubTab==="changelog"){
+    const rows = CHANGELOG.map(v=>`
+      <div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>${v.version}</h3><span class="wxg-tag" style="margin-left:auto;">${v.date}</span></div>
+        <div class="wxg-hint" style="line-height:1.8;">${v.changes.map(c=>`・${c}`).join('<br>')}</div>
+      </div>`).join("");
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">每次更新的內容都會記錄在這裡，越新的版本排越前面。</div>` + rows;
+  }
 
   if(S.codexSubTab==="guide"){
     return subTabs + `
