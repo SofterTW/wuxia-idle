@@ -163,11 +163,16 @@ function bindGlobal(){
     addLog(`把「${item.name}」賣給了鐵匠鋪，得 ${formatMoney(val)}`, 'system');
     render();
   });
-  document.querySelectorAll('[data-slotview]').forEach(el=> el.onclick=()=>{ S.pickerSlot = el.dataset.slotview; render(); });
+  document.querySelectorAll('[data-slotview]').forEach(el=> el.onclick=()=>{
+    const slot = el.dataset.slotview;
+    S.pickerSlot = slot;
+    S.pickerSnapshot = S.inventory.filter(it=>it.slot===slot);
+    render();
+  });
   document.querySelectorAll('[data-closewarning]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.warningModal=null; S.warningCooldown=20; render(); });
   document.querySelectorAll('.wxg-modal button[data-closewarning]').forEach(el=> el.onclick=()=>{ S.warningModal=null; S.warningCooldown=20; render(); });
-  document.querySelectorAll('[data-closepicker]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.pickerSlot=null; render(); });
-  document.querySelectorAll('.wxg-modal button[data-closepicker]').forEach(el=> el.onclick=()=>{ S.pickerSlot=null; render(); });
+  document.querySelectorAll('[data-closepicker]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.pickerSlot=null; S.pickerSnapshot=[]; render(); });
+  document.querySelectorAll('.wxg-modal button[data-closepicker]').forEach(el=> el.onclick=()=>{ S.pickerSlot=null; S.pickerSnapshot=[]; render(); });
   document.querySelectorAll('[data-pickequip]').forEach(el=> el.onclick=()=>{ equipItem(S.inventory[parseInt(el.dataset.pickequip)]); S.pickerSlot=null; render(); });
   document.querySelectorAll('[data-pickersell]').forEach(el=> el.onclick=()=>{
     const idx = parseInt(el.dataset.pickersell);

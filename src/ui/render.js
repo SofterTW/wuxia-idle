@@ -27,7 +27,11 @@ function render(){
 function renderPicker(){
   const slot = S.pickerSlot;
   const cur = S.equipment[slot];
-  const candidates = S.inventory.map((it,idx)=>({it,idx})).filter(x=>x.it.slot===slot);
+  // 用開窗當下拍的快照決定清單與順序，戰鬥中新掉落的裝備不會插進來打亂正在看的內容，
+  // 關閉再重新打開才會看到最新掉落；已被賣掉／裝備走的項目會自然從清單消失。
+  const candidates = (S.pickerSnapshot||[])
+    .map(it=>({it, idx:S.inventory.indexOf(it)}))
+    .filter(x=>x.idx>=0);
   const curBonus = cur ? bonusTextHtml(cur.bonus) : "（無）";
   const rows = candidates.length>0 ? candidates.map(({it,idx})=>{
     const cmp = compareBonusHtml(it, cur);
