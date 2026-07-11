@@ -58,6 +58,7 @@ function bindGlobal(){
   document.querySelectorAll('[data-tab]').forEach(el=> el.onclick = ()=>{
     S.tab = el.dataset.tab;
     if(S.tab!=="overview") S.navHintSeen = true;
+    if(S.tab!=="map") S.visitingSect = null; // 離開地圖頁籤視同離開門派，戰鬥才能繼續
     render();
   });
   document.querySelectorAll('[data-navcollapse]').forEach(el=> el.onclick = ()=>{ S.navCollapsed = !S.navCollapsed; render(); });
@@ -134,12 +135,17 @@ function bindGlobal(){
   document.querySelectorAll('[data-equipsub]').forEach(el=> el.onclick=()=>{ S.equipSubTab = el.dataset.equipsub; render(); });
   document.querySelectorAll('[data-bagfilter]').forEach(el=> el.onclick=()=>{ S.bagFilter = el.dataset.bagfilter; render(); });
   document.querySelectorAll('[data-codexsub]').forEach(el=> el.onclick=()=>{ S.codexSubTab = el.dataset.codexsub; render(); });
-  document.querySelectorAll('[data-mapsub]').forEach(el=> el.onclick=()=>{ S.mapSubTab = el.dataset.mapsub; render(); });
+  document.querySelectorAll('[data-mapsub]').forEach(el=> el.onclick=()=>{
+    S.mapSubTab = el.dataset.mapsub;
+    if(S.mapSubTab!=="sects") S.visitingSect = null; // 切到金凌城／狩獵區視同離開門派
+    render();
+  });
   document.querySelectorAll('[data-gotown]').forEach(el=> el.onclick=()=>{
-    S.location="jinling"; S.monster=null; addLog(`你動身返回金凌城休整。`, 'system'); render();
+    S.location="jinling"; S.monster=null; S.visitingSect=null; addLog(`你動身返回金凌城休整。`, 'system'); render();
   });
   document.querySelectorAll('[data-zone]').forEach(el=> el.onclick=()=>{
     S.location = el.dataset.zone;
+    S.visitingSect = null;
     const zoneName = HUNTING_ZONES.find(z=>z.id===S.location).name;
     addLog(`你動身前往「${zoneName}」，開始新的狩獵`, 'system');
     spawnMonster(); render();
