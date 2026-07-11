@@ -426,3 +426,39 @@
   box-shadow:0 2px 8px rgba(0,0,0,.5), 0 0 10px rgba(212,175,55,.5);
   animation:wxgEffectBanner 1.6s ease-out; opacity:0;
 }
+
+/* ---- 響應式：整個遊戲大小依螢幕寬度調整 ---- */
+.wxg{width:100%; max-width:900px; margin:0 auto; box-sizing:border-box;}
+@media (max-width:900px){
+  .wxg{max-width:100%;}
+}
+@media (max-width:700px){
+  .wxg{min-height:auto;}
+  .wxg-banner{padding:9px 16px 10px; margin:8px 8px 0;}
+  .wxg-title{font-size:16px; letter-spacing:4px;}
+  .wxg-title small{font-size:10px;}
+  .wxg-stats-strip{flex-wrap:wrap; gap:6px 12px; font-size:10.5px;}
+  .wxg-stage{margin:8px 8px 0; padding:10px 12px; min-height:150px;}
+  .wxg-fighter{width:110px;}
+  .wxg-portrait{width:56px; height:78px;}
+  .wxg-portrait svg, .wxg-portrait img, .wxg-portrait-img{width:56px; height:78px;}
+  .wxg-portrait.big{width:70px; height:96px;}
+  .wxg-portrait.big svg, .wxg-portrait.big img{width:70px; height:96px;}
+  .wxg-vs{font-size:17px;}
+  .wxg-body{margin:0 8px 8px; flex-direction:column;}
+  .wxg-side{width:100%; max-height:230px; border-right:none; border-bottom:1px solid #3a2a17;}
+  .wxg-side.collapsed{width:100%; max-height:44px; overflow:hidden;}
+  .wxg-main{padding:10px;}
+  .wxg-sectpick{grid-template-columns:repeat(2,1fr); gap:10px; padding:14px;}
+  .wxg-sect-banner{height:100px;}
+  .wxg-slotgrid{grid-template-columns:1fr;}
+  .wxg-grid2{grid-template-columns:1fr;}
+}
+@media (max-width:420px){
+  .wxg-fighter{width:90px;}
+  .wxg-portrait{width:46px; height:64px;}
+  .wxg-portrait svg, .wxg-portrait img, .wxg-portrait-img{width:46px; height:64px;}
+  .wxg-portrait.big{width:58px; height:80px;}
+  .wxg-portrait.big svg, .wxg-portrait.big img{width:58px; height:80px;}
+  .wxg-sectpick{grid-template-columns:1fr;}
+}
