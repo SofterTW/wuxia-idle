@@ -13,6 +13,9 @@
 <body>
 <div class="wxg" id="wxgRoot"></div>
 
+<!-- SCRIPTS:START -->
+<!-- 這段由 scripts/gen-index.js 依 src/manifest.json 自動產生，不要手動編輯順序。
+     新增/調整載入順序時：改 src/manifest.json，再執行 `node scripts/gen-index.js` 重新產生。 -->
 <script src="src/data/sects.js"></script>
 <script src="src/assets/figures.js"></script>
 <script src="src/assets/scene-images.js"></script>
@@ -36,8 +39,10 @@
 <script src="src/game/core.js"></script>
 <script src="src/game/combat.js"></script>
 <script src="src/game/inventory.js"></script>
+<script src="src/ui/debug-overlay.js"></script>
 <script src="src/ui/render.js"></script>
 <script src="src/ui/events.js"></script>
 <script src="src/game/loop.js"></script>
+<!-- SCRIPTS:END -->
 </body>
 </html>

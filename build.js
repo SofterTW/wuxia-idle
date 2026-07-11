@@ -7,34 +7,18 @@ const path = require("path");
 const SRC = path.join(__dirname, "src");
 const OUT = path.join(__dirname, "dist", process.argv[2] || "wuxia_idle.html");
 
-const JS_FILES = [
-  "data/sects.js",
-  "assets/figures.js",
-  "__SCENE_IMAGES__",
-  "__SECT_IMAGES__",
-  "__CHARACTER_IMAGES__",
-  "data/weapon.js",
-  "data/armor.js",
-  "data/inner-power.js",
-  "data/martial-techniques.js",
-  "data/tables.js",
-  "data/etcitem.js",
-  "data/unique-equipment.js",
-  "game/helpers.js",
-  "game/equipment-tiers.js",
-  "game/profession.js",
-  "data/npc-tables.js",
-  "data/monster-roster.js",
-  "data/changelog.js",
-  "game/state.js",
-  "game/save.js",
-  "game/core.js",
-  "game/combat.js",
-  "game/inventory.js",
-  "ui/render.js",
-  "ui/events.js",
-  "game/loop.js",
-];
+// 載入順序的唯一事實來源：src/manifest.json（index.html／build.sh／build.js 都讀這份清單）。
+// 新增檔案時只需要改 manifest.json 一個地方；下面這張表列出建置時需要內嵌 base64 圖片的
+// 特殊資產檔，對應到既有的 __XXX__ 特殊處理邏輯。
+const BUILD_TOKEN_MAP = {
+  "assets/scene-images.js": "__SCENE_IMAGES__",
+  "assets/sect-images.js": "__SECT_IMAGES__",
+  "assets/character-images.js": "__CHARACTER_IMAGES__",
+};
+const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "src/manifest.json"), "utf8"));
+const JS_FILES = manifest
+  .map(f => f.replace(/^src\//, ""))
+  .map(f => BUILD_TOKEN_MAP[f] || f);
 
 const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8").trim();
 // 建置時把圖檔內嵌成 base64，讓輸出的單一 HTML 片段不依賴外部圖檔。

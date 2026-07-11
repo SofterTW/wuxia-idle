@@ -1,6 +1,6 @@
 function render(){
   const root = document.getElementById('wxgRoot');
-  if(!S){ root.innerHTML = `<div class="wxg-noise"></div>` + renderSectPick(); bindSectPick(); return; }
+  if(!S){ root.innerHTML = `<div class="wxg-noise"></div>` + renderSectPick(); bindSectPick(); updateDebugOverlay(); return; }
   recalc(false);
   const prevLogEl = document.getElementById('wxgLogScroll');
   const prevScrollTop = prevLogEl ? prevLogEl.scrollTop : 0;
@@ -30,6 +30,7 @@ function render(){
   const newPickerListEl = document.getElementById('wxgPickerListScroll');
   if(newPickerListEl && prevPickerListScroll>4) newPickerListEl.scrollTop = prevPickerListScroll;
   bindGlobal();
+  updateDebugOverlay();
 }
 
 function renderPicker(){

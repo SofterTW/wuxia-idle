@@ -7,34 +7,19 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 OUT="dist/${1:-wuxia_idle.html}"
 mkdir -p dist
 
-JS_FILES=(
-  src/data/sects.js
-  src/assets/figures.js
-  __SCENE_IMAGES__
-  __SECT_IMAGES__
-  __CHARACTER_IMAGES__
-  src/data/weapon.js
-  src/data/armor.js
-  src/data/inner-power.js
-  src/data/martial-techniques.js
-  src/data/tables.js
-  src/data/etcitem.js
-  src/data/unique-equipment.js
-  src/game/helpers.js
-  src/game/equipment-tiers.js
-  src/game/profession.js
-  src/data/npc-tables.js
-  src/data/monster-roster.js
-  src/data/changelog.js
-  src/game/state.js
-  src/game/save.js
-  src/game/core.js
-  src/game/combat.js
-  src/game/inventory.js
-  src/ui/render.js
-  src/ui/events.js
-  src/game/loop.js
-)
+# 載入順序的唯一事實來源：src/manifest.json（index.html／build.sh／build.js 都讀這份清單）。
+# 新增檔案時只需要改 manifest.json 一個地方；下面三個特殊資產檔在建置時要內嵌 base64 圖片，
+# 所以用 __XXX__ token 取代成對應的特殊處理邏輯。
+mapfile -t MANIFEST_FILES < <(grep -oP '"\K[^"]+(?=")' src/manifest.json | grep '/')
+JS_FILES=()
+for f in "${MANIFEST_FILES[@]}"; do
+  case "$f" in
+    src/assets/scene-images.js)    JS_FILES+=("__SCENE_IMAGES__") ;;
+    src/assets/sect-images.js)     JS_FILES+=("__SECT_IMAGES__") ;;
+    src/assets/character-images.js) JS_FILES+=("__CHARACTER_IMAGES__") ;;
+    *) JS_FILES+=("$f") ;;
+  esac
+done
 
 {
   echo "<style>"
