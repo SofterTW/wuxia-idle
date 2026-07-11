@@ -11,10 +11,11 @@ function newGame(sectKey){
   const knownMartial = {};
   const starter = MARTIAL_POOL[sect.weaponType].filter(m=>!m.need);
   starter.forEach(m=> knownMartial[m.id] = {proficiency:0, layer:1});
-  const knownInternal = {tuna:{invested:0}};
+  const starterInternalId = STARTER_INTERNAL_ID[sectKey] || "tuna";
+  const knownInternal = {[starterInternalId]:{invested:0}};
   S = {
     sectKey, sect, primary:{...sect.base}, equipment, inventory:[],
-    knownInternal, activeInternal:"tuna",
+    knownInternal, activeInternal:starterInternalId,
     knownMartial, martialSlots:[starter[0]?.id||null, starter[1]?.id||null, null, null],
     qiPool:0, gold:20, materials:{淬鍊石:0, 洗髓丹:0, 精鐵砂:0, 美玉錠:0}, respecCooldown:0,
     profession:{level:1, exp:0}, forgeTarget:null,

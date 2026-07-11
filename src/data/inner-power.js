@@ -103,6 +103,54 @@ const INTERNAL_POOL = [
     desc:"錦衣衛秘傳輕身心法，行動如鬼似魅，尋常攻擊很難沾上邊。"},
 ];
 
+// 每個門派的「一內」心法 id——新角色創建時預設已學會這一本（第1層），見 game/state.js 的 newGame()。
+const STARTER_INTERNAL_ID = {
+  shaolin:"chanding", wudang:"liangyi", emei:"qizhuang", gaibang:"xiaoyao", tangmen:"qijue", mingjiao:"chihuo",
+  junzitang:"tonghui", jile_sect:"shuangxiu", jinyiwei:"xuanyuan",
+};
+
+// 各門派「二內～六內」的心法名稱（使用者提供，目前只有名稱，資質／特效之後再逐一覆寫）。
+// 丐幫目前還沒有二內～六內的名稱，先留空，之後補上會自動生成對應心法。
+const ADVANCED_INTERNAL_NAMES = {
+  shaolin:  ["二指禪","羅漢伏魔功","旋檀神功","洗髓經","易筋經"],
+  wudang:   ["內丹術","上清無極功","純陽無極功","倚天屠龍功","太極神功"],
+  emei:     ["五符經","飛弦羽經","冰肌玉骨功","大乘涅磐功","玄女神功"],
+  gaibang:  [],
+  tangmen:  ["六合經","五毒奇經","太素陰功","心脈陰極柔功","天魔寶篆"],
+  mingjiao: ["陽炎功","熾日心經","燎原神功","明王寶策","移天焚海訣"],
+  junzitang:["幻玉功","忘情天書","葬花玄功錄","九天鳳舞仙訣","溪月花香集"],
+  jile_sect:["少陽神功","合歡訣","魔相訣","拍影功","離火神功"],
+  jinyiwei: ["天蠶功","七殺心經","玄天寶錄","地獄換魂經","修羅武經"],
+};
+
+function sectDisplayNameFor(sectKey){
+  return (SECTS[sectKey] && SECTS[sectKey].name) || (COMING_SOON_SECTS.find(s=>s.key===sectKey)||{}).name || sectKey;
+}
+
+// 依「一內」的屬性主軸（同兩個簽名主屬性、同屬性門派）自動生成二內～六內的佔位資質，
+// 數值隨心法等級遞增，之後要幫某一本寫真正的資質／特效時，直接改 INTERNAL_POOL 裡對應物件的欄位。
+Object.entries(ADVANCED_INTERNAL_NAMES).forEach(([sectKey, names])=>{
+  const base = INTERNAL_POOL.find(t=>t.id===STARTER_INTERNAL_ID[sectKey]);
+  if(!base) return;
+  const stats = Object.keys(base.bonusStat);
+  names.forEach((name, idx)=>{
+    const rank = idx+2; // 二內=2 ... 六內=6
+    const growth = 1 + (rank-1)*0.35;
+    const bonusStat = {};
+    stats.forEach(k=>{ bonusStat[k] = Math.round(base.bonusStat[k]*growth); });
+    INTERNAL_POOL.push({
+      id:`${sectKey}_${rank}`, name, sect:sectKey, affinity:base.affinity,
+      bonusStat,
+      powerMult:Math.round(base.powerMult*(1+(rank-1)*0.03)*100)/100,
+      hpMult:Math.round(base.hpMult*(1+(rank-1)*0.02)*100)/100,
+      mpMult:Math.round(base.mpMult*(1+(rank-1)*0.02)*100)/100,
+      defMult:Math.round(base.defMult*(1+(rank-1)*0.02)*100)/100,
+      special:null, specialValue:null,
+      desc:`${sectDisplayNameFor(sectKey)}門派進階心法（${rank}內），效果待補。`,
+    });
+  });
+});
+
 // 每門心法各層（1～36）的具體效果，是「練到第幾層」的唯一數值來源。
 // 每一層只有兩件事：
 //   1) bonusStat —— 直接加五大主屬性（臂力／身法／內息／罡氣／體魄），練到那層就拿到那層的數字，
