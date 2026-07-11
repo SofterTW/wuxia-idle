@@ -993,7 +993,11 @@ function renderCodex(){
         <div class="wxg-hint" style="margin-top:4px;">起始五圍：${statTxt}</div>
       </div>`;
     }).join("");
-    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">六大門派各有限定兵刃種類與專屬戰鬥機制，決定了可學的武學招式方向。</div>` + rows;
+    const comingSoonRows = COMING_SOON_SECTS.map(s=>`<div class="wxg-panel" style="opacity:0.6;">
+      <div class="wxg-panel-head"><span class="dot" style="background:var(--dim-text);"></span><h3>${s.name}</h3><span class="wxg-tag" style="margin-left:auto;">敬請期待</span></div>
+      <div class="wxg-hint">${s.teaser}，尚未開放，暫時無法選擇遊玩。</div>
+    </div>`).join("");
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">六大門派各有限定兵刃種類與專屬戰鬥機制，決定了可學的武學招式方向。</div>` + rows + comingSoonRows;
   }
 
   if(S.codexSubTab==="internal"){
@@ -1163,6 +1167,14 @@ function renderSectPick(){
           <p>限定兵刃：${s.weapon}</p>
           <p>${s.passive}</p>
           <p style="margin-top:6px; font-size:10px;"><span style="color:${PRIMARY_COLORS.臂力}">臂${s.base.臂力}</span>／<span style="color:${PRIMARY_COLORS.身法}">身${s.base.身法}</span>／<span style="color:${PRIMARY_COLORS.內息}">息${s.base.內息}</span>／<span style="color:${PRIMARY_COLORS.罡氣}">罡${s.base.罡氣}</span>／<span style="color:${PRIMARY_COLORS.體魄}">體${s.base.體魄}</span></p>
+        </div>`).join("")}
+      ${COMING_SOON_SECTS.map(s=>`
+        <div class="wxg-sectcard locked" title="尚未開放">
+          <span class="wxg-lock-badge">敬請期待</span>
+          <div class="wxg-sect-icon">🔒</div>
+          <h4>${s.name}</h4>
+          <p>${s.teaser}</p>
+          <p style="margin-top:6px;">尚未開放，敬請期待</p>
         </div>`).join("")}
     </div>
   `;

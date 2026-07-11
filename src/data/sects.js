@@ -12,3 +12,10 @@ const SECTS = {
   mingjiao:{name:"明教", weapon:"魔刀／聖火令", weaponType:"刀法", passive:"天魔解體：氣血低於50%攻擊大增", icon:"blade",
     base:{臂力:16,身法:6,內息:14,罡氣:6,體魄:6}},
 };
+
+// 尚未開放的門派：只在選門派畫面／圖鑑露出預告，不能選擇、不能遊玩。
+const COMING_SOON_SECTS = [
+  {key:"junzitang", name:"君子堂", teaser:"傳聞與「通慧功」有關"},
+  {key:"jile_sect", name:"極樂",   teaser:"傳聞與「雙修訣」有關"},
+  {key:"jinyiwei",  name:"錦衣衛", teaser:"傳聞與「玄元經」有關"},
+];
