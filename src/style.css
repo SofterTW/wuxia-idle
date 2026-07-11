@@ -1,0 +1,379 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;800;900&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap');
+
+.wxg *{box-sizing:border-box;}
+.wxg{
+  --bg0:#0d0906; --bg1:#181009; --wood1:#2b1d12; --wood2:#1a1109;
+  --gold:#d4af37; --gold-dk:#8a6d1f; --gold-lt:#f3d878;
+  --crimson:#a5332c; --crimson-lt:#d1564c;
+  --jade:#3f7d63; --jade-lt:#5eab88;
+  --bronze:#8a6d3b;
+  --ink-text:#f0e6cf; --dim-text:#c9bd9e;
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",-apple-system,sans-serif;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, #3a2410 0%, transparent 60%),
+    radial-gradient(ellipse 700px 400px at 100% 110%, #2a1508 0%, transparent 55%),
+    var(--bg0);
+  color:var(--ink-text);
+  min-height:660px; border-radius:8px; overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 0 0 1px #000, 0 0 40px #000 inset;
+  position:relative;
+}
+.wxg-noise{position:absolute; inset:0; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.wxg *::-webkit-scrollbar{width:8px; height:8px;}
+.wxg *::-webkit-scrollbar-track{background:#0a0805; border-radius:4px;}
+.wxg *::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--bronze),#5a4525); border-radius:4px; border:1px solid #000;}
+.wxg *::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--gold-dk),var(--bronze));}
+.wxg-mono{font-family:"JetBrains Mono",monospace;}
+
+/* ---- 牌匾標題 ---- */
+.wxg-banner{
+  position:relative; padding:12px 30px 14px; margin:10px 14px 0;
+  background:linear-gradient(180deg, #3a2810, #221507);
+  clip-path:polygon(0 0,100% 0,97% 100%,3% 100%);
+  border-bottom:2px solid var(--gold-dk);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.wxg-banner::before, .wxg-banner::after{
+  content:""; position:absolute; top:0; bottom:0; width:3px; background:var(--gold);
+}
+.wxg-banner::before{left:0;} .wxg-banner::after{right:0;}
+.wxg-title{font-family:"Noto Serif TC","Microsoft JhengHei",serif; font-weight:900; font-size:21px; letter-spacing:7px;
+  color:var(--gold-lt); text-shadow:1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 12px rgba(212,175,55,.35);
+}
+.wxg-title small{display:block; font-size:11.5px; letter-spacing:1.5px; color:var(--dim-text); font-weight:500; margin-top:3px;}
+.wxg-stats-strip{display:flex; gap:18px; font-size:12px; color:var(--dim-text);}
+.wxg-stats-strip b{color:var(--gold-lt); font-family:"JetBrains Mono";}
+
+/* ---- 戰鬥舞台 ---- */
+.wxg-stage{
+  margin:12px 14px 0; padding:14px 20px; border-radius:6px; position:relative; overflow:hidden;
+  background:linear-gradient(145deg, var(--wood1), var(--wood2));
+  border:1px solid var(--gold-dk); box-shadow:0 0 0 1px #000 inset, 0 6px 14px #0009;
+  display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:190px;
+}
+.wxg-scene{position:absolute; inset:0; z-index:0; overflow:hidden;}
+.wxg-scene svg{width:100%; height:100%; display:block;}
+.wxg-stage::before{
+  content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(0,0,0,.15), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.35) 100%),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45) 100%);
+}
+.wxg-corner{position:absolute; width:16px; height:16px; border:2px solid var(--gold); z-index:3;}
+.wxg-corner.tl{top:-2px; left:-2px; border-right:none; border-bottom:none;}
+.wxg-corner.tr{top:-2px; right:-2px; border-left:none; border-bottom:none;}
+.wxg-corner.bl{bottom:-2px; left:-2px; border-right:none; border-top:none;}
+.wxg-corner.br{bottom:-2px; right:-2px; border-left:none; border-top:none;}
+
+.wxg-fighter{width:150px; text-align:center; flex-shrink:0; position:relative; z-index:2;}
+.wxg-portrait{
+  width:72px; height:100px; margin:0 auto 6px; position:relative;
+  display:flex; align-items:flex-end; justify-content:center;
+  filter:drop-shadow(0 0 8px rgba(165,51,44,.55)) drop-shadow(0 3px 4px rgba(0,0,0,.6));
+}
+.wxg-portrait.big{width:88px; height:120px;}
+.wxg-portrait.big svg{width:88px; height:120px;}
+.wxg-ground-shadow{
+  width:56px; height:11px; margin:-2px auto 4px; border-radius:50%;
+  background:radial-gradient(ellipse, rgba(0,0,0,.6), transparent 70%);
+}
+.wxg-portrait.enemy{filter:drop-shadow(0 0 8px rgba(63,125,99,.55)) drop-shadow(0 3px 4px rgba(0,0,0,.6));}
+.wxg-portrait svg{width:66px; height:92px;}
+
+/* ---- 攻擊特效飛行 ---- */
+.wxg-projectile{
+  position:absolute; top:50%; width:12px; height:12px; border-radius:50%; z-index:3;
+  transform:translateY(-50%); pointer-events:none;
+}
+.wxg-projectile.fwd{ left:22%; background:var(--gold-lt); box-shadow:0 0 12px 5px rgba(212,175,55,.8); animation:wxgProjFwd .45s ease-in forwards;}
+.wxg-projectile.back{ left:76%; background:var(--crimson-lt); box-shadow:0 0 12px 5px rgba(165,51,44,.8); animation:wxgProjBack .45s ease-in forwards;}
+@keyframes wxgProjFwd{ 0%{left:22%; opacity:0;} 12%{opacity:1;} 88%{opacity:1;} 100%{left:76%; opacity:0;} }
+@keyframes wxgProjBack{ 0%{left:76%; opacity:0;} 12%{opacity:1;} 88%{opacity:1;} 100%{left:22%; opacity:0;} }
+.wxg-fname{font-size:12px; font-weight:700; color:var(--ink-text); letter-spacing:1px;}
+.wxg-fsub{font-size:10.5px; color:var(--dim-text); margin-top:1px;}
+
+.wxg-gauge-wrap{margin-top:6px;}
+.wxg-pillrow{display:flex; align-items:center; gap:6px; margin-bottom:4px;}
+.wxg-pilltag{font-size:10px; font-weight:800; width:16px; text-align:center; flex-shrink:0;}
+.wxg-pilltag.hp{color:#e2685c;}
+.wxg-pilltag.mp{color:#6db3e0;}
+.wxg-pilltag.en{color:#7ec9a2;}
+.wxg-gauge{
+  height:17px; border-radius:999px; background:#0a0805; border:1px solid #000; flex:1;
+  box-shadow:0 0 0 1px #4a3218, inset 0 1px 2px #000; overflow:hidden; position:relative;
+}
+.wxg-gauge-fill{height:100%; position:relative; transition:width .35s; border-radius:999px;}
+.wxg-gauge-fill.hp{background:linear-gradient(180deg,#e2685c,var(--crimson) 60%,#7a201a);}
+.wxg-gauge-fill.mp{background:linear-gradient(180deg,#6db3e0,#2f6f9e 60%,#193f57);}
+.wxg-gauge-fill.en{background:linear-gradient(180deg,#7ec9a2,var(--jade) 60%,#204a3a);}
+.wxg-gauge-fill::after{content:""; position:absolute; top:0; left:0; right:0; height:45%; background:rgba(255,255,255,.28); border-radius:999px 999px 0 0;}
+.wxg-gauge-text{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000, 0 0 3px #000;
+  font-family:"JetBrains Mono",monospace; letter-spacing:.3px;
+}
+
+.wxg-vs-col{flex:1; text-align:center; align-self:center; position:relative; z-index:2;}
+.wxg-vs{font-family:"Noto Serif TC"; font-weight:900; font-size:22px; color:var(--gold);
+  text-shadow:0 0 10px rgba(212,175,55,.5); opacity:.85;}
+.wxg-stage-hint{font-size:11px; color:#a99b7c; margin-top:6px; letter-spacing:.5px;}
+.wxg-portrait-wrap{position:relative;}
+.wxg-float{
+  position:absolute; top:-18px; left:50%; transform:translateX(-50%);
+  font-family:"Noto Serif TC"; font-size:13px; font-weight:800; letter-spacing:1px;
+  text-shadow:0 0 8px #000, 0 0 4px #000; opacity:0; animation:wxgFloat 1.2s ease-out; white-space:nowrap; z-index:6;
+}
+.wxg-float.self{color:#ff8a7a;}
+.wxg-float.foe{color:var(--gold-lt);}
+.wxg-float.crit{font-size:19px; animation:wxgFloatCrit 1.3s ease-out; color:#fff5d6 !important; text-shadow:0 0 8px #d4af37, 0 0 16px rgba(212,175,55,.8), 1px 1px 0 #000;}
+@keyframes wxgFloatCrit{
+  0%{opacity:0; transform:translate(-50%,6px) scale(.6) rotate(-4deg);}
+  15%{opacity:1; transform:translate(-50%,-4px) scale(1.35) rotate(3deg);}
+  30%{transform:translate(-50%,-2px) scale(1.05) rotate(-1deg);}
+  80%{opacity:1;}
+  100%{opacity:0; transform:translate(-50%,-20px) scale(1.1) rotate(0);}
+}
+@keyframes wxgFloat{
+  0%{opacity:0; transform:translate(-50%,6px) scale(.9);}
+  25%{opacity:1; transform:translate(-50%,-2px) scale(1.05);}
+  80%{opacity:1;}
+  100%{opacity:0; transform:translate(-50%,-16px) scale(1);}
+}
+
+/* ---- 左側垂直導覽列(仿 Melvor Idle 側欄風格) ---- */
+.wxg-navlist{margin-bottom:12px; border-bottom:1px solid #3a2a17; padding-bottom:10px; position:relative;}
+.wxg-navcollapse{
+  position:absolute; top:-4px; right:-2px; width:18px; height:18px; border-radius:3px;
+  background:#241a10; border:1px solid #3a2a17; color:var(--dim-text); font-size:11px;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:2;
+}
+.wxg-navcollapse:hover{color:var(--gold-lt); border-color:var(--gold-dk);}
+.wxg-navitem{
+  display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:4px; cursor:pointer;
+  margin-bottom:2px; font-size:12px; font-weight:700; letter-spacing:1px; color:var(--dim-text);
+  font-family:"Noto Serif TC"; border-left:2px solid transparent;
+}
+.wxg-navitem:hover{background:rgba(255,255,255,.03); color:var(--ink-text);}
+.wxg-navitem.active{background:linear-gradient(90deg, var(--navc, var(--gold)), transparent 85%); background-color:rgba(255,255,255,.04);
+  border-left-color:var(--navc, var(--gold)); color:var(--navc, var(--gold-lt));}
+.wxg-navdot{width:7px; height:7px; border-radius:50%; flex-shrink:0;}
+.wxg-navlabel{flex:1;}
+.wxg-navbadge{font-size:9px; padding:1px 6px; border-radius:8px; border:1px solid; font-weight:700; font-family:"JetBrains Mono",monospace;}
+.wxg-side.collapsed .wxg-navlabel, .wxg-side.collapsed .wxg-navbadge{display:none;}
+.wxg-side.collapsed .wxg-navitem{justify-content:center; padding:9px 4px;}
+.wxg-side.collapsed{width:52px;}
+.wxg-side.collapsed .wxg-panel{display:none;}
+
+.wxg-body{display:flex; flex:1; min-height:0; margin:0 14px 14px; border:1px solid var(--gold-dk); border-radius:6px; overflow:hidden;}
+.wxg-side{width:200px; padding:12px; overflow-y:auto; flex-shrink:0; background:linear-gradient(180deg,#181009,#120c07); border-right:1px solid #3a2a17; transition:width .2s;}
+.wxg-main{flex:1; padding:14px; overflow-y:auto; background:linear-gradient(180deg,#161009,#100b06);}
+
+/* ---- 面板 ---- */
+.wxg-panel{
+  position:relative; border-radius:5px; padding:12px 13px 13px; margin-bottom:11px;
+  background:
+    linear-gradient(160deg,#241a0e,#150f08) padding-box,
+    linear-gradient(135deg, #4a3613 0%, #b89243 20%, #6e5220 42%, #e6c474 60%, #5c4318 80%, #c9a14a 100%) border-box;
+  border:1.5px solid transparent;
+  box-shadow:0 3px 8px #0007, inset 0 1px 0 rgba(255,255,255,.03);
+}
+.wxg-panel-head{
+  display:flex; align-items:center; gap:8px; margin:-2px -2px 9px; padding:5px 10px;
+  background:linear-gradient(90deg, var(--gold-dk), transparent 90%);
+  border-bottom:1px solid var(--gold-dk); border-radius:4px 4px 0 0;
+}
+.wxg-panel-head .dot{width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 5px var(--gold);}
+.wxg-panel-head.internal .dot{background:var(--jade); box-shadow:0 0 5px var(--jade);}
+.wxg-panel-head.martial .dot{background:var(--crimson); box-shadow:0 0 5px var(--crimson);}
+.wxg-panel-head h3{margin:0; font-size:12.5px; letter-spacing:3px; font-family:"Noto Serif TC"; color:var(--gold-lt); font-weight:700;
+  text-shadow:1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;}
+.wxg-panel.active-main{
+  background:
+    linear-gradient(160deg,#241a0e,#150f08) padding-box,
+    linear-gradient(135deg, #1a3a2c 0%, var(--jade) 30%, #1a3a2c 60%, var(--jade-lt) 85%, #1a3a2c 100%) border-box;
+  box-shadow:0 0 12px rgba(63,125,99,.35), 0 3px 10px #0009;
+}
+
+.wxg-row{display:flex; justify-content:space-between; font-size:12.5px; padding:3.5px 2px; color:var(--dim-text); border-bottom:1px dotted #382c1c;}
+.wxg-row:last-child{border-bottom:none;}
+.wxg-row b{color:var(--ink-text); font-family:"JetBrains Mono"; font-weight:600;}
+.wxg-grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:6px 14px;}
+
+.wxg-btn{
+  font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif; font-weight:700; letter-spacing:1px; font-size:12px;
+  padding:6px 13px; border-radius:4px; cursor:pointer; color:#2a1c08;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold) 55%,var(--gold-dk));
+  border:1px solid #6b5218;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 3px rgba(0,0,0,.25), 0 2px 4px #0007;
+}
+.wxg-btn:hover{filter:brightness(1.08);}
+.wxg-btn:active{box-shadow:inset 0 2px 4px rgba(0,0,0,.4);}
+.wxg-btn:disabled{background:#3a352c; color:#726a5a; box-shadow:none; cursor:not-allowed; border-color:#2a2a2a;}
+.wxg-btn.jade{background:linear-gradient(180deg,var(--jade-lt),var(--jade) 55%,#1f4535); color:#eafff2; border-color:#1a3a2c;}
+.wxg-btn.crimson{background:linear-gradient(180deg,var(--crimson-lt),var(--crimson) 55%,#5c1a15); color:#ffe9e6; border-color:#4a1510;}
+.wxg-btn.small{padding:4px 9px; font-size:10px;}
+
+.wxg-slotgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
+.wxg-medal{
+  position:relative; border-radius:6px; padding:8px 9px; cursor:pointer;
+  background:linear-gradient(160deg,#221808,#140d05); border:1px solid #4a3818;
+  font-size:11px; color:var(--ink-text);
+}
+.wxg-medal:hover{border-color:var(--gold);}
+.wxg-medal .ring{
+  width:34px; height:34px; border-radius:50%; margin-right:8px; float:left;
+  display:flex; align-items:center; justify-content:center; font-family:"Noto Serif TC"; font-weight:900; font-size:13px;
+  background:radial-gradient(circle at 35% 30%, #3a2810, #150e06);
+  border:2px solid var(--crimson); color:var(--gold-lt);
+}
+.wxg-medal .ring.wai{border-color:var(--crimson);}
+.wxg-medal .ring.nei{border-color:#4a86c0;}
+.wxg-medal .layer-badge{
+  position:absolute; top:2px; right:4px; font-size:9px; background:var(--gold); color:#2a1c08;
+  padding:0 5px; border-radius:8px; font-weight:800;
+}
+
+.wxg-progress-wrap{height:8px; background:#0a0805; border-radius:4px; overflow:hidden; margin:5px 0 3px; border:1px solid #000; box-shadow:0 0 0 1px #4a3818;}
+.wxg-progress{height:100%;}
+.wxg-progress.jade{background:linear-gradient(180deg,var(--jade-lt),var(--jade));}
+.wxg-progress.crimson{background:linear-gradient(180deg,var(--crimson-lt),var(--crimson));}
+
+.wxg-log{
+  font-size:11.5px; color:var(--ink-text); line-height:1.6; max-height:280px; overflow-y:auto;
+  font-family:"Noto Sans TC",sans-serif; padding:8px; border-radius:5px;
+  background:
+    #0a0805 padding-box,
+    linear-gradient(135deg, #4a3613 0%, #b89243 20%, #6e5220 42%, #e6c474 60%, #5c4318 80%, #c9a14a 100%) border-box;
+  border:2px solid transparent; border-bottom-width:1px;
+  box-shadow:inset 0 2px 6px #000a;
+}
+.wxg-logline{
+  border-left:3px solid #666; border-radius:0 4px 4px 0; padding:4px 8px; margin-bottom:4px;
+}
+.wxg-logpills{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px;}
+.wxg-logpill{
+  font-size:9.5px; padding:2px 8px; border-radius:10px; border:1px solid; cursor:pointer;
+  font-weight:700; letter-spacing:.5px; user-select:none;
+}
+.wxg-tag{display:inline-block; font-size:10.5px; padding:1px 7px; border-radius:3px; margin-left:5px; font-weight:700; letter-spacing:.5px;}
+.wxg-tag.jade{background:var(--jade); color:#eafff2;}
+.wxg-tag.gold{background:var(--gold); color:#2a1c08;}
+.wxg-tag.crimson{background:var(--crimson); color:#ffe9e6;}
+.wxg-hint{font-size:11.5px; color:#a99b7c; margin-top:6px; line-height:1.65;}
+
+.wxg-equip-slot{
+  border:1px solid #4a3818; border-radius:4px; padding:7px 9px; font-size:11.5px; cursor:pointer;
+  background:linear-gradient(160deg,#221808,#140d05); color:var(--ink-text);
+}
+.wxg-equip-slot:hover{border-color:var(--gold);}
+.wxg-equip-slot .slotname{color:var(--gold-lt); font-weight:700;}
+.wxg-equip-slot .bonus{color:var(--dim-text); font-size:10.5px;}
+
+/* ---- 選門派 ---- */
+.wxg-sectpick{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; padding:24px;}
+.wxg-sectcard{
+  position:relative; border-radius:6px; padding:18px 12px 14px; text-align:center; cursor:pointer;
+  background:linear-gradient(160deg,#2a1d10,#160f08); border:1px solid var(--bronze);
+  box-shadow:0 4px 10px #0008;
+  transition:.15s;
+}
+.wxg-sectcard:hover{border-color:var(--gold); transform:translateY(-3px); box-shadow:0 8px 18px #000a, 0 0 0 1px var(--gold);}
+.wxg-sectcard h4{margin:8px 0 4px; color:var(--gold-lt); font-size:17px; letter-spacing:5px; font-family:"Noto Serif TC"; font-weight:800;
+  text-shadow:1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;}
+.wxg-sectcard p{font-size:11.5px; color:var(--dim-text); margin:3px 0;}
+.wxg-sect-icon{width:50px; height:50px; margin:0 auto; filter:drop-shadow(0 2px 3px #000);}
+
+/* ---- 裝備子頁籤 ---- */
+.wxg-subtabs{display:flex; gap:6px; margin-bottom:10px;}
+.wxg-subtab{
+  padding:5px 14px; font-size:11px; letter-spacing:2px; font-weight:700; cursor:pointer; border-radius:4px;
+  color:var(--dim-text); background:linear-gradient(160deg,#221808,#140d05); border:1px solid #3a2a17;
+}
+.wxg-subtab.active{color:var(--gold-lt); border-color:var(--gold-dk); background:linear-gradient(160deg,#3a2810,#221708);}
+.wxg-subtab:hover{color:var(--ink-text);}
+
+/* ---- 裝備選擇彈框 ---- */
+.wxg-modal-overlay{
+  position:absolute; inset:0; background:rgba(5,3,1,.72); backdrop-filter:blur(1px);
+  display:flex; align-items:center; justify-content:center; z-index:20; padding:20px;
+}
+.wxg-modal{
+  width:100%; max-width:380px; max-height:80%; overflow-y:auto; border-radius:6px; padding:14px 16px 16px;
+  background:
+    linear-gradient(160deg,#2a1d10,#160f08) padding-box,
+    linear-gradient(135deg, #4a3613 0%, #e6c474 30%, #6e5220 55%, #c9a14a 80%, #5c4318 100%) border-box;
+  border:1.5px solid transparent; box-shadow:0 10px 30px #000a, 0 0 0 1px #000;
+}
+.wxg-pickitem-list{display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto;}
+.wxg-pickitem{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:8px 10px; border-radius:4px; background:linear-gradient(160deg,#221808,#140d05);
+  border:1px solid #3a2a17; font-size:11.5px; color:var(--ink-text); cursor:pointer;
+}
+.wxg-pickitem:hover{border-color:var(--gold);}
+
+/* ---- 打擊感特效 ---- */
+@keyframes wxgShake{
+  0%{transform:translate(0,0) rotate(0);}
+  15%{transform:translate(-4px,2px) rotate(-3deg);}
+  30%{transform:translate(4px,-2px) rotate(3deg);}
+  45%{transform:translate(-3px,1px) rotate(-2deg);}
+  60%{transform:translate(3px,-1px) rotate(2deg);}
+  75%{transform:translate(-2px,1px) rotate(-1deg);}
+  100%{transform:translate(0,0) rotate(0);}
+}
+@keyframes wxgStageShake{
+  0%{transform:translate(0,0);} 20%{transform:translate(-3px,2px);}
+  40%{transform:translate(3px,-2px);} 60%{transform:translate(-2px,1px);}
+  80%{transform:translate(2px,-1px);} 100%{transform:translate(0,0);}
+}
+@keyframes wxgFlashRing{
+  0%{opacity:.9; transform:scale(.5);}
+  100%{opacity:0; transform:scale(1.6);}
+}
+@keyframes wxgGaugeFlash{
+  0%{box-shadow:0 0 0 2px #ff4a3a, inset 0 1px 2px #000;}
+  100%{box-shadow:0 0 0 1px #4a3818, inset 0 1px 2px #000;}
+}
+.wxg-stage-shake{animation:wxgStageShake .35s ease-in-out;}
+.wxg-portrait.hit-shake{animation:wxgShake .4s ease-in-out;}
+.wxg-portrait.hit-flash{position:relative;}
+.wxg-portrait.hit-flash::after{
+  content:""; position:absolute; inset:-6px; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,.85), rgba(255,80,60,.3) 60%, transparent 75%);
+  animation:wxgFlashRing .45s ease-out; pointer-events:none;
+}
+.wxg-portrait.hit-flash.hit-crit::after{
+  background:radial-gradient(circle, rgba(255,230,150,.95), rgba(212,175,55,.45) 60%, transparent 75%);
+  inset:-12px;
+}
+.wxg-gauge.gauge-flash{animation:wxgGaugeFlash .5s ease-out;}
+
+@keyframes wxgRowFlash{
+  0%{background:rgba(212,175,55,.35); box-shadow:0 0 8px rgba(212,175,55,.5);}
+  100%{background:transparent; box-shadow:none;}
+}
+.wxg-row.effect-flash{
+  animation:wxgRowFlash 1s ease-out; border-radius:3px; padding-left:4px; margin-left:-4px;
+  color:var(--gold-lt); font-weight:600;
+}
+.wxg-row.effect-flash b{color:var(--gold-lt);}
+
+@keyframes wxgEffectBanner{
+  0%{opacity:0; transform:translateY(4px) scale(.85);}
+  20%{opacity:1; transform:translateY(0) scale(1.08);}
+  35%{transform:scale(1);}
+  80%{opacity:1;}
+  100%{opacity:0; transform:translateY(-6px) scale(1);}
+}
+.wxg-effect-banner{
+  font-family:"Noto Serif TC"; font-weight:800; font-size:13px; letter-spacing:1px;
+  color:#fff; background:linear-gradient(90deg, var(--crimson), var(--gold));
+  padding:3px 12px; border-radius:12px; margin:4px auto 0; display:inline-block;
+  box-shadow:0 2px 8px rgba(0,0,0,.5), 0 0 10px rgba(212,175,55,.5);
+  animation:wxgEffectBanner 1.6s ease-out; opacity:0;
+}

@@ -1,0 +1,57 @@
+function addLog(msg, type){ S.log.unshift({msg, type: type||'system', t: S.tick}); if(S.log.length>60) S.log.pop(); }
+
+function getEquipTotal(){
+  const total = {臂力:0,身法:0,內息:0,罡氣:0,體魄:0};
+  Object.values(S.equipment).forEach(it=>{ if(!it) return; Object.entries(it.bonus).forEach(([k,v])=> total[k]+=v); });
+  return total;
+}
+function getInternalTier(techId){
+  const inv = S.knownInternal[techId]?.invested || 0;
+  let tier = 0;
+  for(let i=TIER_TABLE.length-1;i>=0;i--){ if(inv >= TIER_TABLE[i].req){ tier=i; break; } }
+  return tier;
+}
+function recalc(fullRestore){
+  const eq = getEquipTotal();
+  const awaken = getAwakenTotals();
+  const p = {};
+  const rankBonus = 1 + (RANK_TABLE[S.sectRank]?.bonus||0);
+  ["臂力","身法","內息","罡氣","體魄"].forEach(k=> p[k] = (S.primary[k] + eq[k] + (awaken.primary[k]||0)) * rankBonus);
+  S.derivedPrimary = p;
+  const tier = getInternalTier(S.activeInternal);
+  const tierInfo = TIER_TABLE[tier];
+  let atkBuff = 1 + (S.buffAtkTicks>0 ? S.buffAtk : 0);
+  // 明教：天魔解體，氣血低於50%時外功內功攻擊大幅提升
+  if(S.sectKey==="mingjiao" && S.hpMax>0 && S.hp/S.hpMax < 0.5) atkBuff *= 1.35;
+  const asec = awaken.secondary;
+  S.secondary = {
+    近身威力: p.臂力*atkBuff + (asec.近身威力||0), 遠程威力: p.身法*atkBuff + (asec.遠程威力||0),
+    內功威力: p.內息*(1+tierInfo.mult)*atkBuff + (asec.內功威力||0),
+    外功命中: p.身法 + (asec.外功命中||0), 內功命中: p.罡氣 + (asec.內功命中||0),
+    外功暴擊: p.臂力*0.5 + (asec.外功暴擊||0), 內功暴擊: p.罡氣*0.5 + (asec.內功暴擊||0),
+    閃避值: p.身法*0.6 + (asec.閃避值||0), 封勁: p.體魄*0.5 + (asec.封勁||0), 招架耐力上限: p.體魄*21,
+    外功防禦: p.體魄*0.8+p.臂力*0.2 + (S.sectKey==="shaolin"?S.shaolinBlockStack*3:0) + (asec.外功防禦||0),
+    內功防禦: p.罡氣*0.2 + (asec.內功防禦||0),
+    破防: asec.破防||0,
+  };
+  S.hpMax = Math.round(p.臂力*2 + p.體魄*7 + tierInfo.hpBonus*p.體魄*7);
+  S.mpMax = Math.round(p.內息*4 + p.罡氣*1 + tierInfo.mpBonus*(p.內息*4));
+  if(fullRestore){ S.hp=S.hpMax; S.mp=S.mpMax; } else { S.hp=Math.min(S.hp,S.hpMax); S.mp=Math.min(S.mp,S.mpMax); }
+}
+function affinityMultiplier(a,m){ if(a==="太極") return 1.16; if(a===m) return 1.20; if(m==="太極") return 1.16; return 1.0; }
+
+function spawnMonster(){
+  const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
+  const lvl = S.monsterLevel + zone.levelMod;
+  const name = zone.monsters[Math.floor(Math.random()*zone.monsters.length)];
+  const isBoss = S.killCount>0 && S.killCount%10===0;
+  S.monster = { name: isBoss?`【首領】${name}`:name, level:lvl, zone:zone.id,
+    hpMax: Math.round((isBoss?3:1)*(60+lvl*35)), hp:0,
+    atk: Math.round(6+lvl*3.2), def: Math.round(2+lvl*2), isBoss };
+  S.monster.hp = S.monster.hpMax;
+  S.monster.poisonStacks = 0;
+  S.monster.bleedStacks = 0;
+  S.monster.stunned = false;
+  S.monster.staggerTicks = 0;
+  S.monster.defReduceTicks = 0;
+}
