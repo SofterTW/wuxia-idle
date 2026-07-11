@@ -37,6 +37,7 @@ function renderPicker(){
         <div style="display:flex; gap:6px;">
           <button class="wxg-btn small" data-locktoggle="${idx}" style="padding:3px 8px;">${it.locked?'解鎖':'鎖定'}</button>
           <button class="wxg-btn small" data-pickequip="${idx}">裝備</button>
+          ${!it.locked?`<button class="wxg-btn crimson small" data-pickersell="${idx}">賣掉（${formatMoney(equipSellValue(it))}）</button>`:''}
         </div>
       </div>
       <div class="wxg-hint" style="margin:4px 0 2px; color:var(--gold-lt);">與目前裝備比較：</div>
@@ -588,6 +589,21 @@ function renderMartial(){
   `;
 }
 
+const BAG_FILTERS = [
+  {key:"all", label:"全部"},
+  {key:"weapon", label:"武器"},
+  {key:"armor", label:"裝備"},
+  {key:"martial", label:"武學秘笈"},
+  {key:"potion", label:"丹藥"},
+  {key:"other", label:"其他"},
+];
+function bagCategory(it){
+  if(it.kind==="equipment") return WEAPON_SLOTS.includes(it.slot) ? "weapon" : "armor";
+  if(it.kind==="manual" && it.manualType==="martial") return "martial";
+  if(it.kind==="consumable") return "potion";
+  return "other";
+}
+
 function renderEquip(){
   const subTabs = `
     <div class="wxg-subtabs">
@@ -596,7 +612,14 @@ function renderEquip(){
     </div>`;
 
   if(S.equipSubTab==="bag"){
-    const inv = S.inventory.map((it,idx)=>{
+    const filterTabs = `
+      <div class="wxg-subtabs" style="margin-top:-2px;">
+        ${BAG_FILTERS.map(f=>`<div class="wxg-subtab ${S.bagFilter===f.key?'active':''}" data-bagfilter="${f.key}">${f.label}</div>`).join("")}
+      </div>`;
+    const filtered = S.inventory
+      .map((it,idx)=>({it,idx}))
+      .filter(({it})=> S.bagFilter==="all" || bagCategory(it)===S.bagFilter);
+    const inv = filtered.map(({it,idx})=>{
       if(it.kind==="consumable"){
         const c = findConsumable(it.refId);
         return `<div class="wxg-panel"><div class="wxg-panel-head"><span class="dot"></span><h3>${it.name}</h3><span class="wxg-tag jade">藥品 x${it.qty}</span></div>
@@ -625,8 +648,10 @@ function renderEquip(){
           <button class="wxg-btn small" data-locktoggle="${idx}">${it.locked?'解鎖':'鎖定'}</button>
           ${!it.locked?`<button class="wxg-btn crimson small" data-bagsell="${idx}">販售（1銅錢）</button>`:''}
         </div></div>`;
-    }).join("") || `<div class="wxg-hint">背包空空如也，繼續戰鬥有機率掉落裝備、藥品與秘笈</div>`;
-    return subTabs + inv;
+    }).join("") || (S.inventory.length===0
+      ? `<div class="wxg-hint">背包空空如也，繼續戰鬥有機率掉落裝備、藥品與秘笈</div>`
+      : `<div class="wxg-hint">這個分類目前沒有道具</div>`);
+    return subTabs + filterTabs + inv;
   }
 
   const slots = SLOT_LIST.map(slot=>{

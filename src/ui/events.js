@@ -132,6 +132,7 @@ function bindGlobal(){
     render();
   });
   document.querySelectorAll('[data-equipsub]').forEach(el=> el.onclick=()=>{ S.equipSubTab = el.dataset.equipsub; render(); });
+  document.querySelectorAll('[data-bagfilter]').forEach(el=> el.onclick=()=>{ S.bagFilter = el.dataset.bagfilter; render(); });
   document.querySelectorAll('[data-codexsub]').forEach(el=> el.onclick=()=>{ S.codexSubTab = el.dataset.codexsub; render(); });
   document.querySelectorAll('[data-mapsub]').forEach(el=> el.onclick=()=>{ S.mapSubTab = el.dataset.mapsub; render(); });
   document.querySelectorAll('[data-gotown]').forEach(el=> el.onclick=()=>{
@@ -162,6 +163,17 @@ function bindGlobal(){
   document.querySelectorAll('[data-closepicker]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.pickerSlot=null; render(); });
   document.querySelectorAll('.wxg-modal button[data-closepicker]').forEach(el=> el.onclick=()=>{ S.pickerSlot=null; render(); });
   document.querySelectorAll('[data-pickequip]').forEach(el=> el.onclick=()=>{ equipItem(S.inventory[parseInt(el.dataset.pickequip)]); S.pickerSlot=null; render(); });
+  document.querySelectorAll('[data-pickersell]').forEach(el=> el.onclick=()=>{
+    const idx = parseInt(el.dataset.pickersell);
+    const item = S.inventory[idx];
+    if(!item || item.locked) return;
+    const val = equipSellValue(item);
+    if(!confirm(`確定要把「${item.name}」賣掉換 ${formatMoney(val)}嗎？`)) return;
+    S.gold += val;
+    S.inventory = S.inventory.filter((_,i)=>i!==idx);
+    addLog(`把「${item.name}」隨手賣了，得 ${formatMoney(val)}`, 'system');
+    render();
+  });
   document.querySelectorAll('[data-locktoggle]').forEach(el=> el.onclick=()=>{
     const item = S.inventory[parseInt(el.dataset.locktoggle)];
     if(item){ item.locked = !item.locked; addLog(`「${item.name}」已${item.locked?'鎖定':'解鎖'}`, 'system'); }
