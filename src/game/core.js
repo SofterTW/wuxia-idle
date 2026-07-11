@@ -38,8 +38,8 @@ function recalc(fullRestore){
     內功防禦: p.罡氣*0.2*techDef.defMult + (asec.內功防禦||0),
     破防: asec.破防||0,
   };
-  S.hpMax = Math.round(p.臂力*2 + p.體魄*7*techDef.hpMult);
-  S.mpMax = Math.round(p.內息*4*techDef.mpMult + p.罡氣*1);
+  S.hpMax = Math.round(p.臂力*2 + p.體魄*7*techDef.hpMult + (layer.hpBonus||0));
+  S.mpMax = Math.round(p.內息*4*techDef.mpMult + p.罡氣*1 + (layer.mpBonus||0));
   if(fullRestore){ S.hp=S.hpMax; S.mp=S.mpMax; } else { S.hp=Math.min(S.hp,S.hpMax); S.mp=Math.min(S.mp,S.mpMax); }
 }
 function affinityMultiplier(a,m){ if(a==="太極") return 1.16; if(a===m) return 1.20; if(m==="太極") return 1.16; return 1.0; }

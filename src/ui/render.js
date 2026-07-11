@@ -517,10 +517,12 @@ function renderOverview(){
 // 沒寫的話就用該層目前的實際數值自動組一段說明文字當佔位內容。
 function internalLayerDesc(skill, layerIdx){
   const layer = skill.layers[layerIdx];
-  if(layer.desc) return `第${layerIdx+1}層：${layer.desc}`;
   const parts = [];
   Object.entries(layer.bonusStat||{}).forEach(([k,v])=>{ if(v>0) parts.push(`${k}+${v}`); });
-  if(layer.special) parts.push(`特效：${layer.special}`);
+  if(layer.hpBonus>0) parts.push(`氣血+${layer.hpBonus}`);
+  if(layer.mpBonus>0) parts.push(`內力+${layer.mpBonus}`);
+  const specialText = layer.desc || layer.special;
+  if(specialText) parts.push(`特效：${specialText}`);
   return `第${layerIdx+1}層：${parts.length>0?parts.join('、'):'暫無額外效果'}`;
 }
 
@@ -555,7 +557,7 @@ function renderInternal(){
         <div class="wxg-hint">${t.desc}</div>
         <div class="wxg-row" style="margin-top:4px;"><span>資質</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
         ${t.special?`<div class="wxg-row"><span>被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
-        ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
+        ${Object.keys(t.layers[35].bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層加成</span><b style="font-weight:400;">${Object.entries(t.layers[35].bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
         <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層／共 36 層</b></div>
         <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層</b></div>
         <div class="wxg-row"><span>已投入</span><b>${known.invested} ${!atCap?`／需 ${nextReq}`:'（現有途徑已練滿）'}</b></div>
@@ -1027,7 +1029,7 @@ function renderCodex(){
       <div class="wxg-panel-head internal"><span class="dot"></span><h3>${t.name}</h3><span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span><span class="wxg-tag" style="margin-left:auto;">${t.sect?`${sectDisplayName(t.sect)}限定${locked?'（門派未開放）':''}`:'各門派通用'}</span></div>
       <div class="wxg-hint">${t.desc}</div>
       <div class="wxg-row" style="margin-top:4px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
-      ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層主屬性加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
+      ${Object.keys(t.layers[35].bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層主屬性加成</span><b style="font-weight:400;">${Object.entries(t.layers[35].bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
       ${t.special?`<div class="wxg-row"><span>獨特被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
       <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層／共 36 層</b></div>
     </div>`;
