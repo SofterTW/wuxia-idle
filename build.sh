@@ -27,6 +27,7 @@ JS_FILES=(
   src/data/monster-roster.js
   src/data/changelog.js
   src/game/state.js
+  src/game/save.js
   src/game/core.js
   src/game/combat.js
   src/game/inventory.js

@@ -6,6 +6,7 @@ function isEditingUI(){
 function tickGame(){
   combatTick();
   if(!isEditingUI()) render();
+  saveGame();
 }
 
 document.addEventListener('focusout', (e)=>{
@@ -14,6 +15,9 @@ document.addEventListener('focusout', (e)=>{
   }
 });
 
+window.addEventListener('beforeunload', ()=>{ saveGame(); });
+
 if(window.__wxgInterval) clearInterval(window.__wxgInterval);
 window.__wxgInterval = setInterval(()=>{ if(S) tickGame(); }, 1200);
+loadGame();
 render();

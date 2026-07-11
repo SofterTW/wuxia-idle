@@ -32,5 +32,5 @@ function newGame(sectKey){
     navHintSeen:false,
     hitEnemy:false, hitEnemyCrit:false, hitPlayer:false, lastUsedMoveId:null, stageEffects:[],
   };
-  spawnMonster(); recalc(true); render();
+  spawnMonster(); recalc(true); render(); saveGame();
 }

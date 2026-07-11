@@ -62,6 +62,10 @@ function bindGlobal(){
   document.querySelectorAll('[data-fleeboss]').forEach(el=>{
     el.onchange = ()=>{ S.combatOptions.fleeBoss = el.checked; render(); };
   });
+  document.querySelectorAll('[data-restartgame]').forEach(el=> el.onclick=()=>{
+    if(!confirm('確定要清除存檔、重新開始嗎？目前的進度將無法復原。')) return;
+    deleteSaveAndRestart();
+  });
   document.querySelectorAll('[data-tab]').forEach(el=> el.onclick = ()=>{
     S.tab = el.dataset.tab;
     if(S.tab!=="overview") S.navHintSeen = true;
