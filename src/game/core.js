@@ -42,17 +42,18 @@ function affinityMultiplier(a,m){ if(a==="太極") return 1.16; if(a===m) return
 
 function spawnMonster(avoidBoss){
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
-  const lvl = S.monsterLevel + zone.levelMod;
-  const name = zone.monsters[Math.floor(Math.random()*zone.monsters.length)];
   const isBoss = !avoidBoss && S.killCount>0 && S.killCount%10===0;
+  const bossDef = BOSS_ROSTER[zone.id];
   if(isBoss && S.combatOptions && S.combatOptions.fleeBoss){
-    addLog(`遇上首領「${name}」，依設定自動逃跑，繼續尋找下一場戰鬥。`, 'system');
+    addLog(`遇上首領「${bossDef.name}」，依設定自動逃跑，繼續尋找下一場戰鬥。`, 'system');
     spawnMonster(true);
     return;
   }
-  S.monster = { name: isBoss?`【首領】${name}`:name, level:lvl, zone:zone.id,
-    hpMax: Math.round((isBoss?3:1)*(60+lvl*35)), hp:0,
-    atk: Math.round(6+lvl*3.2), def: Math.round(2+lvl*2), isBoss };
+  const roster = MONSTER_ROSTER[zone.id] || [];
+  const def = isBoss ? bossDef : roster[Math.floor(Math.random()*roster.length)];
+  S.monster = { name: isBoss?`【首領】${def.name}`:def.name, level:def.level, zone:zone.id,
+    hpMax: def.hpMax, hp:0,
+    atk: def.atk, def: def.def, isBoss };
   S.monster.hp = S.monster.hpMax;
   S.monster.poisonStacks = 0;
   S.monster.bleedStacks = 0;

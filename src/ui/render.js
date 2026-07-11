@@ -945,7 +945,12 @@ function renderCodex(){
 
   if(S.codexSubTab==="misc"){
     const rankRows = RANK_TABLE.map((r,i)=>`<div class="wxg-row"><span>${r.name}</span><b style="font-weight:400;">${i===0?'預設位階':`需貢獻度 ${r.req}、淬鍊石 ${r.mat}，加成 +${Math.round(r.bonus*100)}%`}</b></div>`).join("");
-    const zoneRows = HUNTING_ZONES.map(z=>`<div class="wxg-row"><span>${z.name}</span><b style="font-weight:400;">${z.tag}・等級加成 +${z.levelMod}</b></div>`).join("");
+    const zoneRows = HUNTING_ZONES.map(z=>{
+      const mobRows = (MONSTER_ROSTER[z.id]||[]).map(m=>`<div class="wxg-row" style="padding-left:8px;"><span>${m.name}（Lv.${m.level}）</span><b style="font-weight:400; color:var(--dim-text);">氣血 ${m.hpMax}・攻擊 ${m.atk}・防禦 ${m.def}</b></div>`).join("");
+      const boss = BOSS_ROSTER[z.id];
+      const bossRow = boss ? `<div class="wxg-row" style="padding-left:8px;"><span style="color:#ff8a4a;">【首領】${boss.name}（Lv.${boss.level}）</span><b style="font-weight:400; color:#ff8a4a;">氣血 ${boss.hpMax}・攻擊 ${boss.atk}・防禦 ${boss.def}</b></div>` : "";
+      return `<div style="margin-top:8px;"><b>${z.name}</b><span style="color:var(--dim-text); font-size:11px;">　${z.tag}・裝備等級加成 +${z.levelMod}</span></div>${mobRows}${bossRow}`;
+    }).join("");
     const questRows = QUEST_TEMPLATES.map(q=>`<div class="wxg-row"><span>剿滅魔教：${q.zoneName}</span><b style="font-weight:400;">擊殺 ${q.killsNeeded} 名，獎勵貢獻度 +${q.reward}</b></div>`).join("");
     return subTabs + `
       <div class="wxg-panel">
@@ -967,7 +972,7 @@ function renderCodex(){
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>狩獵區</h3></div>
         ${zoneRows}
-        <div class="wxg-hint">等級加成越高，敵人越強、裝備掉落品級越好；每擊殺 10 隻會遇到一次首領（三倍血量）。</div>
+        <div class="wxg-hint" style="margin-top:8px;">每隻怪物的素質都是固定的，不會隨你的等級或擊殺數變化；每擊殺 10 隻會遇到一次該地區固定的首領。「裝備等級加成」只影響裝備掉落品級機率，跟怪物強度無關。</div>
       </div>
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>任務範本</h3></div>

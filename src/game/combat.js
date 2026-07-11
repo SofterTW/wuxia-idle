@@ -208,5 +208,5 @@ function onKill(){
     const gradeTxt = item.tierKey==="jade" ? `${["","一","二","三","四","五","六","七"][item.jadeGrade]}品` : tierInfo.name;
     addLog(`獲得裝備掉落：${item.name}（${gradeTxt}）`, 'loot');
   }
-  S.killCount++; S.monsterLevel = 1+Math.floor(S.killCount/3); spawnMonster();
+  S.killCount++; spawnMonster();
 }

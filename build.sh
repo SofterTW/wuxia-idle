@@ -24,6 +24,7 @@ JS_FILES=(
   src/game/equipment-tiers.js
   src/game/profession.js
   src/data/npc-tables.js
+  src/data/monster-roster.js
   src/game/state.js
   src/game/core.js
   src/game/combat.js

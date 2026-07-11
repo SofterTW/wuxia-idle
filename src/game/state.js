@@ -24,7 +24,7 @@ function newGame(sectKey){
     sectContribution:0, sectRank:0, quest:null, warningModal:null, warningCooldown:0,
     shaolinBlockStack:0, wudangProc:false, gaibangComboKills:0, gaibangComboReady:false, gaibangInvuln:false, tangmenPoison:0,
     hp:1, hpMax:1, mp:1, mpMax:1,
-    monster:null, monsterLevel:1, killCount:0,
+    monster:null, killCount:0,
     log:[], tab:"overview", tick:0, floatPlayer:"", floatEnemy:"",
     equipSubTab:"gear", pickerSlot:null, codexSubTab:"guide",
     mapSubTab:"zones", huntingZone:"heifeng", location:"heifeng", visitingSect:null, dialogueNpc:null,
