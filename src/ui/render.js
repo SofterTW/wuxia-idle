@@ -505,12 +505,12 @@ function renderOverview(){
 }
 
 const TIER_DESC = [
-  "第一層（引氣入體）：內力上限 +0%",
-  "第二層（小周天）：內力上限 +15%、內功威力 +10%",
-  "第三層（大周天）：內力上限 +30%、內功威力 +25%、氣血回復 +20%",
-  "第四層（化勁）：內功防禦 +30%、解鎖「內功反震」被動",
-  "第五層（返璞歸真）：全屬性 +10%、內力消耗 -15%",
-  "第六層（天人合一）：全屬性 +20%、解鎖門派奧義武學上限",
+  "第一層：內力上限 +0%",
+  "第二層：內力上限 +15%、內功威力 +10%",
+  "第三層：內力上限 +30%、內功威力 +25%、氣血回復 +20%",
+  "第四層：內功防禦 +30%、解鎖「內功反震」被動",
+  "第五層：全屬性 +10%、內力消耗 -15%",
+  "第六層：全屬性 +20%、解鎖門派奧義武學上限",
 ];
 
 function renderInternal(){
@@ -546,6 +546,7 @@ function renderInternal(){
         ${t.special?`<div class="wxg-row"><span>被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
         ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>頂層加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
         <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層／共 36 層</b></div>
+        <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層</b></div>
         <div class="wxg-row"><span>已投入</span><b>${known.invested} ${!atCap?`／需 ${nextReq}`:'（現有途徑已練滿）'}</b></div>
         <div class="wxg-progress-wrap"><div class="wxg-progress jade" style="width:${!atCap?Math.min(100,(known.invested-TIER_TABLE[tier].req)/(nextReq-TIER_TABLE[tier].req)*100):100}%"></div></div>
         <div class="wxg-hint" style="line-height:1.7; margin-top:6px;">${tierList}</div>
@@ -1015,6 +1016,7 @@ function renderCodex(){
       <div class="wxg-row" style="margin-top:4px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
       ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>頂層主屬性加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
       ${t.special?`<div class="wxg-row"><span>獨特被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
+      <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層／共 36 層</b></div>
     </div>`;
     }).join("");
     return subTabs + `
