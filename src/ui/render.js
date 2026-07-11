@@ -540,6 +540,8 @@ function renderInternal(){
         ${expanded?`
         <div class="wxg-hint">${t.desc}</div>
         <div class="wxg-row" style="margin-top:4px;"><span>資質</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
+        ${t.special?`<div class="wxg-row"><span>被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
+        ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>頂層加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
         <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層</b></div>
         <div class="wxg-row"><span>已投入</span><b>${known.invested} ${tier<5?`／需 ${nextReq}`:'（頂層）'}</b></div>
         <div class="wxg-progress-wrap"><div class="wxg-progress jade" style="width:${tier<5?Math.min(100,(known.invested-TIER_TABLE[tier].req)/(nextReq-TIER_TABLE[tier].req)*100):100}%"></div></div>
@@ -1000,6 +1002,8 @@ function renderCodex(){
       <div class="wxg-panel-head internal"><span class="dot"></span><h3>${t.name}</h3><span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span><span class="wxg-tag" style="margin-left:auto;">${t.sect?`${SECTS[t.sect].name}限定`:'各門派通用'}</span></div>
       <div class="wxg-hint">${t.desc}</div>
       <div class="wxg-row" style="margin-top:4px;"><span>資質倍率</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
+      ${Object.keys(t.bonusStat||{}).length>0?`<div class="wxg-row"><span>頂層主屬性加成</span><b style="font-weight:400;">${Object.entries(t.bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
+      ${t.special?`<div class="wxg-row"><span>獨特被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
     </div>`).join("");
     return subTabs + `
       <div class="wxg-panel">
@@ -1010,7 +1014,7 @@ function renderCodex(){
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>六層境界</h3></div>
         ${tierRows}
       </div>
-      <div class="wxg-hint" style="margin:10px 0 -2px;">每門心法有自己的「資質倍率」，同樣練到頂層，資質越高效果越強。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。</div>
+      <div class="wxg-hint" style="margin:10px 0 -2px;">每門心法有自己的「資質倍率」跟「頂層主屬性加成」（練到頂層才會拿到 100%），有些心法還帶有獨特被動效果，跟門派專屬機制同等級。屬性與招式屬性相同會有威力加成，太極屬性對任何招式都有加成。「基礎吐納訣」開局即會，其餘心法需擊殺 Boss 掉落秘笈、於背包使用後習得。</div>
       ${poolRows}
     `;
   }

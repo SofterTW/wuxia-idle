@@ -20,7 +20,8 @@ function combatTick(){
   S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.2*(S.sectKey==="emei"?1.6:1)))+1);
   checkAutoHeal();
   const moves = equippedMoveList();
-  const activeAff = INTERNAL_POOL.find(t=>t.id===S.activeInternal).affinity;
+  const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal);
+  const activeAff = activeTech.affinity;
   S.floatPlayer = ""; S.floatEnemy = ""; S.hitEnemy=false; S.hitEnemyCrit=false; S.hitPlayer=false;
   S.stageEffects = [];
   const wasLowHp = S.hpMax && (S.hp/S.hpMax < 0.5);
@@ -31,7 +32,8 @@ function combatTick(){
     const known = S.knownMartial[moveId];
     const layerMult = 1 + (known.layer-1)*0.08 + (known.layer>=9?0.07:0);
     const aff = affinityMultiplier(activeAff, moveDef.affinity);
-    const mpCost = 5;
+    // 北冥神功：內功招式的內力消耗降低
+    const mpCost = Math.max(1, Math.round(5 * (activeTech.id==="beiming" ? activeTech.specialValue.mpCostMult : 1)));
     let effDef = Math.max(0, S.monster.def * (S.monster.defReduceTicks>0 ? 0.7 : 1) - S.secondary.破防);
     let dmg, isCrit;
     if(moveDef.dmgType==="內功"){
@@ -123,6 +125,16 @@ function combatTick(){
       } else {
         let atkMult = S.monster.staggerTicks>0 ? 0.5 : 1;
         let mdmg = Math.max(1, Math.round(S.monster.atk*atkMult - S.secondary.外功防禦*0.3));
+        // 太極玄功：受擊時有機率格擋，格擋傷害降低
+        if(activeTech.id==="taiji_qi" && Math.random()<activeTech.specialValue.chance){
+          mdmg = Math.max(1, Math.round(mdmg*(1-activeTech.specialValue.dmgReduce)));
+          S.stageEffects.push("太極玄功・格擋！");
+        }
+        // 九陽神功：氣血過低時受到的傷害降低
+        if(activeTech.id==="jiuyang" && S.hpMax && S.hp/S.hpMax < activeTech.specialValue.hpThreshold){
+          mdmg = Math.max(1, Math.round(mdmg*(1-activeTech.specialValue.dmgReduce)));
+          S.stageEffects.push("九陽神功・氣血翻湧！");
+        }
         S.hp -= mdmg;
         S.floatPlayer = `-${mdmg}`;
         S.hitPlayer = true;

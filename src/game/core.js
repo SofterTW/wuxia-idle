@@ -14,13 +14,14 @@ function getInternalTier(techId){
 function recalc(fullRestore){
   const eq = getEquipTotal();
   const awaken = getAwakenTotals();
-  const p = {};
   const rankBonus = 1 + (RANK_TABLE[S.sectRank]?.bonus||0);
-  ["臂力","身法","內息","罡氣","體魄"].forEach(k=> p[k] = (S.primary[k] + eq[k] + (awaken.primary[k]||0)) * rankBonus);
-  S.derivedPrimary = p;
   const tier = getInternalTier(S.activeInternal);
   const tierInfo = TIER_TABLE[tier];
   const techDef = INTERNAL_POOL.find(t=>t.id===S.activeInternal) || INTERNAL_POOL[0];
+  const tierProgress = tier/5; // 心法自帶的主屬性加成，練到頂層（第6層）才會拿到 100%
+  const p = {};
+  ["臂力","身法","內息","罡氣","體魄"].forEach(k=> p[k] = (S.primary[k] + eq[k] + (awaken.primary[k]||0) + (techDef.bonusStat[k]||0)*tierProgress) * rankBonus);
+  S.derivedPrimary = p;
   let atkBuff = 1 + (S.buffAtkTicks>0 ? S.buffAtk : 0);
   // 明教：天魔解體，氣血低於50%時外功內功攻擊大幅提升
   if(S.sectKey==="mingjiao" && S.hpMax>0 && S.hp/S.hpMax < 0.5) atkBuff *= 1.35;
