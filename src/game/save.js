@@ -41,3 +41,42 @@ function deleteSaveAndRestart(){
   S = null;
   render();
 }
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+// 匯出存檔：把目前進度包成 .json 檔案讓玩家下載，可以備份或搬到別的瀏覽器/電腦匯入。
+function exportSave(){
+  if(!S) return;
+  saveGame();
+  const data = JSON.stringify(S);
+  const blob = new Blob([data], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const t = new Date();
+  const fname = `江湖夜行_存檔_${S.sect.name}_${t.getFullYear()}${pad2(t.getMonth()+1)}${pad2(t.getDate())}_${pad2(t.getHours())}${pad2(t.getMinutes())}.json`;
+  const a = document.createElement("a");
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  addLog(`已匯出存檔：${fname}`, 'system');
+  render();
+}
+
+// 匯入存檔：讀取先前匯出的 .json 檔案，覆蓋目前進度。
+function importSaveFromFile(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    let loaded;
+    try { loaded = JSON.parse(reader.result); }
+    catch(e){ alert("存檔檔案解析失敗，可能不是有效的存檔檔案。"); return; }
+    if(!loaded || !loaded.sectKey || !SECTS[loaded.sectKey]){ alert("存檔檔案格式不正確，無法匯入。"); return; }
+    if(!confirm(`匯入這份存檔會覆蓋目前的進度（${S?S.sect.name+'弟子':'目前尚無角色'}），確定要繼續嗎？`)) return;
+    S = loaded;
+    S.sect = SECTS[S.sectKey];
+    patchLoadedSave();
+    recalc(true);
+    saveGame();
+    render();
+    addLog(`已匯入存檔：${S.sect.name}弟子`, 'system');
+  };
+  reader.readAsText(file);
+}

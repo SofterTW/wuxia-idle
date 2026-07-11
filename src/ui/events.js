@@ -66,6 +66,14 @@ function bindGlobal(){
     if(!confirm('確定要清除存檔、重新開始嗎？目前的進度將無法復原。')) return;
     deleteSaveAndRestart();
   });
+  document.querySelectorAll('[data-exportsave]').forEach(el=> el.onclick=()=> exportSave());
+  document.querySelectorAll('[data-importsave]').forEach(el=>{
+    el.onchange = (e)=>{
+      const file = e.target.files[0];
+      if(file) importSaveFromFile(file);
+      e.target.value = "";
+    };
+  });
   document.querySelectorAll('[data-tab]').forEach(el=> el.onclick = ()=>{
     S.tab = el.dataset.tab;
     if(S.tab!=="overview") S.navHintSeen = true;

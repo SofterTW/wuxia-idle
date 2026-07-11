@@ -414,7 +414,14 @@ function renderSide(){
   const savePanel = `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="save" style="cursor:pointer;"><span class="dot"></span><h3>存檔</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.save?'▾':'▸'}</span></div>
     ${exp.save?`
-    <div class="wxg-hint">進度會自動存在這台電腦的瀏覽器裡，換瀏覽器或清瀏覽器資料會遺失，跟其他人共用同一個網址不會互相影響。</div>
+    <div class="wxg-hint">進度會自動存在這台電腦的瀏覽器裡，換瀏覽器或清瀏覽器資料會遺失，跟其他人共用同一個網址不會互相影響。可以匯出存檔備份，或搬到別的瀏覽器／電腦時匯入。</div>
+    <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+      <button class="wxg-btn small" data-exportsave="1">匯出存檔</button>
+      <label class="wxg-btn small" style="cursor:pointer; margin:0; display:inline-flex; align-items:center;">
+        匯入存檔
+        <input type="file" accept="application/json,.json" data-importsave="1" style="display:none;">
+      </label>
+    </div>
     <button class="wxg-btn crimson small" data-restartgame="1" style="margin-top:8px;">重新開始（清除存檔）</button>
     `:''}
   </div>`;
