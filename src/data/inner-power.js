@@ -554,10 +554,15 @@ function qizhuangEffectAt(tier){
   if(tier<=35) return {kind:'buff', stat:'內功防禦', chance:0.10, value:0.12, mitigateFlat:30, duration:5};
   return {kind:'buff', stat:'內功防禦', chance:0.10, value:0.15, mitigateFlat:40, duration:5, finale:{reflectPct:0.15}};
 }
+// 兩儀護心功第6~35層的「碎盾回內力%」逐層核對 desc 文字後發現不是乾淨的等差數列——第11層卡在
+// 跟第10層一樣的5%沒有遞增（推測是使用者原始試算表的小瑕疵），第12層起才繼續按每層+1%走，
+// 所以這裡直接照 desc 逐層寫死數值，不用公式推算，避免第11層以後全部多算1個百分點。
+const LIANGYI_RESTORE_PCT = {6:1,7:2,8:3,9:4,10:5,11:5,12:6,13:7,14:8,15:9,16:10,17:11,18:12,19:13,20:14,
+  21:15,22:16,23:17,24:18,25:19,26:20,27:21,28:22,29:23,30:24,31:25,32:25,33:25,34:25,35:25};
 function liangyiEffectAt(tier){
   if(tier<=5) return {kind:'shield', chance:tier*0.01, absorbPct:tier*0.01, breakRestorePct:tier*0.01};
-  if(tier<=25) return {kind:'shield', chance:0.10, absorbFlat:100+(tier-6)*5, breakRestorePct:(tier-5)*0.01};
-  if(tier<=35) return {kind:'shield', chance:0.10, absorbFlat:210+(tier-26)*5, breakRestorePct:Math.min(0.25,(tier-5)*0.01)};
+  if(tier<=25) return {kind:'shield', chance:0.10, absorbFlat:100+(tier-6)*5, breakRestorePct:LIANGYI_RESTORE_PCT[tier]*0.01};
+  if(tier<=35) return {kind:'shield', chance:0.10, absorbFlat:210+(tier-26)*5, breakRestorePct:LIANGYI_RESTORE_PCT[tier]*0.01};
   return {kind:'shield', chance:0.10, absorbFlat:300, breakRestorePct:0.30, finale:{aoeRootTicksRange:[1,3]}};
 }
 function qijueEffectAt(tier){
