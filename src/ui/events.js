@@ -126,6 +126,21 @@ function bindGlobal(){
     S.wudangSlots[type].splice(parseInt(idx,10), 1);
     render();
   });
+  // 施放順序：技能欄裡的排列順序就是 AI 見招拆招時，同類型招式的優先順序（見 combat.js
+  // pickWudangMove 的 byType(t)[0]），用▲▼交換陣列裡的順序即可，不用動戰鬥引擎。
+  document.querySelectorAll('[data-wudangmoveup]').forEach(el=> el.onclick=(e)=>{
+    e.stopPropagation();
+    const [type, idx] = el.dataset.wudangmoveup.split(":");
+    const i = parseInt(idx,10);
+    if(i>0){ const arr=S.wudangSlots[type]; [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; render(); }
+  });
+  document.querySelectorAll('[data-wudangmovedown]').forEach(el=> el.onclick=(e)=>{
+    e.stopPropagation();
+    const [type, idx] = el.dataset.wudangmovedown.split(":");
+    const i = parseInt(idx,10);
+    const arr = S.wudangSlots[type];
+    if(i<arr.length-1){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; render(); }
+  });
   document.querySelectorAll('[data-togglenside]').forEach(el=> el.onclick=()=>{ const k=el.dataset.togglenside; S.sideExpanded[k]=!S.sideExpanded[k]; render(); });
   document.querySelectorAll('[data-primarykey]').forEach(el=>{
     el.onmouseenter = ()=>{

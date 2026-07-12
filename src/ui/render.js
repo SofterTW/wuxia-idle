@@ -692,13 +692,18 @@ function renderMartialWudang(){
     const cells = Array.from({length:cap}, (_,i)=>{
       const id = ids[i];
       const m = id ? WUDANG_MOVE_LIST.find(x=>x.id===id) : null;
+      const orderBtns = m ? `<div class="wxg-slotorder-btns">
+        <button class="wxg-orderbtn" data-wudangmoveup="${type}:${i}" ${i===0?'disabled':''} title="提前施放順序">▲</button>
+        <button class="wxg-orderbtn" data-wudangmovedown="${type}:${i}" ${i===ids.length-1?'disabled':''} title="延後施放順序">▼</button>
+      </div>` : '';
       return `<div class="wxg-medal ${m?'':'empty'}" style="border-color:${WUDANG_TYPE_COLOR[type]}44;" ${m?`data-wudangunequip="${type}:${i}"`:''}>
+        ${orderBtns}
         <div class="ring" style="border-color:${WUDANG_TYPE_COLOR[type]};">${i+1}</div>
-        <div style="padding-top:2px;">${m?`${m.name}<br><span style="color:#c9bd9e;font-size:10.5px">${m.movesetName} · 點擊卸下</span>`:"（空）"}</div>
+        <div style="padding-top:2px;">${m?`${m.name}<br><span style="color:#c9bd9e;font-size:10.5px">${m.movesetName} · 點擊卡片卸下</span>`:"（空）"}</div>
       </div>`;
     }).join("");
     return `<div style="margin-bottom:8px;">
-      <div class="wxg-row" style="border-bottom:none; padding-bottom:2px;"><span style="color:${WUDANG_TYPE_COLOR[type]}; font-weight:700;">${type}</span><b style="font-weight:400; color:var(--dim-text);">${ids.length}／${cap}</b></div>
+      <div class="wxg-row" style="border-bottom:none; padding-bottom:2px;"><span style="color:${WUDANG_TYPE_COLOR[type]}; font-weight:700;">${type}</span><b style="font-weight:400; color:var(--dim-text);">${ids.length}／${cap}　<span style="color:var(--dim-text); font-weight:400;">數字＝施放優先順序，用▲▼調整</span></b></div>
       <div class="wxg-slotgrid">${cells}</div>
     </div>`;
   }).join("");

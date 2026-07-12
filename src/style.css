@@ -337,6 +337,13 @@
 .wxg-medal:hover{border-color:var(--gold);}
 .wxg-medal.empty{opacity:.5; cursor:default;}
 .wxg-medal.empty:hover{border-color:#4a3818;}
+.wxg-slotorder-btns{position:absolute; top:4px; right:5px; display:flex; flex-direction:column; gap:2px; z-index:2;}
+.wxg-orderbtn{
+  width:16px; height:14px; padding:0; line-height:1; font-size:8px; cursor:pointer;
+  background:#2a1c0c; color:var(--dim-text); border:1px solid #4a3818; border-radius:2px;
+}
+.wxg-orderbtn:hover:not(:disabled){color:var(--gold-lt); border-color:var(--gold);}
+.wxg-orderbtn:disabled{opacity:.3; cursor:default;}
 .wxg-medal .ring{
   width:34px; height:34px; border-radius:50%; margin-right:8px; float:left;
   display:flex; align-items:center; justify-content:center; font-family:"Noto Serif TC"; font-weight:900; font-size:13px;
