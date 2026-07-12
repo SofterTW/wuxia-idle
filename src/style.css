@@ -119,6 +119,10 @@
    .wxg-map-hud 情境，不動舊版兩人對決版面（renderStage）原本 flex:1 置中的寫法。 */
 .wxg-map-hud .wxg-vs-col{ flex:0 0 170px; min-height:74px; }
 .wxg-map-hud .wxg-effect-banner{ white-space:normal; word-break:break-word; max-width:100%; }
+/* 人物/目標卡片裡的血條縮短到原本一半寬（原本 flex:1 撐滿整行），空出來的寬度留給
+   套路傷害顯示（架招/虛招標籤、招式命中訊息等）用，不會再被血條擠壓。只影響地圖版面的
+   資訊卡，不動其他地方共用的 .wxg-gauge（例如舊版兩人對決、側欄）。 */
+.wxg-map-target .wxg-gauge{ flex:0 0 50%; }
 /* 兩側顯示人物／目標資訊的卡片：招式狀態（架招/虛招標籤）、中毒/破防/硬直等 debuff 標籤、
    護盾條，都是有才顯示、沒有就整行消失，內容行數一直變會讓卡片高度跟著抖，這排是
    align-items:center 的 flex，任一張卡片變高變矮都會拖著整排（包含沒在變化的那張）一起跳。
