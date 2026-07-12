@@ -114,6 +114,48 @@ const WUDANG_MOVESETS = [
 ];
 const WUDANG_MOVE_LIST = WUDANG_MOVESETS.flatMap(s=>s.moves.map(m=>({...m, moveset:s.key, movesetName:s.name, rarity:s.rarity, weaponSub:s.weaponSub})));
 
+// 把 effect 物件轉成完整寫出所有數字的說明文字——desc 欄位是風味文字，常常只寫「大減」「提升」
+// 這種模糊講法，玩家看不到實際數值；這個函式直接從 effect 的參數生成精確描述，數值永遠跟
+// 實際機制同步（以後調數值只要改 effect，這段文字自動跟著對，不用另外找 desc 手動改）。
+function wudangEffectDetailText(m){
+  const e = m.effect;
+  if(!e) return "純粹造成傷害，沒有額外機制。";
+  if(e.type==="comboBonus"){
+    const cond = e.minStacks ? `「${e.buff}」疊加達 ${e.minStacks} 層以上` : (e.monsterStack ? `目標帶有「${e.buff}」印記` : `自身處於「${e.buff}」狀態`);
+    return `若${cond}時施展，傷害額外提升 ${Math.round(e.mult*100)}%。`;
+  }
+  if(e.type==="delayEnemy") return `命中未格擋目標時，延遲其下一次出手 ${e.ticks} 回合。`;
+  if(e.type==="heavyStagger") return `命中未格擋目標時，造成 ${e.ticks} 回合的硬直。`;
+  if(e.type==="selfBuff") return `施展後持續 ${e.duration} 回合，期間任何招式命中未格擋目標都會回復 ${e.mpOnHit} 點內力。`;
+  if(e.type==="selfRegen") return `施展後持續 ${e.duration} 回合，期間每回合回復${e.resource==="mp"?"內力":"氣血"}上限的 ${Math.round(e.pct*100)}%。`;
+  if(e.type==="convertResource") return `施放當下立即把自身 ${Math.round(e.pct*100)}% 的${e.from==="mp"?"內力":"氣血"}轉化為${e.to==="hp"?"氣血":"內力"}。`;
+  if(e.type==="selfShield"){
+    const conv = e.convertToMp ? `，吸收的傷害會依比例轉化為內力（每吸收1%氣血上限回1%內力上限）` : "";
+    const brk = e.breakStunTicks ? `，護盾耗盡（碎盾）時會震暈敵人 ${e.breakStunTicks} 回合` : "";
+    return `施展後獲得持續 ${e.duration} 回合、可吸收最大氣血 ${Math.round(e.absorbPct*100)}% 傷害的護盾${conv}${brk}。`;
+  }
+  if(e.type==="stackBuff") return `施展後持續 ${e.duration} 回合，期間每次命中未格擋目標可疊加一層「${e.name}」，每層提升自身威力 ${Math.round(e.statValuePerStack*100)}%，最高疊加 ${e.maxStacks} 層。`;
+  if(e.type==="dotMark") return `命中未格擋目標時附加「${e.name}」印記，每層每回合造成 ${e.dmgPerTick} 點傷害，最高疊加 ${e.maxStacks} 層，單層持續 ${e.duration} 回合。`;
+  if(e.type==="lockTarget") return `封印目標 ${e.duration} 回合，使其無法行動，並每回合造成 ${e.dmgPerTick} 點傷害。`;
+  if(e.type==="guardBreak"){
+    const clr = e.clearShield ? "，並清除其護盾" : "";
+    return `擊破對方格擋時，使其防禦力降低 ${Math.round(e.defReducePct*100)}%，持續 ${e.duration} 回合${clr}。`;
+  }
+  if(e.type==="blockBonus"){
+    const bonusTxt = e.bonus==="fullBlock" ? "直接免除該次攻擊的所有傷害"
+      : e.bonus==="crit" ? "使自身下一次攻擊必定爆擊"
+      : e.bonus==="stack" ? `獲得一層「${e.stackName}」`
+      : e.bonus==="interrupt" ? "中斷敵人的連招動作" : "觸發額外效果";
+    return `格擋成功時有 ${Math.round(e.procChance*100)}% 機率${bonusTxt}。`;
+  }
+  if(e.type==="ultimate"){
+    const guardTxt = e.guard==="red" ? "紅霸體（免疫僵直與所有控制技）" : "黃霸體（免疫受擊僵直）";
+    const aoeTxt = e.aoe ? "，範圍傷害會命中所有存活的敵人" : "";
+    return `釋放期間持續 ${e.duration} 回合的${guardTxt}${aoeTxt}。`;
+  }
+  return "";
+}
+
 // 技能欄上限：實/虛/氣各 5 格，架招／怒氣大招各 1 格（見 renderMartialWudang 的裝備介面）。
 const WUDANG_SLOT_CAPS = {"實招":5, "虛招":5, "架招":1, "氣招":5, "怒氣大招":1};
 const WUDANG_SLOT_TYPES = ["實招","虛招","架招","氣招","怒氣大招"];

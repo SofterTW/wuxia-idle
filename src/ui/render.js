@@ -756,7 +756,8 @@ function renderMartialWudang(){
         <span><span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[m.type]}; color:${WUDANG_TYPE_COLOR[m.type]};">${m.type}</span> ${m.name}</span>
         <b style="font-weight:400; color:var(--dim-text); font-size:11px;">CD${m.cd} · ${costTxt}${cdLeft>0?`　<span style="color:#e2685c;">冷卻中(${cdLeft})</span>`:''}</b>
       </div>
-      <div class="wxg-hint" style="margin:0 0 4px; padding-left:4px;">${m.desc}</div>
+      <div class="wxg-hint" style="margin:0 0 2px; padding-left:4px;">${m.desc}</div>
+      <div class="wxg-hint" style="margin:0 0 4px; padding-left:4px; color:var(--gold-lt);">${wudangEffectDetailText(m)}</div>
       <div style="margin:0 0 8px; padding-left:4px;">${btn}</div>`;
     }).join("");
     return `<div class="wxg-panel wxg-msrarity-${ms.rarity} active-main">
@@ -793,6 +794,7 @@ function wudangMoveTooltipHtml(m){
     <div class="wxg-tip-row"><span>冷卻時間</span><b>${m.cd} 回合</b></div>
     <div class="wxg-tip-row"><span>消耗</span><b>${costTxt}</b></div>
     <div class="wxg-tip-row" style="margin-top:4px; border-top:1px dotted #4a3818; padding-top:4px;"><span>${m.desc}</span></div>
+    <div class="wxg-tip-row" style="color:var(--gold-lt);"><span>${wudangEffectDetailText(m)}</span></div>
   `;
 }
 // 戰鬥邏輯：幫每一招已裝備的招式設定施放條件（HP/MP 高於/低於 X%），沒設定條件（百分比欄位
