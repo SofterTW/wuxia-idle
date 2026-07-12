@@ -20,10 +20,12 @@ function render(){
         ${S.location!=="jinling"?`<button class="wxg-btn crimson small" data-gotown="1">回城</button>`:''}
       </div>
     </div>
-    ${renderStage()}
-    <div class="wxg-body">
+    <div class="wxg-layout">
       <div class="wxg-side ${S.navCollapsed?'collapsed':''}">${renderNavList()}${renderSide()}</div>
-      <div class="wxg-main">${renderTab()}</div>
+      <div class="wxg-content">
+        ${renderStage()}
+        <div class="wxg-main">${renderTab()}</div>
+      </div>
     </div>
     ${S.pickerSlot?renderPicker():""}
     ${S.dialogueNpc?renderNpcDialogue():""}

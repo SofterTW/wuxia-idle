@@ -273,8 +273,11 @@
 }
 .wxg-navhint-bubble b{color:#fff5d6;}
 
-.wxg-body{display:flex; flex:1; min-height:0; margin:0 14px 14px; border:1px solid var(--gold-dk); border-radius:6px; overflow:hidden;}
+/* 左側導覽列現在跟戰鬥畫面／分頁內容並排（仿 Melvor Idle：側欄從最上面就貼齊左邊、跟主內容
+   區同高），不再是「戰鬥畫面獨占一整排、側欄+分頁內容另外擠在下面一排」的舊版面。 */
+.wxg-layout{display:flex; flex:1; min-height:0; margin:12px 14px 14px; border:1px solid var(--gold-dk); border-radius:6px; overflow:hidden;}
 .wxg-side{width:200px; padding:12px; overflow-y:auto; flex-shrink:0; background:linear-gradient(180deg,#181009,#120c07); border-right:1px solid #3a2a17; transition:width .2s;}
+.wxg-content{flex:1; display:flex; flex-direction:column; min-width:0; min-height:0;}
 .wxg-main{flex:1; padding:14px; overflow-y:auto; background:linear-gradient(180deg,#161009,#100b06);}
 
 /* ---- 面板 ---- */
@@ -676,7 +679,8 @@
   .wxg-portrait.big{width:76px; height:76px;}
   .wxg-portrait.big svg{width:76px; height:76px;}
   .wxg-vs{font-size:17px;}
-  .wxg-body{margin:0 8px 8px; flex-direction:column;}
+  .wxg-layout{margin:0 8px 8px; flex-direction:column;}
+  .wxg-content{order:-1;}
   .wxg-side{width:100%; max-height:230px; border-right:none; border-bottom:1px solid #3a2a17;}
   .wxg-side.collapsed{width:100%; max-height:44px; overflow:hidden;}
   .wxg-main{padding:10px;}
