@@ -356,12 +356,14 @@ function pickWudangMove(target){
   const byType = t=> known.filter(m=>m.type===t);
   const ult = byType("怒氣大招").find(m=> S.rage >= (m.rageCost||0));
   if(ult) return ult;
+  // 氣招維護：有還沒生效的氣招時，有機率優先補上，不然「見招拆招」邏輯太強，氣招永遠排不到隊。
+  const qi = byType("氣招").find(m=> !wudangBuffActive(m.name));
+  if(qi && Math.random()<0.35) return qi;
   if(target){
     if(target.stance==="架招"){ const m=byType("虛招")[0]; if(m) return m; }
     if(target.stance==="虛招"){ const m=byType("實招")[0]; if(m) return m; }
     if(target.stance==="實招"){ const m=byType("架招")[0]; if(m) return m; }
   }
-  const qi = byType("氣招").find(m=> !wudangBuffActive(m.name));
   if(qi) return qi;
   const atk = byType("實招")[0];
   if(atk) return atk;
@@ -415,18 +417,22 @@ function applyBlockBonus(move, target){
   if(!move.effect || move.effect.type!=="blockBonus") return;
   if(Math.random() >= move.effect.procChance) return;
   const eff = move.effect;
-  if(eff.bonus==="fullBlock"){ S.wudangFullBlockNext = true; S.stageEffects.push(`${move.name}・完全化解！`); }
-  else if(eff.bonus==="crit"){ S.wudangCritNext = true; S.stageEffects.push(`${move.name}・蓄勢必殺！`); }
+  if(eff.bonus==="fullBlock"){ S.wudangFullBlockNext = true; S.stageEffects.push(`${move.name}・下次完全化解！〔架招加成〕`); }
+  else if(eff.bonus==="crit"){ S.wudangCritNext = true; S.stageEffects.push(`${move.name}・蓄勢必殺！〔架招加成〕`); }
   else if(eff.bonus==="stack" && eff.stackName){
     let e = S.statusEffects.find(e=>e.wudangName===eff.stackName);
     if(e){ e.stacks = Math.min(e.maxStacks||10, (e.stacks||0)+1); }
-    S.stageEffects.push(`${move.name}・借力！`);
-  } else if(eff.bonus==="interrupt"){ S.stageEffects.push(`${move.name}・借力打力！`); }
+    S.stageEffects.push(`${move.name}・借力！〔架招加成〕`);
+  } else if(eff.bonus==="interrupt"){ S.stageEffects.push(`${move.name}・借力打力！〔架招加成〕`); }
   S.rage = Math.min(100, S.rage+1);
 }
 
 function resolveWudangPlayerMove(move, target, activeTech){
-  if(move.mpCost && S.mp<move.mpCost){ addLog(`內力不足，「${move.name}」無法施展`, 'system'); return; }
+  if(move.mpCost && S.mp<move.mpCost){
+    addLog(`內力不足，「${move.name}」無法施展`, 'system');
+    S.stageEffects.push(`${move.name}・內力不足〔招式落空〕`);
+    return;
+  }
   if(move.rageCost && S.rage<move.rageCost){ return; }
   if(move.mpCost) S.mp -= move.mpCost;
   if(move.rageCost) S.rage = Math.max(0, S.rage-move.rageCost);
@@ -453,8 +459,14 @@ function resolveWudangPlayerMove(move, target, activeTech){
     S.floatEnemy = `-${dmg}${blocked?'（被格擋）':''}`;
     S.hitEnemy = true;
     addLog(`你以「${move.name}」擊中${target.name}，造成 ${dmg} 傷害${blocked?'（被格擋，大幅減傷）':''}`, 'attack');
-    if(!blocked){ applyWudangEffect(move.effect, move, target, {blocked}); S.rage = Math.min(100, S.rage+2); }
-    else { S.rage = Math.min(100, S.rage+1); }
+    if(!blocked){
+      applyWudangEffect(move.effect, move, target, {blocked});
+      S.rage = Math.min(100, S.rage+2);
+      S.stageEffects.push(`${move.name}・命中〔實招命中〕`);
+    } else {
+      S.rage = Math.min(100, S.rage+1);
+      S.stageEffects.push(`${move.name}・被${target.name}擋下〔實招被擋〕`);
+    }
   } else if(move.type==="虛招"){
     if(target.stance==="架招"){
       const dmg = Math.max(1, Math.round(base*aff*0.5));
@@ -463,7 +475,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
       S.floatEnemy = `-${dmg}（破防！）`;
       S.hitEnemy = true;
       addLog(`「${move.name}」擊破${target.name}的架勢，造成 ${dmg} 傷害並使其陷入破綻`, 'skill');
-      S.stageEffects.push(`${move.name}・破防！`);
+      S.stageEffects.push(`${move.name}・破防！〔虛招破防〕`);
       S.triggerFlash[`martial_${move.id}`] = true;
     } else {
       const dmg = Math.max(1, Math.round(base*aff*0.6));
@@ -471,14 +483,15 @@ function resolveWudangPlayerMove(move, target, activeTech){
       S.floatEnemy = `-${dmg}`;
       S.hitEnemy = true;
       addLog(`你以「${move.name}」擊中${target.name}，造成 ${dmg} 傷害`, 'attack');
+      S.stageEffects.push(`${move.name}・命中〔虛招命中〕`);
     }
     S.rage = Math.min(100, S.rage+2);
   } else if(move.type==="架招"){
-    S.stageEffects.push(`${move.name}・凝神戒備`);
+    S.wudangGuardingThisTick = move; // 是否真的擋到，要等怪物出手才知道，見 resolveWudangMonsterAttack
   } else if(move.type==="氣招"){
     applyWudangEffect(move.effect, move, target, {});
     addLog(`你運起「${move.name}」`, 'skill');
-    S.stageEffects.push(`${move.name}！`);
+    S.stageEffects.push(`${move.name}〔氣招發動〕`);
     S.triggerFlash[`martial_${move.id}`] = true;
   } else if(move.type==="怒氣大招"){
     let dmg = target ? Math.max(1, Math.round(base*aff*1.6 - target.def*0.5)) : 0;
@@ -488,7 +501,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
     S.floatEnemy = `-${dmg}（怒氣大招！）`;
     S.hitEnemyCrit = true; S.hitEnemy = true;
     addLog(`你施展「${move.name}」，造成 ${dmg} 傷害！`, 'attack');
-    S.stageEffects.push(`${move.name}・怒氣爆發！`);
+    S.stageEffects.push(`${move.name}・怒氣爆發！〔怒氣大招〕`);
     S.triggerFlash.sectPassive = true;
   }
 }
@@ -498,8 +511,14 @@ function resolveWudangMonsterAttack(target, playerMove){
   const playerUltImmune = S.statusEffects.some(e=>e.immuneControl);
   let dmg = Math.max(1, Math.round(target.atk - S.secondary.外功防禦*0.3));
   if(playerBlocking){
-    if(S.wudangFullBlockNext){ dmg = 0; S.wudangFullBlockNext = false; addLog(`「${playerMove.name}」完全化解了${target.name}的攻擊`, 'skill'); }
-    else dmg = Math.max(0, Math.round(dmg*0.10));
+    if(S.wudangFullBlockNext){
+      dmg = 0; S.wudangFullBlockNext = false;
+      addLog(`「${playerMove.name}」完全化解了${target.name}的攻擊`, 'skill');
+      S.stageEffects.push(`${playerMove.name}・完全化解！〔架招成功〕`);
+    } else {
+      dmg = Math.max(0, Math.round(dmg*0.10));
+      S.stageEffects.push(`${playerMove.name}・格擋成功〔架招成功〕`);
+    }
     applyBlockBonus(playerMove, target);
     S.rage = Math.min(100, S.rage+4);
   } else {
@@ -584,6 +603,7 @@ function combatTickWudang(){
       const dmg = e.dmgPerTick * (e.stacks||1);
       m.hp -= dmg;
       addLog(`${m.name} 受到「${e.wudangMark||'內傷'}」持續傷害 ${dmg}`, 'dot');
+      S.stageEffects.push(`${e.wudangMark||'內傷'}・持續發作（${dmg}）〔持續傷害〕`);
     });
   });
 
@@ -595,6 +615,8 @@ function combatTickWudang(){
 
   if(target && target.hp>0 && target.stance==="實招"){
     resolveWudangMonsterAttack(target, move);
+  } else if(move && move.type==="架招" && target){
+    S.stageEffects.push(`${move.name}・凝神戒備，但對方沒有出手〔架招落空〕`);
   }
 
   S.monsters.forEach(m=>{
