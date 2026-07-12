@@ -53,8 +53,13 @@
   margin:12px 14px 0; padding:14px 20px; border-radius:6px; position:relative; overflow:hidden;
   background:linear-gradient(145deg, var(--wood1), var(--wood2));
   border:1px solid var(--gold-dk); box-shadow:0 0 0 1px #000 inset, 0 6px 14px #0009;
-  display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:190px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:200px;
 }
+/* 資訊卡（名稱/氣血/內力/標籤）固定貼在頭像走位場地下方，頭像在上方的開放場地自由移動衝撞，
+   兩者分開兩層互不干擾——仿迷你天堂「小地圖走位撞怪」的戰鬥畫面。用固定 margin-top（而不是
+   align-self:flex-end）保留頂端走位場地的高度，這樣不管資訊卡內容長短（武當debuff行數會變化），
+   都不會被撐到往上跟頭像重疊。 */
+.wxg-fighter{align-self:flex-start; margin-top:145px;}
 .wxg-scene{position:absolute; inset:0; z-index:0; overflow:hidden;}
 .wxg-scene svg{width:100%; height:100%; display:block;}
 .wxg-scene.bg-photo{background-size:cover; background-position:center 42%;}
@@ -112,18 +117,6 @@
   transform:scale(1.7); display:block; position:relative; z-index:1;
 }
 
-/* ---- 攻擊特效飛行 ---- */
-.wxg-projectile{
-  position:absolute; top:50%; width:12px; height:12px; border-radius:50%; z-index:3;
-  transform:translateY(-50%); pointer-events:none;
-}
-.wxg-projectile.fwd{ left:22%; background:var(--gold-lt); box-shadow:0 0 12px 5px rgba(212,175,55,.8); animation:wxgProjFwd .45s ease-in forwards;}
-.wxg-projectile.back{ left:76%; background:var(--crimson-lt); box-shadow:0 0 12px 5px rgba(165,51,44,.8); animation:wxgProjBack .45s ease-in forwards;}
-/* 依招式兵刃類型換成對應圖示時，改成透明底、直接顯示 emoji（見 render.js attackProjectileIcon）。 */
-.wxg-projectile.icon{ width:auto; height:auto; background:none; box-shadow:none; font-size:20px; line-height:1; filter:drop-shadow(0 0 5px rgba(212,175,55,.8));}
-.wxg-projectile.icon.back{ filter:drop-shadow(0 0 5px rgba(165,51,44,.8));}
-@keyframes wxgProjFwd{ 0%{left:22%; opacity:0;} 12%{opacity:1;} 88%{opacity:1;} 100%{left:76%; opacity:0;} }
-@keyframes wxgProjBack{ 0%{left:76%; opacity:0;} 12%{opacity:1;} 88%{opacity:1;} 100%{left:22%; opacity:0;} }
 .wxg-fname{font-size:12px; font-weight:700; color:var(--ink-text); letter-spacing:1px;}
 .wxg-fsub{font-size:10.5px; color:var(--dim-text); margin-top:1px;}
 
@@ -493,14 +486,23 @@
 .wxg-stage-shake{animation:wxgStageShake .35s ease-in-out;}
 .wxg-portrait.hit-shake{animation:wxgShake .4s ease-in-out;}
 
-/* ---- 迷你天堂風格撞擊：待機浮動／衝撞攻擊／受擊擊退／死亡墜落 ---- */
+/* ---- 迷你天堂風格撞擊：頭像在開放場地自由走位，攻擊時走過去撞對方再走回原位 ---- */
 @keyframes wxgIdleBob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
 .wxg-idle-bob{animation:wxgIdleBob 2.6s ease-in-out infinite;}
 
-@keyframes wxgLungeSelf{ 0%{transform:translateX(0);} 40%{transform:translateX(20px);} 60%{transform:translateX(20px);} 100%{transform:translateX(0);} }
-@keyframes wxgLungeEnemy{ 0%{transform:translateX(0);} 40%{transform:translateX(-20px);} 60%{transform:translateX(-20px);} 100%{transform:translateX(0);} }
-.wxg-portrait.atk-lunge{animation:wxgLungeSelf .4s ease-in-out;}
-.wxg-portrait.atk-lunge-enemy{animation:wxgLungeEnemy .4s ease-in-out;}
+/* 頭像脫離原本 fighter 欄位的排版流，改成場地內用 left% 自由定位的走位層；
+   平常站在自己的定位點（self 14%／foe 84%），出手方那一側攻擊時整個頭像走到
+   對方定位點附近再走回來，才是真正的「衝過去撞怪」，不是原地小抖一下。 */
+.wxg-arena-avatar{
+  position:absolute; top:12px; width:104px; margin-left:-52px; text-align:center; z-index:4;
+}
+.wxg-arena-avatar.self{ left:14%; }
+.wxg-arena-avatar.foe{ left:84%; }
+.wxg-arena-avatar.foe[data-monsterinfohover]{ cursor:help; }
+.wxg-arena-avatar.self.walking{ animation:wxgWalkSelf .5s ease-in-out; }
+.wxg-arena-avatar.foe.walking{ animation:wxgWalkFoe .5s ease-in-out; }
+@keyframes wxgWalkSelf{ 0%,100%{left:14%;} 45%,55%{left:64%;} }
+@keyframes wxgWalkFoe{ 0%,100%{left:84%;} 45%,55%{left:34%;} }
 
 @keyframes wxgHitKnockSelf{
   0%{transform:translate(0,0) rotate(0);}

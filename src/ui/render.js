@@ -298,20 +298,6 @@ function wudangMonsterDebuffHtml(m){
   return rows.join("");
 }
 
-// 攻擊飛行特效依兵刃類型換圖示：武當看招式的 weaponSub（單劍/雙劍/徒手），其他門派看
-// S.sect.weaponType（拳掌/劍法/棍法/暗器/刀法）。查不到對應圖示就回傳 null，維持原本的光球。
-const WEAPON_PROJECTILE_ICON = {
-  "單劍":"🗡️", "雙劍":"⚔️", "徒手":"👊",
-  "拳掌":"👊", "劍法":"🗡️", "棍法":"🏒", "暗器":"🎯", "刀法":"🔪",
-};
-function attackProjectileIcon(){
-  if(S.sectKey==="wudang"){
-    const mv = WUDANG_MOVE_LIST.find(x=>x.id===S.lastUsedMoveId);
-    return mv ? (WEAPON_PROJECTILE_ICON[mv.weaponSub]||null) : null;
-  }
-  return WEAPON_PROJECTILE_ICON[S.sect.weaponType] || null;
-}
-
 // 撞擊感文字（身法閃避／禪定免疫／無敵化解）改灰字「MISS」風格，跟一般傷害飄字（黃/紅字）區分開。
 function isMissFloatText(t){
   return t==="身法閃避！" || t==="禪定・免疫！" || t==="攻擊被無敵化解";
@@ -356,23 +342,29 @@ function renderStage(){
   const wudangShieldBuff = S.sectKey==="wudang" ? (S.statusEffects||[]).find(e=>e.shieldPool>0) : null;
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
   const stageShake = (S.hitEnemyCrit)?' wxg-stage-shake':'';
-  // 撞擊感：受擊優先於出招動畫（同一 tick 兩者皆可能發生，被打的反饋比出手的動作更重要，
-  // 兩者都套在同一顆頭像上時只保留一個 animation，避免 CSS 動畫互相蓋掉）。
-  const playerHitCls = S.hitPlayer ? ' hit-knock-self hit-flash' : (S.hitEnemy ? ' atk-lunge' : '');
-  const enemyHitCls = S.hitEnemy ? (' hit-knock-enemy hit-flash'+(S.hitEnemyCrit?' hit-crit':'')) : (S.hitPlayer ? ' atk-lunge-enemy' : '');
+  // 攻擊方頭像走過去撞防守方（wxg-arena-avatar 的 walking），防守方頭像原地受擊反饋
+  // （wxg-portrait 的 hit-knock/hit-flash）——兩層分開後不會再互搶同一個 animation。
+  const playerWalking = S.hitEnemy ? ' walking' : '';
+  const enemyWalking = S.hitPlayer ? ' walking' : '';
+  const playerHitCls = S.hitPlayer ? ' hit-knock-self hit-flash' : '';
+  const enemyHitCls = S.hitEnemy ? (' hit-knock-enemy hit-flash'+(S.hitEnemyCrit?' hit-crit':'')) : '';
   const deathGhost = S.deathFlash ? `<div class="wxg-death-ghost">${portraitImgHtml(S.deathFlash.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT)}</div>` : '';
   return `
   <div class="wxg-stage bg-${zoneKey}${stageShake}">
     ${sceneSvg}
     <div class="wxg-corner tl"></div><div class="wxg-corner tr"></div><div class="wxg-corner bl"></div><div class="wxg-corner br"></div>
-    ${S.hitEnemy?(()=>{ const icon=attackProjectileIcon(); return `<div class="wxg-projectile fwd${icon?' icon':''}">${icon||''}</div>`; })():""}
-    ${S.hitPlayer?`<div class="wxg-projectile back"></div>`:""}
+    <div class="wxg-arena-avatar self wxg-idle-bob${playerWalking}">
+      ${S.floatPlayer?`<div class="wxg-float self${isMissFloatText(S.floatPlayer)?' miss':''}">${S.floatPlayer}</div>`:""}
+      <div class="wxg-portrait big${playerHitCls}">${sectIcon}</div>
+      <div class="wxg-ground-shadow"></div>
+    </div>
+    <div class="wxg-arena-avatar foe wxg-idle-bob${enemyWalking}" style="animation-delay:.6s;"${m?` data-monsterinfohover="1"`:''}>
+      ${S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
+      <div class="wxg-portrait big enemy${enemyHitCls}">${monsterIcon}</div>
+      <div class="wxg-ground-shadow"></div>
+      ${deathGhost}
+    </div>
     <div class="wxg-fighter">
-      <div class="wxg-portrait-wrap wxg-idle-bob">
-        ${S.floatPlayer?`<div class="wxg-float self${isMissFloatText(S.floatPlayer)?' miss':''}">${S.floatPlayer}</div>`:""}
-        <div class="wxg-portrait big${playerHitCls}">${sectIcon}</div>
-        <div class="wxg-ground-shadow"></div>
-      </div>
       <div class="wxg-fname">「${S.title}」${S.sect.name}弟子</div>
       <div class="wxg-gauge-wrap">
         ${pillbar('氣','hp',S.hp,S.hpMax,'hp',S.hitPlayer?'gauge-flash':'')}
@@ -387,12 +379,6 @@ function renderStage(){
       ${S.stageEffects && S.stageEffects.length>0 ? S.stageEffects.map((t,i)=>`<div class="wxg-effect-banner" style="animation-delay:${i*0.15}s;">${t}</div>`).join("") : ""}
     </div>
     <div class="wxg-fighter">
-      <div class="wxg-portrait-wrap wxg-idle-bob" style="animation-delay:.6s; ${m?'cursor:help;':''}"${m?` data-monsterinfohover="1"`:''}>
-        ${S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
-        <div class="wxg-portrait big enemy${enemyHitCls}">${monsterIcon}</div>
-        <div class="wxg-ground-shadow"></div>
-        ${deathGhost}
-      </div>
       <div class="wxg-fname">${m?m.name:"—"}</div>
       <div class="wxg-fsub">Lv.${m?m.level:0}</div>
       ${wudangStanceTag}
