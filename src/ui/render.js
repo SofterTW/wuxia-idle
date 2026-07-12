@@ -989,7 +989,10 @@ function renderCodex(){
       <div class="wxg-subtab ${S.codexSubTab==='tiers'?'active':''}" data-codexsub="tiers">裝備品級</div>
       <div class="wxg-subtab ${S.codexSubTab==='unique'?'active':''}" data-codexsub="unique">門派至寶</div>
       <div class="wxg-subtab ${S.codexSubTab==='items'?'active':''}" data-codexsub="items">藥品道具</div>
-      <div class="wxg-subtab ${S.codexSubTab==='misc'?'active':''}" data-codexsub="misc">貨幣與其他</div>
+      <div class="wxg-subtab ${S.codexSubTab==='profession'?'active':''}" data-codexsub="profession">生活職業</div>
+      <div class="wxg-subtab ${S.codexSubTab==='zones'?'active':''}" data-codexsub="zones">地圖</div>
+      <div class="wxg-subtab ${S.codexSubTab==='currency'?'active':''}" data-codexsub="currency">貨幣</div>
+      <div class="wxg-subtab ${S.codexSubTab==='misc'?'active':''}" data-codexsub="misc">其他</div>
       <div class="wxg-subtab ${S.codexSubTab==='changelog'?'active':''}" data-codexsub="changelog">更新紀錄</div>
     </div>`;
 
@@ -1091,7 +1094,13 @@ function renderCodex(){
       <div class="wxg-panel-head"><span class="dot" style="background:var(--dim-text);"></span><h3>${s.name}</h3><span class="wxg-tag" style="margin-left:auto;">敬請期待</span></div>
       <div class="wxg-hint">${s.teaser}，尚未開放，暫時無法選擇遊玩。</div>
     </div>`).join("");
-    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">六大門派各有限定兵刃種類與專屬戰鬥機制，決定了可學的武學招式方向。</div>` + rows + comingSoonRows;
+    const rankRows = RANK_TABLE.map((r,i)=>`<div class="wxg-row"><span>${r.name}</span><b style="font-weight:400;">${i===0?'預設位階':`需貢獻度 ${r.req}、淬鍊石 ${r.mat}，加成 +${Math.round(r.bonus*100)}%`}</b></div>`).join("");
+    const rankPanel = `<div class="wxg-panel">
+        <div class="wxg-panel-head"><span class="dot"></span><h3>門派地位</h3></div>
+        ${rankRows}
+        <div class="wxg-hint">在本門「論功堂首座」處，用門派貢獻度＋淬鍊石晉升位階，位階越高戰鬥屬性加成越多。</div>
+      </div>`;
+    return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">六大門派各有限定兵刃種類與專屬戰鬥機制，決定了可學的武學招式方向。</div>` + rows + comingSoonRows + rankPanel;
   }
 
   if(S.codexSubTab==="internal"){
@@ -1216,15 +1225,7 @@ function renderCodex(){
     `;
   }
 
-  if(S.codexSubTab==="misc"){
-    const rankRows = RANK_TABLE.map((r,i)=>`<div class="wxg-row"><span>${r.name}</span><b style="font-weight:400;">${i===0?'預設位階':`需貢獻度 ${r.req}、淬鍊石 ${r.mat}，加成 +${Math.round(r.bonus*100)}%`}</b></div>`).join("");
-    const zoneRows = HUNTING_ZONES.map(z=>{
-      const mobRows = (MONSTER_ROSTER[z.id]||[]).map(m=>`<div class="wxg-row" style="padding-left:8px;"><span>${m.name}（Lv.${m.level}）</span><b style="font-weight:400; color:var(--dim-text);">氣血 ${m.hpMax}・攻擊 ${m.atk}・防禦 ${m.def}</b></div>`).join("");
-      const boss = BOSS_ROSTER[z.id];
-      const bossRow = boss ? `<div class="wxg-row" style="padding-left:8px;"><span style="color:#ff8a4a;">【首領】${boss.name}（Lv.${boss.level}）</span><b style="font-weight:400; color:#ff8a4a;">氣血 ${boss.hpMax}・攻擊 ${boss.atk}・防禦 ${boss.def}</b></div>` : "";
-      return `<div style="margin-top:8px;"><b>${z.name}</b><span style="color:var(--dim-text); font-size:11px;">　${z.tag}・裝備等級加成 +${z.levelMod}</span></div>${mobRows}${bossRow}`;
-    }).join("");
-    const questRows = QUEST_TEMPLATES.map(q=>`<div class="wxg-row"><span>剿滅魔教：${q.zoneName}</span><b style="font-weight:400;">擊殺 ${q.killsNeeded} 名，獎勵貢獻度 +${q.reward}</b></div>`).join("");
+  if(S.codexSubTab==="currency"){
     return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>貨幣系統</h3></div>
@@ -1232,21 +1233,38 @@ function renderCodex(){
         <div class="wxg-row"><span>1 銀錠</span><b>= 1000 銀兩（= 1,000,000 銅錢）</b></div>
         <div class="wxg-hint">身上錢財會依金額自動顯示為銅／兩／錠的組合。</div>
       </div>
-      <div class="wxg-panel">
-        <div class="wxg-panel-head"><span class="dot"></span><h3>門派地位</h3></div>
-        ${rankRows}
-        <div class="wxg-hint">在本門「論功堂首座」處，用門派貢獻度＋淬鍊石晉升位階，位階越高戰鬥屬性加成越多。</div>
-      </div>
+    `;
+  }
+
+  if(S.codexSubTab==="profession"){
+    return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>生活職業・煉器</h3></div>
         <div class="wxg-row"><span>升級所需經驗</span><b style="font-weight:400;">${PROFESSION_EXP_TABLE.slice(1).join(' → ')}</b></div>
         <div class="wxg-hint">於金凌城「煉器閣」為裝備開光可獲得煉器經驗。等級 1～4 依序解鎖木銅／鐵／銀／金裝開光，等級 5～7 依序解鎖一～二品／五品／七品玉裝開光。</div>
       </div>
+    `;
+  }
+
+  if(S.codexSubTab==="zones"){
+    const zoneRows = HUNTING_ZONES.map(z=>{
+      const mobRows = (MONSTER_ROSTER[z.id]||[]).map(m=>`<div class="wxg-row" style="padding-left:8px;"><span>${m.name}（Lv.${m.level}）</span><b style="font-weight:400; color:var(--dim-text);">氣血 ${m.hpMax}・攻擊 ${m.atk}・防禦 ${m.def}</b></div>`).join("");
+      const boss = BOSS_ROSTER[z.id];
+      const bossRow = boss ? `<div class="wxg-row" style="padding-left:8px;"><span style="color:#ff8a4a;">【首領】${boss.name}（Lv.${boss.level}）</span><b style="font-weight:400; color:#ff8a4a;">氣血 ${boss.hpMax}・攻擊 ${boss.atk}・防禦 ${boss.def}</b></div>` : "";
+      return `<div style="margin-top:8px;"><b>${z.name}</b><span style="color:var(--dim-text); font-size:11px;">　${z.tag}・裝備等級加成 +${z.levelMod}</span></div>${mobRows}${bossRow}`;
+    }).join("");
+    return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>狩獵區</h3></div>
         ${zoneRows}
         <div class="wxg-hint" style="margin-top:8px;">每隻怪物的素質都是固定的，不會隨你的等級或擊殺數變化；每擊殺 10 隻會遇到一次該地區固定的首領。「裝備等級加成」只影響裝備掉落品級機率，跟怪物強度無關。</div>
       </div>
+    `;
+  }
+
+  if(S.codexSubTab==="misc"){
+    const questRows = QUEST_TEMPLATES.map(q=>`<div class="wxg-row"><span>剿滅魔教：${q.zoneName}</span><b style="font-weight:400;">擊殺 ${q.killsNeeded} 名，獎勵貢獻度 +${q.reward}</b></div>`).join("");
+    return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>任務範本</h3></div>
         ${questRows}
