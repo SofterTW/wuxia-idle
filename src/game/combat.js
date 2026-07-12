@@ -351,8 +351,11 @@ function wudangSetCd(move){
 }
 
 // 見招拆招 AI：依對方目前的招式類型決定這次要用什麼招。
+// 內力/怒氣不夠付的招式一律先濾掉，不會出現「選了招但打不出來、整個 tick 白白浪費」的情況——
+// 架招全部不吃內力（mpCost:0），永遠會是最後的保底選項。
 function pickWudangMove(target){
-  const known = WUDANG_MOVE_LIST.filter(m=> S.wudangMovesetsUnlocked[m.moveset] && wudangMoveOffCd(m));
+  const known = WUDANG_MOVE_LIST.filter(m=>
+    S.wudangMovesetsUnlocked[m.moveset] && wudangMoveOffCd(m) && (!m.mpCost || S.mp>=m.mpCost));
   const byType = t=> known.filter(m=>m.type===t);
   const ult = byType("怒氣大招").find(m=> S.rage >= (m.rageCost||0));
   if(ult) return ult;
@@ -367,6 +370,8 @@ function pickWudangMove(target){
   if(qi) return qi;
   const atk = byType("實招")[0];
   if(atk) return atk;
+  const guard = byType("架招")[0]; // 內力見底時的保底：架招不吃內力，至少能防禦
+  if(guard) return guard;
   return null;
 }
 
