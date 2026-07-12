@@ -9,6 +9,7 @@ function regenMultFor(activeTech, kind){
 }
 
 function combatTick(){
+  if(S.sectKey==="wudang"){ combatTickWudang(); return; }
   const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal);
   if(S.location==="jinling" || S.visitingSect){
     // 拜訪門派中視同在城裡休整，不會有戰鬥發生（一個人不能同時在門派裡又在外地打鬥）。
@@ -303,4 +304,310 @@ function onKill(){
     addLog(`獲得裝備掉落：${item.name}（${gradeTxt}）`, 'loot');
   }
   S.killCount++; spawnMonster();
+}
+
+// ============================================================================
+// 武當專用：實/虛/架/氣/怒 五招制戰鬥引擎，取代武當的舊版招式系統（其他門派完全不受影響，
+// combatTick() 一開頭就分流出去）。核心邏輯：
+//   1) 怪物每個 tick 用權重機率骰出這次的「招式類型」（stance）——一般小怪偏愛硬拼實招，
+//      首領比較會擋、偶爾騙招。
+//   2) 玩家（自動）依「見招拆招」的邏輯反應：對方架招就用虛招破防、對方虛招（露出破綻）就
+//      用實招痛打、對方實招就用架招擋下；有怒氣就優先開大；平常穿插氣招維持狀態。
+//   3) 剪刀石頭布：實破虛（等於白打，這裡簡化成正常出招，因為沒有「對方施法中被打斷」的
+//      機制—怪物沒有施法前搖）、虛破架（破防+強力減益）、架擋實（大減傷+觸發被動）。
+// ============================================================================
+
+const WUDANG_DMG_TIER_MULT = {"低":0.7, "中":1.0, "高":1.4};
+function wudangDmgTierMult(tier){ return WUDANG_DMG_TIER_MULT[tier] || 0; }
+
+function wudangMonsterStance(m){
+  const w = m.isBoss ? {實招:0.55,架招:0.30,虛招:0.15} : {實招:0.75,架招:0.20,虛招:0.05};
+  const r = Math.random();
+  if(r < w.實招) return "實招";
+  if(r < w.實招+w.架招) return "架招";
+  return "虛招";
+}
+
+function wudangMoveStatValue(move){
+  const p = S.derivedPrimary;
+  const a = move.statA ? (p[move.statA]||0) : 0;
+  const b = move.statB ? (p[move.statB]||0) : 0;
+  return a + b*0.5;
+}
+
+function wudangBuffActive(name){ return S.statusEffects.some(e=>e.wudangName===name); }
+function wudangBuffStacks(name){ const e = S.statusEffects.find(e=>e.wudangName===name); return e ? (e.stacks||0) : 0; }
+function wudangMonsterMarkStacks(m, name){ const e = m.statusEffects.find(e=>e.wudangMark===name); return e ? (e.stacks||0) : 0; }
+
+function firstAliveMonster(){ return (S.monsters||[]).find(m=>m.hp>0) || null; }
+
+function wudangMoveOffCd(move){
+  const st = S.wudangMoveState[move.id];
+  return !st || (st.cdRemaining||0)<=0;
+}
+function wudangSetCd(move){
+  if(!S.wudangMoveState[move.id]) S.wudangMoveState[move.id] = {cdRemaining:0};
+  S.wudangMoveState[move.id].cdRemaining = move.cd||0;
+}
+
+// 見招拆招 AI：依對方目前的招式類型決定這次要用什麼招。
+function pickWudangMove(target){
+  const known = WUDANG_MOVE_LIST.filter(m=> S.wudangMovesetsUnlocked[m.moveset] && wudangMoveOffCd(m));
+  const byType = t=> known.filter(m=>m.type===t);
+  const ult = byType("怒氣大招").find(m=> S.rage >= (m.rageCost||0));
+  if(ult) return ult;
+  if(target){
+    if(target.stance==="架招"){ const m=byType("虛招")[0]; if(m) return m; }
+    if(target.stance==="虛招"){ const m=byType("實招")[0]; if(m) return m; }
+    if(target.stance==="實招"){ const m=byType("架招")[0]; if(m) return m; }
+  }
+  const qi = byType("氣招").find(m=> !wudangBuffActive(m.name));
+  if(qi) return qi;
+  const atk = byType("實招")[0];
+  if(atk) return atk;
+  return null;
+}
+
+// 招式效果分發：把 martial-techniques.js 裡每招的 effect 物件轉成實際的戰鬥影響。
+function applyWudangEffect(effect, move, target, ctx){
+  if(!effect) return;
+  if(effect.type==="delayEnemy"){
+    S.wudangMoveState[`__monsterDelay_${target.row}`] = {cdRemaining: (S.wudangMoveState[`__monsterDelay_${target.row}`]?.cdRemaining||0) + effect.ticks};
+  } else if(effect.type==="heavyStagger"){
+    if(!ctx.blocked) target.staggerTicks = Math.max(target.staggerTicks, effect.ticks);
+  } else if(effect.type==="selfBuff"){
+    S.statusEffects.push({kind:"buff", stat:"", value:0, remainingTicks:effect.duration, wudangName:effect.name, mpOnHit:effect.mpOnHit||0});
+  } else if(effect.type==="selfRegen"){
+    S.statusEffects.push({kind:"regen", stat:effect.resource, value:Math.round((effect.resource==="mp"?S.mpMax:S.hpMax)*effect.pct), remainingTicks:effect.duration, wudangName:effect.name});
+  } else if(effect.type==="convertResource"){
+    const amt = Math.round((effect.from==="mp"?S.mp:S.hp) * effect.pct);
+    if(effect.from==="mp"){ S.mp = Math.max(0, S.mp-amt); S.hp = Math.min(S.hpMax, S.hp+amt); }
+    else { S.hp = Math.max(1, S.hp-amt); S.mp = Math.min(S.mpMax, S.mp+amt); }
+    addLog(`「${move.name}」將 ${amt} 點${effect.from==="mp"?"內力":"氣血"}轉化為${effect.to==="hp"?"氣血":"內力"}`, 'skill');
+  } else if(effect.type==="selfShield"){
+    S.statusEffects.push({kind:"buff", stat:"", value:0, remainingTicks:effect.duration, wudangName:move.name, shieldAbsorbPct:effect.absorbPct});
+  } else if(effect.type==="stackBuff"){
+    let e = S.statusEffects.find(e=>e.wudangName===effect.name);
+    if(!e){ e = {kind:"buff", stat:"", value:0, remainingTicks:effect.duration, wudangName:effect.name, stacks:0, valuePerStack:effect.statValuePerStack, maxStacks:effect.maxStacks}; S.statusEffects.push(e); }
+    else { e.remainingTicks = effect.duration; }
+  } else if(effect.type==="dotMark"){
+    let e = target.statusEffects.find(e=>e.wudangMark===effect.name);
+    if(!e){ e = {kind:"dot_debuff", element:"陰", dmgPerTick:effect.dmgPerTick, remainingTicks:effect.duration, wudangMark:effect.name, stacks:1, maxStacks:effect.maxStacks}; target.statusEffects.push(e); }
+    else { e.stacks = Math.min(effect.maxStacks, e.stacks+1); e.remainingTicks = effect.duration; }
+  } else if(effect.type==="lockTarget"){
+    target.staggerTicks = Math.max(target.staggerTicks, effect.duration);
+    target.statusEffects.push({kind:"dot_debuff", element:"陰", dmgPerTick:effect.dmgPerTick, remainingTicks:effect.duration, wudangMark:"如封似閉"});
+  } else if(effect.type==="ultimate"){
+    S.statusEffects.push({kind:"buff", stat:"", value:0, remainingTicks:effect.duration, wudangName:"霸體", immuneControl:true, immuneAll:effect.guard==="red"});
+  }
+}
+
+// 虛招破防成功時套用的減益（跟一般效果分開處理，因為要掛在被破防的目標身上）。
+function applyGuardBreak(effect, target){
+  if(!effect) return;
+  target.defReduceTicks = Math.max(target.defReduceTicks, effect.duration||8);
+  target.wudangGuardBreakPct = effect.defReducePct||0.25;
+  if(effect.clearShield) target.statusEffects = target.statusEffects.filter(e=>!e.shieldAbsorbPct);
+}
+
+// 架招格擋成功時的加成（明鏡止水的下次必爆、方外遨遊的完全格擋等）。
+function applyBlockBonus(move, target){
+  if(!move.effect || move.effect.type!=="blockBonus") return;
+  if(Math.random() >= move.effect.procChance) return;
+  const eff = move.effect;
+  if(eff.bonus==="fullBlock"){ S.wudangFullBlockNext = true; S.stageEffects.push(`${move.name}・完全化解！`); }
+  else if(eff.bonus==="crit"){ S.wudangCritNext = true; S.stageEffects.push(`${move.name}・蓄勢必殺！`); }
+  else if(eff.bonus==="stack" && eff.stackName){
+    let e = S.statusEffects.find(e=>e.wudangName===eff.stackName);
+    if(e){ e.stacks = Math.min(e.maxStacks||10, (e.stacks||0)+1); }
+    S.stageEffects.push(`${move.name}・借力！`);
+  } else if(eff.bonus==="interrupt"){ S.stageEffects.push(`${move.name}・借力打力！`); }
+  S.rage = Math.min(100, S.rage+1);
+}
+
+function resolveWudangPlayerMove(move, target, activeTech){
+  if(move.mpCost && S.mp<move.mpCost){ addLog(`內力不足，「${move.name}」無法施展`, 'system'); return; }
+  if(move.rageCost && S.rage<move.rageCost){ return; }
+  if(move.mpCost) S.mp -= move.mpCost;
+  if(move.rageCost) S.rage = Math.max(0, S.rage-move.rageCost);
+  wudangSetCd(move);
+  S.lastUsedMoveId = move.id;
+
+  let mult = 1;
+  if(move.effect && move.effect.type==="comboBonus"){
+    if(move.effect.monsterStack){
+      if(wudangMonsterMarkStacks(target, move.effect.buff)>0) mult += move.effect.mult;
+    } else if(!move.effect.minStacks || wudangBuffStacks(move.effect.buff)>=move.effect.minStacks){
+      if(wudangBuffActive(move.effect.buff)) mult += move.effect.mult;
+    }
+  }
+  const base = wudangMoveStatValue(move) * wudangDmgTierMult(move.dmgTier) * mult;
+  const aff = 1.16; // 武當招式一律太極屬性，固定吃這個相剋倍率
+
+  if(move.type==="實招"){
+    const blocked = target.stance==="架招";
+    let dmg = Math.max(1, Math.round(base*aff - target.def*(move.dmgType==="外功"?1:0.5)));
+    if(blocked) dmg = Math.max(1, Math.round(dmg*0.10));
+    if(S.wudangCritNext){ dmg = Math.round(dmg*1.5); S.wudangCritNext = false; }
+    target.hp -= dmg;
+    S.floatEnemy = `-${dmg}${blocked?'（被格擋）':''}`;
+    S.hitEnemy = true;
+    addLog(`你以「${move.name}」擊中${target.name}，造成 ${dmg} 傷害${blocked?'（被格擋，大幅減傷）':''}`, 'attack');
+    if(!blocked){ applyWudangEffect(move.effect, move, target, {blocked}); S.rage = Math.min(100, S.rage+2); }
+    else { S.rage = Math.min(100, S.rage+1); }
+  } else if(move.type==="虛招"){
+    if(target.stance==="架招"){
+      const dmg = Math.max(1, Math.round(base*aff*0.5));
+      target.hp -= dmg;
+      applyGuardBreak(move.effect, target);
+      S.floatEnemy = `-${dmg}（破防！）`;
+      S.hitEnemy = true;
+      addLog(`「${move.name}」擊破${target.name}的架勢，造成 ${dmg} 傷害並使其陷入破綻`, 'skill');
+      S.stageEffects.push(`${move.name}・破防！`);
+      S.triggerFlash[`martial_${move.id}`] = true;
+    } else {
+      const dmg = Math.max(1, Math.round(base*aff*0.6));
+      target.hp -= dmg;
+      S.floatEnemy = `-${dmg}`;
+      S.hitEnemy = true;
+      addLog(`你以「${move.name}」擊中${target.name}，造成 ${dmg} 傷害`, 'attack');
+    }
+    S.rage = Math.min(100, S.rage+2);
+  } else if(move.type==="架招"){
+    S.stageEffects.push(`${move.name}・凝神戒備`);
+  } else if(move.type==="氣招"){
+    applyWudangEffect(move.effect, move, target, {});
+    addLog(`你運起「${move.name}」`, 'skill');
+    S.stageEffects.push(`${move.name}！`);
+    S.triggerFlash[`martial_${move.id}`] = true;
+  } else if(move.type==="怒氣大招"){
+    let dmg = target ? Math.max(1, Math.round(base*aff*1.6 - target.def*0.5)) : 0;
+    const targets = (move.effect && move.effect.aoe) ? S.monsters.filter(m=>m.hp>0) : (target?[target]:[]);
+    targets.forEach(t=>{ t.hp -= dmg; });
+    applyWudangEffect(move.effect, move, target, {});
+    S.floatEnemy = `-${dmg}（怒氣大招！）`;
+    S.hitEnemyCrit = true; S.hitEnemy = true;
+    addLog(`你施展「${move.name}」，造成 ${dmg} 傷害！`, 'attack');
+    S.stageEffects.push(`${move.name}・怒氣爆發！`);
+    S.triggerFlash.sectPassive = true;
+  }
+}
+
+function resolveWudangMonsterAttack(target, playerMove){
+  const playerBlocking = playerMove && playerMove.type==="架招";
+  const playerUltImmune = S.statusEffects.some(e=>e.immuneControl);
+  let dmg = Math.max(1, Math.round(target.atk - S.secondary.外功防禦*0.3));
+  if(playerBlocking){
+    if(S.wudangFullBlockNext){ dmg = 0; S.wudangFullBlockNext = false; addLog(`「${playerMove.name}」完全化解了${target.name}的攻擊`, 'skill'); }
+    else dmg = Math.max(0, Math.round(dmg*0.10));
+    applyBlockBonus(playerMove, target);
+    S.rage = Math.min(100, S.rage+4);
+  } else {
+    S.rage = Math.min(100, S.rage+5);
+  }
+  const shieldBuff = S.statusEffects.find(e=>e.shieldAbsorbPct && e.remainingTicks>0);
+  if(shieldBuff && dmg>0){
+    const absorb = Math.min(dmg, Math.round(S.hpMax*shieldBuff.shieldAbsorbPct));
+    dmg = Math.max(0, dmg-absorb);
+  }
+  if(dmg>0){
+    S.hp -= dmg;
+    S.floatPlayer = `-${dmg}`;
+    S.hitPlayer = true;
+    addLog(`${target.name} 攻來，你受到 ${dmg} 傷害${playerBlocking?'（已格擋大部分傷害）':''}`, 'enemy');
+  } else {
+    S.floatPlayer = playerBlocking ? "格擋成功！" : "";
+  }
+}
+
+function onKillWudang(target){
+  const lvl = target.level;
+  const qiGain = 8+lvl*3, goldGain = 4+lvl*2;
+  S.qiPool += qiGain; S.gold += goldGain;
+  addLog(`擊殺了 ${target.name}！獲得內功修為 +${qiGain}、錢財 +${formatMoney(goldGain)}`, 'loot');
+  if(Math.random()<0.55) S.materials.淬鍊石 += 1+Math.floor(Math.random()*2);
+  if(Math.random()<0.04){ S.materials.洗髓丹 += 1; addLog(`意外獲得「洗髓丹」x1`, 'loot'); }
+  if(Math.random()<0.18){ const n=1+Math.floor(Math.random()*2); S.materials.精鐵砂 += n; addLog(`獲得「精鐵砂」x${n}`, 'loot'); }
+  if(Math.random() < (target.isBoss?0.4:0.03)){ S.materials.美玉錠 += 1; addLog(`獲得珍稀的「美玉錠」x1`, 'loot'); }
+  if(S.quest && S.quest.zoneId===S.location && S.quest.killsDone<S.quest.killsNeeded){
+    S.quest.killsDone++;
+    addLog(`任務進度：${S.quest.killsDone} / ${S.quest.killsNeeded}`, 'system');
+  }
+  if(Math.random() < 0.20){
+    const c = CONSUMABLES[Math.floor(Math.random()*(CONSUMABLES.length-1))];
+    addConsumable(c.id, 1);
+    addLog(`獲得藥品掉落：${c.name}`, 'loot');
+  }
+  if(Math.random() < 0.12){
+    const slot = SLOT_LIST[Math.floor(Math.random()*SLOT_LIST.length)];
+    const zone = HUNTING_ZONES.find(z=>z.id===target.zone);
+    const item = generateEquipment(slot, zone?zone.levelMod:0);
+    S.inventory.push(item);
+    const tierInfo = TIER_LIST.find(t=>t.key===item.tierKey);
+    const gradeTxt = item.tierKey==="jade" ? `${["","一","二","三","四","五","六","七"][item.jadeGrade]}品` : tierInfo.name;
+    addLog(`獲得裝備掉落：${item.name}（${gradeTxt}）`, 'loot');
+  }
+  S.killCount++;
+  if(S.monsters.every(m=>m.hp<=0)) spawnMonstersWudang(S.monsters.length);
+}
+
+function combatTickWudang(){
+  const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal) || INTERNAL_POOL[0];
+  if(S.location==="jinling" || S.visitingSect){
+    recalc(false);
+    if(S.warningCooldown>0) S.warningCooldown--;
+    S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.5)));
+    S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.3))+1);
+    S.floatPlayer=""; S.floatEnemy=""; S.stageEffects=[];
+    checkAutoHeal();
+    return;
+  }
+  if(!S.monsters || S.monsters.length===0 || S.monsters.every(m=>m.hp<=0)) spawnMonstersWudang();
+  recalc(false);
+  if(S.respecCooldown>0) S.respecCooldown--;
+  if(S.warningCooldown>0) S.warningCooldown--;
+  tickStatusEffects(S.statusEffects);
+  S.monsters.forEach(m=> m.hp>0 && tickStatusEffects(m.statusEffects));
+  S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.3)));
+  S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.2))+1);
+  checkAutoHeal();
+  S.floatPlayer=""; S.floatEnemy=""; S.hitEnemy=false; S.hitEnemyCrit=false; S.hitPlayer=false;
+  S.stageEffects=[]; S.triggerFlash={};
+
+  Object.values(S.wudangMoveState).forEach(st=>{ if(st.cdRemaining>0) st.cdRemaining--; });
+
+  // 怪物身上的印記/DOT 持續傷害
+  S.monsters.forEach(m=>{
+    if(m.hp<=0) return;
+    m.statusEffects.forEach(e=>{
+      if(e.kind!=="dot_debuff") return;
+      const dmg = e.dmgPerTick * (e.stacks||1);
+      m.hp -= dmg;
+      addLog(`${m.name} 受到「${e.wudangMark||'內傷'}」持續傷害 ${dmg}`, 'dot');
+    });
+  });
+
+  const target = firstAliveMonster();
+  if(target) target.stance = wudangMonsterStance(target);
+
+  const move = target ? pickWudangMove(target) : null;
+  if(move) resolveWudangPlayerMove(move, target, activeTech);
+
+  if(target && target.hp>0 && target.stance==="實招"){
+    resolveWudangMonsterAttack(target, move);
+  }
+
+  S.monsters.forEach(m=>{
+    if(m.staggerTicks>0) m.staggerTicks--;
+    if(m.defReduceTicks>0) m.defReduceTicks--;
+  });
+
+  if(target && target.hp<=0) onKillWudang(target);
+  if(S.hp<=0){
+    addLog(`你身受重傷，昏死過去……同門將你送回金凌城療傷。`, 'warn');
+    S.location = "jinling"; S.monsters = [];
+    S.hp = Math.max(1, Math.round(S.hpMax*0.3));
+    S.floatPlayer=""; S.floatEnemy=""; S.stageEffects=[];
+  }
+  S.tick++;
 }

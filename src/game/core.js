@@ -110,3 +110,28 @@ function spawnMonster(avoidBoss){
   S.monster.defReduceTicks = 0;
   S.monster.statusEffects = [];
 }
+
+// 武當專用：S.monsters 是陣列（1~5隻，前排到後排），現階段一般狩獵區固定 1 隻，
+// count 參數留給日後的多人副本用。跟 S.monster（單一物件，其他門派用）完全分開，互不影響。
+function spawnMonstersWudang(count){
+  const n = count || 1;
+  const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
+  const isBoss = S.killCount>0 && S.killCount%10===0;
+  const bossDef = BOSS_ROSTER[zone.id];
+  if(isBoss && S.combatOptions && S.combatOptions.fleeBoss){
+    addLog(`遇上首領「${bossDef.name}」，依設定自動逃跑，繼續尋找下一場戰鬥。`, 'system');
+    S.killCount++; spawnMonstersWudang(count);
+    return;
+  }
+  const roster = MONSTER_ROSTER[zone.id] || [];
+  S.monsters = [];
+  for(let i=0;i<n;i++){
+    const useBoss = isBoss && i===0;
+    const def = useBoss ? bossDef : roster[Math.floor(Math.random()*roster.length)];
+    S.monsters.push({
+      name: useBoss?`【首領】${def.name}`:def.name, level:def.level, zone:zone.id,
+      hpMax:def.hpMax, hp:def.hpMax, atk:def.atk, def:def.def, isBoss:useBoss, row:i,
+      stunned:false, staggerTicks:0, defReduceTicks:0, statusEffects:[], stance:"實招",
+    });
+  }
+}

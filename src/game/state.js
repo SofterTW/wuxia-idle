@@ -35,6 +35,16 @@ function newGame(sectKey){
     internalExpanded:{}, martialExpanded:{}, sideExpanded:{primary:true, buffs:true, autoheal:true}, logFilters:{}, navCollapsed:false,
     navHintSeen:false,
     hitEnemy:false, hitEnemyCrit:false, hitPlayer:false, lastUsedMoveId:null, stageEffects:[],
+    // 武當專用五招制戰鬥引擎欄位（見 game/combat.js combatTickWudang()），其他門派完全不會用到。
+    rage:0, wudangMoveState:{}, wudangMovesetsUnlocked:{}, monsters:[],
+    wudangFullBlockNext:false, wudangCritNext:false,
   };
-  spawnMonster(); recalc(true); render(); saveGame();
+  if(sectKey==="wudang"){
+    // 稀有度兌換系統（武學閣等）還沒做，先讓武當四套全部直接解鎖，才能測試戰鬥引擎本身。
+    WUDANG_MOVESETS.forEach(m=> S.wudangMovesetsUnlocked[m.key] = true);
+    spawnMonstersWudang();
+  } else {
+    spawnMonster();
+  }
+  recalc(true); render(); saveGame();
 }

@@ -31,6 +31,16 @@ function patchLoadedSave(){
   // 舊存檔的裝備/道具沒有 uid 欄位，逐一補發，號碼延續 S.nextUid，不會跟之後新產生的物品重複。
   Object.values(S.equipment).forEach(it=>{ if(it && it.uid==null) it.uid = allocUid(); });
   S.inventory.forEach(it=>{ if(it && it.uid==null) it.uid = allocUid(); });
+  // 武當專用五招制戰鬥引擎欄位（見 combat.js combatTickWudang()）。
+  if(S.rage===undefined) S.rage = 0;
+  if(S.wudangMoveState===undefined) S.wudangMoveState = {};
+  if(S.wudangMovesetsUnlocked===undefined) S.wudangMovesetsUnlocked = {};
+  if(S.monsters===undefined) S.monsters = [];
+  if(S.wudangFullBlockNext===undefined) S.wudangFullBlockNext = false;
+  if(S.wudangCritNext===undefined) S.wudangCritNext = false;
+  if(S.sectKey==="wudang"){
+    WUDANG_MOVESETS.forEach(m=>{ if(S.wudangMovesetsUnlocked[m.key]===undefined) S.wudangMovesetsUnlocked[m.key] = true; });
+  }
 }
 
 function loadGame(){

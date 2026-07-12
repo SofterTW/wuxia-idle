@@ -82,7 +82,7 @@ function renderWarningModal(){
 }
 
 function renderMonsterInfoModal(){
-  const m = S.monster;
+  const m = S.monster || (S.monsters && S.monsters[0]);
   if(!m) return "";
   const statusRows = [];
   if(m.poisonStacks>0) statusRows.push(`<div class="wxg-row"><span>中毒</span><b style="font-weight:400;">${m.poisonStacks} 層（每回合 ${m.poisonStacks*4} 傷害）</b></div>`);
@@ -316,8 +316,9 @@ function renderStage(){
       </div>
     </div>`;
   }
-  const m = S.monster;
+  const m = S.monster || (S.monsters && S.monsters[0]);
   const monsterIcon = portraitImgHtml(m && m.isBoss ? BOSS_PORTRAIT : MONSTER_PORTRAIT);
+  const wudangStanceTag = (S.sectKey==="wudang" && m && m.hp>0) ? `<div class="wxg-tag" style="margin-top:3px; ${m.stance==='架招'?'border-color:#4dd0c8;color:#4dd0c8;':m.stance==='虛招'?'border-color:#e2685c;color:#e2685c;':'border-color:#d1564c;color:#d1564c;'}">對方招式：${m.stance||'實招'}</div>` : '';
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
   const stageShake = (S.hitEnemyCrit)?' wxg-stage-shake':'';
   const playerHitCls = S.hitPlayer ? ' hit-shake hit-flash' : '';
@@ -338,6 +339,7 @@ function renderStage(){
       <div class="wxg-gauge-wrap">
         ${pillbar('氣','hp',S.hp,S.hpMax,'hp',S.hitPlayer?'gauge-flash':'')}
         ${pillbar('內','mp',S.mp,S.mpMax,'mp')}
+        ${S.sectKey==="wudang" ? pillbar('怒','rage',S.rage,100,'rage') : ''}
       </div>
     </div>
     <div class="wxg-vs-col">
@@ -353,6 +355,7 @@ function renderStage(){
       </div>
       <div class="wxg-fname">${m?m.name:"—"}</div>
       <div class="wxg-fsub">Lv.${m?m.level:0}</div>
+      ${wudangStanceTag}
       ${m?`<div class="wxg-stage-hint" style="font-size:10px; opacity:.75;">👆 點擊頭像查看屬性</div>`:''}
       <div class="wxg-gauge-wrap">
         ${pillbar('氣','en',m?m.hp:0,m?m.hpMax:1,'en',S.hitEnemy?'gauge-flash':'')}
@@ -650,7 +653,34 @@ function martialLayerDesc(def, layerIdx){
   return "傷害 +8%";
 }
 
+const WUDANG_TYPE_COLOR = {"實招":"#d1564c","虛招":"#e2685c","架招":"#4dd0c8","氣招":"#7ec9a2","怒氣大招":"#f3a03c"};
+function renderMartialWudang(){
+  const rows = WUDANG_MOVESETS.map(ms=>{
+    const unlocked = !!S.wudangMovesetsUnlocked[ms.key];
+    const moveRows = ms.moves.map(m=>{
+      const st = S.wudangMoveState[m.id];
+      const cdLeft = st ? Math.max(0, st.cdRemaining||0) : 0;
+      const costTxt = m.rageCost ? `怒氣 ${m.rageCost}` : (m.mpCost ? `內力 ${m.mpCost}` : '無消耗');
+      return `<div class="wxg-row">
+        <span><span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[m.type]}; color:${WUDANG_TYPE_COLOR[m.type]};">${m.type}</span> ${m.name}</span>
+        <b style="font-weight:400; color:var(--dim-text); font-size:11px;">CD${m.cd} · ${costTxt}${cdLeft>0?`　<span style="color:#e2685c;">冷卻中(${cdLeft})</span>`:''}</b>
+      </div>
+      <div class="wxg-hint" style="margin:0 0 6px; padding-left:4px;">${m.desc}</div>`;
+    }).join("");
+    return `<div class="wxg-panel ${unlocked?'active-main':''}">
+      <div class="wxg-panel-head martial"><span class="dot"></span><h3>${ms.name}</h3><span class="wxg-tag gold">套路稀有度 ${ms.rarity}</span><span class="wxg-tag">${ms.weaponSub}</span>${unlocked?'<span class="wxg-tag jade" style="margin-left:auto;">已習得</span>':'<span class="wxg-tag" style="margin-left:auto;">尚未習得</span>'}</div>
+      ${unlocked?moveRows:`<div class="wxg-hint">尚未解鎖，稀有度兌換系統開發中。</div>`}
+    </div>`;
+  }).join("");
+  return `
+    <div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>武當・實虛架氣怒</h3></div>
+      <div class="wxg-hint">武當用的是全新的五招制戰鬥系統，招式會依當下敵我情勢自動見招拆招（實招硬拼、虛招破防、架招格擋、氣招調息、怒氣大招終結），不用手動選招。目前四套武學已全部解鎖供測試，稀有度兌換系統之後才會真的限制取得。</div>
+    </div>
+    ${rows}
+  `;
+}
 function renderMartial(){
+  if(S.sectKey==="wudang") return renderMartialWudang();
   const slots = S.martialSlots.map((id,idx)=>{
     const known = id?S.knownMartial[id]:null;
     const def = id?Object.values(MARTIAL_POOL).flat().find(m=>m.id===id):null;

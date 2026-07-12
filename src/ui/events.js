@@ -49,7 +49,7 @@ function bindGlobal(){
   });
   document.querySelectorAll('[data-visitsect]').forEach(el=> el.onclick=()=>{
     if(S.location!=="jinling"){
-      S.location="jinling"; S.monster=null;
+      S.location="jinling"; S.monster=null; S.monsters=[];
       addLog(`你先動身返回金凌城，再前往拜訪門派。`, 'system');
     }
     S.visitingSect = el.dataset.visitsect;
@@ -244,7 +244,7 @@ function bindGlobal(){
     render();
   });
   document.querySelectorAll('[data-gotown]').forEach(el=> el.onclick=()=>{
-    S.location="jinling"; S.monster=null; S.visitingSect=null; addLog(`你動身返回金凌城休整。`, 'system'); render();
+    S.location="jinling"; S.monster=null; S.monsters=[]; S.visitingSect=null; addLog(`你動身返回金凌城休整。`, 'system'); render();
   });
   document.querySelectorAll('[data-zone]').forEach(el=> el.onclick=()=>{
     S.location = el.dataset.zone;
