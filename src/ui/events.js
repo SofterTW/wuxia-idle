@@ -289,6 +289,8 @@ function bindGlobal(){
   });
   document.querySelectorAll('[data-equipsub]').forEach(el=> el.onclick=()=>{ S.equipSubTab = el.dataset.equipsub; render(); });
   document.querySelectorAll('[data-bagfilter]').forEach(el=> el.onclick=()=>{ S.bagFilter = el.dataset.bagfilter; render(); });
+  document.querySelectorAll('[data-autoselltier]').forEach(el=> el.onchange=()=>{ S.autoSellTiers[el.dataset.autoselltier] = el.checked; render(); });
+  document.querySelectorAll('[data-autosellrun]').forEach(el=> el.onclick=()=> autoSellByTier());
   document.querySelectorAll('[data-codexsub]').forEach(el=> el.onclick=()=>{
     S.codexSubTab = el.dataset.codexsub;
     S.codexInternalSect = null; S.codexInternalSkillId = null; // 切換百科分類時重置內功心法的鑽入層級

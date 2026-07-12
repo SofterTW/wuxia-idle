@@ -130,6 +130,8 @@
 .wxg-pilltag.hp{color:#e2685c;}
 .wxg-pilltag.mp{color:#6db3e0;}
 .wxg-pilltag.en{color:#7ec9a2;}
+.wxg-pilltag.rage{color:#f3a03c;}
+.wxg-pilltag.shield{color:#4dd0c8;}
 .wxg-gauge{
   height:17px; border-radius:999px; background:#0a0805; border:1px solid #000; flex:1;
   box-shadow:0 0 0 1px #4a3218, inset 0 1px 2px #000; overflow:hidden; position:relative;
@@ -139,6 +141,7 @@
 .wxg-gauge-fill.mp{background:linear-gradient(180deg,#6db3e0,#2f6f9e 60%,#193f57);}
 .wxg-gauge-fill.en{background:linear-gradient(180deg,#7ec9a2,var(--jade) 60%,#204a3a);}
 .wxg-gauge-fill.rage{background:linear-gradient(180deg,#f3a03c,#c9631a 60%,#5a2b0a);}
+.wxg-gauge-fill.shield{background:linear-gradient(180deg,#a0f0ea,#4dd0c8 60%,#146862);}
 .wxg-gauge-fill::after{content:""; position:absolute; top:0; left:0; right:0; height:45%; background:rgba(255,255,255,.28); border-radius:999px 999px 0 0;}
 .wxg-gauge-text{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;

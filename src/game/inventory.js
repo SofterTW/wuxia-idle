@@ -1,3 +1,20 @@
+// 背包分頁的「自動賣出」：把 S.autoSellTiers 裡打勾的品級（木/銅/鐵/銀/金，玉裝故意不給勾，
+// 避免手滑賣掉最稀有的裝備）、且沒有鎖定的裝備，依真實售價（equipSellValue）一次全部賣掉。
+function autoSellByTier(){
+  const tiers = S.autoSellTiers || {};
+  const checkedTiers = Object.keys(tiers).filter(k=>tiers[k]);
+  if(checkedTiers.length===0){ addLog(`自動賣出：尚未勾選任何品級`, 'warn'); render(); return; }
+  let total = 0, count = 0;
+  S.inventory = S.inventory.filter(it=>{
+    if(it.kind!=="equipment" || it.locked || !checkedTiers.includes(it.tierKey)) return true;
+    total += equipSellValue(it); count++;
+    return false;
+  });
+  if(count===0){ addLog(`自動賣出：背包裡沒有符合勾選品級、且未鎖定的裝備`, 'system'); }
+  else { S.gold += total; addLog(`自動賣出 ${count} 件裝備，共得 ${formatMoney(total)}`, 'loot'); }
+  render();
+}
+
 function addConsumable(refId, amount){
   const c = findConsumable(refId);
   if(!c) return;

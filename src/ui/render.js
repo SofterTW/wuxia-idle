@@ -334,6 +334,7 @@ function renderStage(){
   const monsterIcon = portraitImgHtml(m && m.isBoss ? BOSS_PORTRAIT : MONSTER_PORTRAIT);
   const wudangStanceTag = (S.sectKey==="wudang" && m && m.hp>0) ? `<div class="wxg-tag" style="margin-top:3px; ${m.stance==='架招'?'border-color:#4dd0c8;color:#4dd0c8;':m.stance==='虛招'?'border-color:#e2685c;color:#e2685c;':'border-color:#d1564c;color:#d1564c;'}">對方招式：${m.stance||'實招'}</div>` : '';
   const wudangDebuffRows = (S.sectKey==="wudang" && m && m.hp>0) ? wudangMonsterDebuffHtml(m) : '';
+  const wudangShieldBuff = S.sectKey==="wudang" ? (S.statusEffects||[]).find(e=>e.shieldPool>0) : null;
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
   const stageShake = (S.hitEnemyCrit)?' wxg-stage-shake':'';
   const playerHitCls = S.hitPlayer ? ' hit-shake hit-flash' : '';
@@ -355,6 +356,7 @@ function renderStage(){
         ${pillbar('氣','hp',S.hp,S.hpMax,'hp',S.hitPlayer?'gauge-flash':'')}
         ${pillbar('內','mp',S.mp,S.mpMax,'mp')}
         ${S.sectKey==="wudang" ? pillbar('怒','rage',S.rage,100,'rage') : ''}
+        ${wudangShieldBuff ? pillbar('盾','shield',wudangShieldBuff.shieldPool,wudangShieldBuff.shieldPoolMax,'shield') : ''}
       </div>
     </div>
     <div class="wxg-vs-col">
@@ -909,6 +911,17 @@ function renderEquip(){
       <div class="wxg-subtabs" style="margin-top:-2px;">
         ${BAG_FILTERS.map(f=>`<div class="wxg-subtab ${S.bagFilter===f.key?'active':''}" data-bagfilter="${f.key}">${f.label}</div>`).join("")}
       </div>`;
+    const autoSellPanel = `<div class="wxg-panel">
+      <div class="wxg-panel-head"><span class="dot"></span><h3>自動賣出</h3></div>
+      <div class="wxg-hint">勾選品級後按下方按鈕，會把背包裡符合品級、且沒有鎖定的裝備依實際售價一次全部賣掉。玉裝不開放勾選，避免手滑賣掉稀有裝備。</div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin:8px 0;">
+        ${TIER_LIST.filter(t=>t.key!=="jade").map(t=>`
+          <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer; color:${t.color};">
+            <input type="checkbox" data-autoselltier="${t.key}" ${S.autoSellTiers[t.key]?'checked':''}> ${t.name}裝
+          </label>`).join("")}
+      </div>
+      <button class="wxg-btn crimson small" data-autosellrun="1">自動賣出</button>
+    </div>`;
     const filtered = S.inventory
       .map((it,idx)=>({it,idx}))
       .filter(({it})=> S.bagFilter==="all" || bagCategory(it)===S.bagFilter);
@@ -944,7 +957,7 @@ function renderEquip(){
     }).join("") || (S.inventory.length===0
       ? `<div class="wxg-hint">背包空空如也，繼續戰鬥有機率掉落裝備、藥品與秘笈</div>`
       : `<div class="wxg-hint">這個分類目前沒有道具</div>`);
-    return subTabs + filterTabs + inv;
+    return subTabs + autoSellPanel + filterTabs + inv;
   }
 
   const slots = SLOT_LIST.map(slot=>{

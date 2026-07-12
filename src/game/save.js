@@ -46,6 +46,7 @@ function patchLoadedSave(){
   if(S.wudangFilterType===undefined) S.wudangFilterType = "全部";
   if(S.wudangFilterRarity===undefined) S.wudangFilterRarity = "全部";
   if(S.internalFilterAffinity===undefined) S.internalFilterAffinity = "全部";
+  if(S.autoSellTiers===undefined) S.autoSellTiers = {wood:false, bronze:false, iron:false, silver:false, gold:false};
   if(S.sectKey==="wudang"){
     WUDANG_MOVESETS.forEach(m=>{ if(S.wudangMovesetsUnlocked[m.key]===undefined) S.wudangMovesetsUnlocked[m.key] = true; });
     if(Object.values(S.wudangSlots).every(arr=>arr.length===0)) S.wudangSlots = defaultWudangSlots();
