@@ -314,31 +314,18 @@ function renderWudangArenaStage(){
   const engaged = nearestAliveWudangMonster(playerPos);
   const sectIcon = portraitImgHtml(SECT_PORTRAIT[S.sectKey]);
 
-  // 走位動畫的起訖點每個角色、每個 tick 都不一樣（自由座標，不是固定格位），沒辦法用固定的
-  // CSS keyframe，這裡把這個 tick 每個「有真的移動」的角色（玩家 + 每隻怪）各自的起訖點寫進
-  // 動態產生的 keyframe，一起隨這次 render 送出。玩家固定用 wxgArenaWalk，怪物各自用
-  // wxgArenaWalkM0、wxgArenaWalkM1……（用陣列索引命名，同一隻怪不同 tick 會重複使用同一個
-  // 名字，反正每次 render 都整個重新產生，不會有殘留的舊 keyframe）。
-  const moveFx = S.wudangMoveFx || [];
-  const mobWalkKeyframes = moveFx.map((fx,i)=>
-    `@keyframes wxgArenaWalkM${i}{0%{left:${fx.from.x}%; top:${fx.from.y}%;} 100%{left:${fx.to.x}%; top:${fx.to.y}%;}}`
-  ).join("\n");
-  const playerWalkKeyframe = (S.wudangPlayerWalking && S.wudangWalkFrom && S.wudangWalkTo)
-    ? `@keyframes wxgArenaWalk{0%{left:${S.wudangWalkFrom.x}%; top:${S.wudangWalkFrom.y}%;} 100%{left:${S.wudangWalkTo.x}%; top:${S.wudangWalkTo.y}%;}}`
-    : '';
-  const walkStyle = (mobWalkKeyframes || playerWalkKeyframe) ? `<style>${playerWalkKeyframe}\n${mobWalkKeyframes}</style>` : '';
-
+  // 移動已經改成獨立的 wudangMoveTick()，用比畫面重繪更短的間隔持續切小步更新座標
+  // （見 combat.js／loop.js），render() 每次抓到的都已經是最新位置，直接照座標畫上去就會很
+  // 順暢，不用再靠 CSS keyframe 補一段「這個 tick 走多遠」的動畫。
   const playerHitCls = S.hitPlayer ? ' hit-knock-self hit-flash' : '';
 
   const mobsHtml = (S.monsters||[]).filter(m=>m.hp>0 && m.pos).map(m=>{
     const isEngaged = engaged===m;
-    const fxIdx = moveFx.findIndex(fx=>fx.id===m);
-    const walkCls = fxIdx>=0 ? ` walking-m${fxIdx}` : '';
     const hostile = m.aggressive || m.aggroed;
     const enemyHitCls = (isEngaged && S.hitEnemy) ? (' hit-knock-enemy hit-flash'+(S.hitEnemyCrit?' hit-crit':'')) : '';
     const monsterIcon = portraitImgHtml(m.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT);
     const aggroTag = m.isBoss ? '' : (hostile ? `<span class="wxg-map-mob-tag hostile">${m.aggroed&&!m.aggressive?'已激怒':'主動'}</span>` : `<span class="wxg-map-mob-tag passive">閒晃</span>`);
-    return `<div class="wxg-map-mob wxg-idle-bob${m.isBoss?' boss':''}${hostile?' hostile':''}${walkCls}" style="left:${m.pos.x}%; top:${m.pos.y}%;"${isEngaged?` data-monsterinfohover="1"`:''}>
+    return `<div class="wxg-map-mob wxg-idle-bob${m.isBoss?' boss':''}${hostile?' hostile':''}" style="left:${m.pos.x}%; top:${m.pos.y}%;"${isEngaged?` data-monsterinfohover="1"`:''}>
       ${isEngaged && S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
       <div class="wxg-map-mob-name">${m.isBoss?'👑 ':''}${m.name}${aggroTag}</div>
       <div class="wxg-portrait enemy${enemyHitCls}">${monsterIcon}</div>
@@ -351,7 +338,7 @@ function renderWudangArenaStage(){
       <div class="wxg-death-ghost" style="position:absolute; inset:0;">${portraitImgHtml(S.deathFlash.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT)}</div>
     </div>` : '';
 
-  const playerHtml = `<div class="wxg-map-player wxg-idle-bob${S.wudangPlayerWalking?' walking':''}" style="left:${playerPos.x}%; top:${playerPos.y}%;">
+  const playerHtml = `<div class="wxg-map-player wxg-idle-bob" style="left:${playerPos.x}%; top:${playerPos.y}%;">
     ${S.floatPlayer?`<div class="wxg-float self${isMissFloatText(S.floatPlayer)?' miss':''}">${S.floatPlayer}</div>`:""}
     <div class="wxg-portrait${playerHitCls}">${sectIcon}</div>
   </div>`;
@@ -381,7 +368,6 @@ function renderWudangArenaStage(){
 
   return `
   <div class="wxg-arena-map">
-    ${walkStyle}
     ${sceneSvg}
     <div class="wxg-corner tl"></div><div class="wxg-corner tr"></div><div class="wxg-corner bl"></div><div class="wxg-corner br"></div>
     ${mobsHtml}

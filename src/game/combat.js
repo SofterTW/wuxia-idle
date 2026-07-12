@@ -739,6 +739,43 @@ function onKillWudang(target){
   spawnOneWudangMonster();
 }
 
+// 移動專用 tick，跟戰鬥/攻速的 combatTickWudang() 脫鉤，由 loop.js 用更短的間隔獨立呼叫，
+// 走路才會順暢（切成很多小步），不是每個戰鬥 tick 才挪一次位置的頓挫感。這裡只處理座標，
+// 完全不碰攻擊/CD/傷害——那些留在 combatTickWudang() 裡用原本的攻擊節奏處理，兩者互不影響，
+// 之後要幫每個招式做細緻的 CD 秒數設計時，攻擊節奏跟移動節奏已經先天分開，不用互相遷就。
+function wudangMoveTick(){
+  if(!S || S.sectKey!=="wudang" || S.location==="jinling" || S.visitingSect) return;
+  if(!S.monsters || S.monsters.length===0) return;
+  if(!S.wudangPlayerPos) S.wudangPlayerPos = {...WUDANG_ARENA_PATROL[0]};
+  const moveStep = WUDANG_MOVE_STEP / WUDANG_MOVE_STEPS_PER_TICK;
+  const wanderStep = WUDANG_WANDER_STEP / WUDANG_MOVE_STEPS_PER_TICK;
+  // 主動攻擊／已被激怒的怪物朝玩家靠近；被動未激怒的怪物在地圖上閒晃，速度比追擊慢一點。
+  // 兩者跟玩家移動速度（moveStep）是同一個數字，人跟怪物走路一樣快，不會有誰特別快追不上。
+  S.monsters.forEach(m=>{
+    if(m.hp<=0 || !m.pos) return;
+    const hostile = m.aggressive || m.aggroed;
+    if(hostile){
+      wudangStepToward(m.pos, S.wudangPlayerPos, moveStep, WUDANG_ENGAGE_DIST);
+    } else {
+      if(!m.wanderTarget || wudangDist(m.pos, m.wanderTarget)<1.5) m.wanderTarget = wudangRandomPoint();
+      wudangStepToward(m.pos, m.wanderTarget, wanderStep);
+    }
+  });
+  const nearest = nearestAliveWudangMonster(S.wudangPlayerPos);
+  if(nearest){
+    if(wudangDist(S.wudangPlayerPos, nearest.pos) > WUDANG_ENGAGE_DIST){
+      wudangStepToward(S.wudangPlayerPos, nearest.pos, moveStep, WUDANG_ENGAGE_DIST);
+    }
+  } else {
+    // 沒有存活目標（極少發生，死一隻補一隻的情況下地圖幾乎不會真的空過）：
+    // 在巡邏點之間閒晃，等下一次 spawnMonstersWudang 補上怪物。
+    if(!S.wudangPatrolTarget || wudangDist(S.wudangPlayerPos, S.wudangPatrolTarget)<1.5){
+      S.wudangPatrolTarget = WUDANG_ARENA_PATROL[Math.floor(Math.random()*WUDANG_ARENA_PATROL.length)];
+    }
+    wudangStepToward(S.wudangPlayerPos, S.wudangPatrolTarget, moveStep);
+  }
+}
+
 function combatTickWudang(){
   const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal) || INTERNAL_POOL[0];
   if(S.location==="jinling" || S.visitingSect){
@@ -784,7 +821,6 @@ function combatTickWudang(){
   checkAutoHeal();
   S.floatPlayer=""; S.floatEnemy=""; S.hitEnemy=false; S.hitEnemyCrit=false; S.hitPlayer=false;
   S.stageEffects=[]; S.triggerFlash={};
-  S.wudangPlayerWalking=false; S.wudangWalkFrom=null; S.wudangWalkTo=null;
 
   Object.values(S.wudangMoveState).forEach(st=>{ if(st.cdRemaining>0) st.cdRemaining--; });
   if(S.wudangSwitchCd>0) S.wudangSwitchCd--;
@@ -808,42 +844,9 @@ function combatTickWudang(){
   // （旁邊那隻的 hp<=0 卻一直沒被 onKillWudang 收掉，池數統計就會越補越多）。
   S.monsters.filter(m=>m.hp<=0).forEach(m=>onKillWudang(m));
 
-  // 移動階段：主動攻擊／已被激怒的怪物每 tick 朝玩家靠近；被動未激怒的怪物在地圖上閒晃
-  // （不是站著不動，會持續移動）。玩家自動朝最近的存活怪物靠近。全部都是「每 tick 走一小步」，
-  // 不是瞬間移動過去，走幾個 tick 才會真的碰到面。
-  S.wudangMoveFx = []; // 這個 tick 誰移動了、從哪走到哪，畫面要用來畫走路動畫
-  S.monsters.forEach(m=>{
-    if(m.hp<=0 || !m.pos) return;
-    const from = {...m.pos};
-    const hostile = m.aggressive || m.aggroed;
-    let moved;
-    if(hostile){
-      moved = wudangStepToward(m.pos, S.wudangPlayerPos, WUDANG_MOVE_STEP, WUDANG_ENGAGE_DIST);
-    } else {
-      if(!m.wanderTarget || wudangDist(m.pos, m.wanderTarget)<1.5) m.wanderTarget = wudangRandomPoint();
-      moved = wudangStepToward(m.pos, m.wanderTarget, WUDANG_WANDER_STEP);
-    }
-    if(moved) S.wudangMoveFx.push({id:m, from, to:{...m.pos}});
-  });
+  // 移動已經改成獨立的 wudangMoveTick()，用更短的間隔在 loop.js 那邊持續跑，這裡的攻擊
+  // tick 只需要讀「現在」的座標判斷夠不夠近、能不能出招，不用自己再移動一次。
   const nearest = nearestAliveWudangMonster(S.wudangPlayerPos);
-  if(nearest){
-    const d = wudangDist(S.wudangPlayerPos, nearest.pos);
-    if(d > WUDANG_ENGAGE_DIST){
-      const from = {...S.wudangPlayerPos};
-      wudangStepToward(S.wudangPlayerPos, nearest.pos, WUDANG_MOVE_STEP, WUDANG_ENGAGE_DIST);
-      S.wudangWalkFrom = from; S.wudangWalkTo = {...S.wudangPlayerPos}; S.wudangPlayerWalking = true;
-    }
-  } else {
-    // 沒有存活目標（極少發生，死一隻補一隻的情況下地圖幾乎不會真的空過）：
-    // 在巡邏點之間閒晃，等下一次 spawnMonstersWudang 補上怪物。
-    const patrolFrom = {...S.wudangPlayerPos};
-    S.wudangPatrolIdx = ((S.wudangPatrolIdx||0)+1) % WUDANG_ARENA_PATROL.length;
-    const nextPoint = WUDANG_ARENA_PATROL[S.wudangPatrolIdx];
-    if(wudangDist(patrolFrom, nextPoint)>0.6){
-      S.wudangWalkFrom = patrolFrom; S.wudangWalkTo = {...nextPoint}; S.wudangPlayerWalking = true;
-    }
-    S.wudangPlayerPos = {...nextPoint};
-  }
 
   // 戰鬥階段：玩家只有真的站到最近那隻怪旁邊（距離 <= 交手距離）才會出招；
   // 同一時間若有多隻主動／已激怒的怪物都貼到玩家旁邊，牠們會各自獨立出手打玩家，

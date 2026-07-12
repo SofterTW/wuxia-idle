@@ -36,14 +36,23 @@ document.addEventListener('pointerup', ()=>{
 });
 document.addEventListener('pointercancel', ()=>{ __wxgPointerActive = false; });
 
-function tickGame(){
-  combatTick();
+// combatTick()（攻擊/CD/傷害）跟 wudangMoveTick()（純移動，見 combat.js）現在是兩個各自獨立的
+// 計時器，但畫面重繪/存檔的節流規則是共用的，兩邊都呼叫這個函式決定要不要真的重畫一次。
+function maybeRenderAndSave(){
   const now = Date.now();
   if(!isEditingUI() && !__wxgPointerActive && now - __wxgLastRenderAt > WXG_RENDER_MIN_INTERVAL_MS){
     __wxgLastRenderAt = now;
     render();
   }
   if(now - __wxgLastSaveAt > 1000){ __wxgLastSaveAt = now; saveGame(); }
+}
+function tickGame(){
+  combatTick();
+  maybeRenderAndSave();
+}
+function moveTickGame(){
+  wudangMoveTick();
+  maybeRenderAndSave();
 }
 
 document.addEventListener('focusout', (e)=>{
@@ -56,10 +65,16 @@ window.addEventListener('beforeunload', ()=>{ saveGame(); });
 
 // 全局加速（測試用）：1/10/100 倍，縮短 tick 間隔讓 combatTick() 跑得更快。
 const WXG_TICK_BASE_MS = 1200;
+// 移動計時器跟戰鬥計時器脫鉤、切更短的間隔，走路才會順暢而不是一戰鬥 tick 挪一次位置的頓挫感。
+// 切幾份由 combat.js 的 WUDANG_MOVE_STEPS_PER_TICK 決定，兩邊用同一個比例算，移動距離／間隔
+// 才會對得上（不會走比原本快或慢，只是取樣切得更細）。
+const WXG_MOVE_BASE_MS = Math.round(WXG_TICK_BASE_MS / WUDANG_MOVE_STEPS_PER_TICK);
 function applyTickSpeed(){
   if(window.__wxgInterval) clearInterval(window.__wxgInterval);
+  if(window.__wxgMoveInterval) clearInterval(window.__wxgMoveInterval);
   const mult = (S && S.tickSpeedMult) || 1;
   window.__wxgInterval = setInterval(()=>{ if(S) tickGame(); }, Math.max(12, Math.round(WXG_TICK_BASE_MS/mult)));
+  window.__wxgMoveInterval = setInterval(()=>{ if(S) moveTickGame(); }, Math.max(12, Math.round(WXG_MOVE_BASE_MS/mult)));
 }
 function setTickSpeed(mult){
   if(!S) return;

@@ -86,15 +86,6 @@
 .wxg-map-player .wxg-portrait svg{width:76px; height:76px;}
 .wxg-map-mob .wxg-portrait{width:56px; height:56px;}
 .wxg-map-mob .wxg-portrait svg{width:56px; height:56px;}
-.wxg-map-player.walking{ animation:wxgArenaWalk .55s ease-in-out forwards; }
-/* 怪物同時最多 4~5 隻在移動（追擊/閒晃），每隻各自的走位動態 keyframe 由 render.js 產生，
-   名字固定用索引編號 wxgArenaWalkM0~M5，這裡對應開出同樣多組 class 讓 HTML 套用。 */
-.wxg-map-mob.walking-m0{ animation:wxgArenaWalkM0 .55s ease-in-out forwards; }
-.wxg-map-mob.walking-m1{ animation:wxgArenaWalkM1 .55s ease-in-out forwards; }
-.wxg-map-mob.walking-m2{ animation:wxgArenaWalkM2 .55s ease-in-out forwards; }
-.wxg-map-mob.walking-m3{ animation:wxgArenaWalkM3 .55s ease-in-out forwards; }
-.wxg-map-mob.walking-m4{ animation:wxgArenaWalkM4 .55s ease-in-out forwards; }
-.wxg-map-mob.walking-m5{ animation:wxgArenaWalkM5 .55s ease-in-out forwards; }
 /* 主動攻擊／已被激怒的怪物頭像加一圈警戒紅光，被動閒晃的維持原本淡定的樣子，一眼分得出誰會衝過來。 */
 .wxg-map-mob.hostile .wxg-portrait.enemy{
   box-shadow:0 0 0 3px #1a1109, 0 0 0 4px rgba(209,86,76,.85), 0 0 14px 3px rgba(209,86,76,.55), 0 4px 10px rgba(0,0,0,.65), inset 0 0 16px 5px rgba(0,0,0,.85);
