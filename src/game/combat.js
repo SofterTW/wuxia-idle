@@ -15,6 +15,7 @@ function combatTick(){
     // 拜訪門派中視同在城裡休整，不會有戰鬥發生（一個人不能同時在門派裡又在外地打鬥）。
     recalc(false);
     if(S.warningCooldown>0) S.warningCooldown--;
+    if(S.potionCd>0) S.potionCd--;
     S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.5*regenMultFor(activeTech,"hp"))));
     S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.3*regenMultFor(activeTech,"mp")))+1);
     S.floatPlayer=""; S.floatEnemy=""; S.stageEffects=[];
@@ -26,6 +27,7 @@ function combatTick(){
   if(S.buffAtkTicks>0) S.buffAtkTicks--;
   if(S.respecCooldown>0) S.respecCooldown--;
   if(S.warningCooldown>0) S.warningCooldown--;
+  if(S.potionCd>0) S.potionCd--;
   tickStatusEffects(S.statusEffects);
   tickStatusEffects(S.monster.statusEffects);
   S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.3*regenMultFor(activeTech,"hp"))));
@@ -651,6 +653,7 @@ function combatTickWudang(){
   if(S.location==="jinling" || S.visitingSect){
     recalc(false);
     if(S.warningCooldown>0) S.warningCooldown--;
+    if(S.potionCd>0) S.potionCd--;
     S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.5)));
     S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.3))+1);
     S.floatPlayer=""; S.floatEnemy=""; S.stageEffects=[];
@@ -661,6 +664,7 @@ function combatTickWudang(){
   recalc(false);
   if(S.respecCooldown>0) S.respecCooldown--;
   if(S.warningCooldown>0) S.warningCooldown--;
+  if(S.potionCd>0) S.potionCd--;
   tickStatusEffects(S.statusEffects);
   S.monsters.forEach(m=> m.hp>0 && tickStatusEffects(m.statusEffects));
   S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.3)));

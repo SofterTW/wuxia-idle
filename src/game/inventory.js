@@ -42,11 +42,21 @@ function buyConsumableBulk(refId, amount, isAuto){
   return affordable;
 }
 
+// 戰鬥中服藥有 10 回合的共用冷卻（不管是戰鬥邏輯的自動吃還是背包手動吃都算同一條冷卻），
+// 避免無限吃藥硬撐；不在戰鬥中（金凌城／拜訪門派）服藥不受此限制。
+const POTION_COMBAT_CD = 10;
+function isInCombat(){ return S.location!=="jinling" || !!S.visitingSect; }
+
 function applyConsumableByRef(refId, autoTag){
   const stack = S.inventory.find(it=>it.kind==="consumable" && it.refId===refId);
   if(!stack || stack.qty<=0) return false;
   const c = findConsumable(refId);
   if(!c) return false;
+  const inCombat = isInCombat();
+  if(inCombat && S.potionCd>0){
+    addLog(`藥效尚未過去，還要等 ${S.potionCd} 回合才能再次服藥`, 'warn');
+    return false;
+  }
   recalc(false);
   const prefix = autoTag ? `[自動${autoTag}] ` : "";
   if(c.effect==="healHp"){ S.hp = Math.min(S.hpMax, S.hp + Math.round(S.hpMax*c.value)); addLog(`${prefix}服用「${c.name}」，恢復氣血`, 'system'); }
@@ -55,6 +65,7 @@ function applyConsumableByRef(refId, autoTag){
   else if(c.effect==="buffAtk"){ S.buffAtk = c.value; S.buffAtkTicks = c.duration; addLog(`${prefix}服用「${c.name}」，威力暫時提升 ${Math.round(c.value*100)}%，持續 ${c.duration} 次交手`, 'system'); }
   stack.qty -= 1;
   if(stack.qty<=0) S.inventory = S.inventory.filter(it=>it!==stack);
+  if(inCombat) S.potionCd = POTION_COMBAT_CD;
   return true;
 }
 

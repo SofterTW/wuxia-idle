@@ -418,6 +418,46 @@ function renderNavList(){
     </div>`;
 }
 
+// 「戰鬥選項」面板內容（自動吃藥、遇首領自動逃跑），非武當在側欄顯示，武當整合進「戰鬥邏輯」分頁。
+function renderAutoHealBody(){
+  const hpOptions = CONSUMABLES.filter(c=>c.effect==="healHp"||c.effect==="healFull");
+  const mpOptions = CONSUMABLES.filter(c=>c.effect==="healMp"||c.effect==="healFull");
+  const cdHint = S.potionCd>0 ? `<div class="wxg-hint" style="color:#e2685c;">戰鬥中服藥冷卻中，還要 ${S.potionCd} 回合才能再次服藥（不論自動或手動）。</div>` : '';
+  return `
+      <div class="wxg-hint" style="margin-top:0;">氣血／內力低於門檻時，自動使用背包內指定藥品；勾選自動購買後，存量剩 1 瓶會自動補貨 100 瓶。戰鬥中服藥（不論自動或手動）共用 10 回合冷卻，離開戰鬥（金凌城／拜訪門派）不受此限制。</div>
+      ${cdHint}
+      <div style="margin-top:8px;">
+        <div class="wxg-row"><span>氣血低於</span></div>
+        <select data-autopct="hp" style="width:100%; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+          ${[10,20,30,40,50,60,70,80,90].map(v=>`<option value="${v}" ${S.autoHeal.hpPct===v?'selected':''}>低於 ${v}%</option>`).join("")}
+        </select>
+        <select data-autoitem="hp" style="width:100%; margin-top:4px; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+          <option value="">不自動使用</option>
+          ${hpOptions.map(c=>`<option value="${c.id}" ${S.autoHeal.hpItem===c.id?'selected':''}>${c.name}</option>`).join("")}
+        </select>
+        <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
+          <input type="checkbox" data-autobuy="hp" ${S.autoHeal.hpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
+        </label>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="wxg-row"><span>內力低於</span></div>
+        <select data-autopct="mp" style="width:100%; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+          ${[10,20,30,40,50,60,70,80,90].map(v=>`<option value="${v}" ${S.autoHeal.mpPct===v?'selected':''}>低於 ${v}%</option>`).join("")}
+        </select>
+        <select data-autoitem="mp" style="width:100%; margin-top:4px; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+          <option value="">不自動使用</option>
+          ${mpOptions.map(c=>`<option value="${c.id}" ${S.autoHeal.mpItem===c.id?'selected':''}>${c.name}</option>`).join("")}
+        </select>
+        <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
+          <input type="checkbox" data-autobuy="mp" ${S.autoHeal.mpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
+        </label>
+      </div>
+      <div style="margin-top:10px; padding-top:10px; border-top:1px dotted #382c1c;">
+        <label style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--dim-text); cursor:pointer;">
+          <input type="checkbox" data-fleeboss="1" ${S.combatOptions.fleeBoss?'checked':''}> 遇見首領（BOSS）自動逃跑，直接繼續下一場戰鬥
+        </label>
+      </div>`;
+}
 function renderSide(){
   const exp = S.sideExpanded;
   const flash = S.triggerFlash || {};
@@ -476,44 +516,10 @@ function renderSide(){
     ${exp.buffs?buffBody:''}
   </div>`;
 
-  const hpOptions = CONSUMABLES.filter(c=>c.effect==="healHp"||c.effect==="healFull");
-  const mpOptions = CONSUMABLES.filter(c=>c.effect==="healMp"||c.effect==="healFull");
-  const autoBody = `
-      <div class="wxg-hint" style="margin-top:0;">氣血／內力低於門檻時，自動使用背包內指定藥品；勾選自動購買後，存量剩 1 瓶會自動補貨 100 瓶。</div>
-      <div style="margin-top:8px;">
-        <div class="wxg-row"><span>氣血低於</span></div>
-        <select data-autopct="hp" style="width:100%; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
-          ${[10,20,30,40,50,60,70,80,90].map(v=>`<option value="${v}" ${S.autoHeal.hpPct===v?'selected':''}>低於 ${v}%</option>`).join("")}
-        </select>
-        <select data-autoitem="hp" style="width:100%; margin-top:4px; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
-          <option value="">不自動使用</option>
-          ${hpOptions.map(c=>`<option value="${c.id}" ${S.autoHeal.hpItem===c.id?'selected':''}>${c.name}</option>`).join("")}
-        </select>
-        <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
-          <input type="checkbox" data-autobuy="hp" ${S.autoHeal.hpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
-        </label>
-      </div>
-      <div style="margin-top:10px;">
-        <div class="wxg-row"><span>內力低於</span></div>
-        <select data-autopct="mp" style="width:100%; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
-          ${[10,20,30,40,50,60,70,80,90].map(v=>`<option value="${v}" ${S.autoHeal.mpPct===v?'selected':''}>低於 ${v}%</option>`).join("")}
-        </select>
-        <select data-autoitem="mp" style="width:100%; margin-top:4px; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
-          <option value="">不自動使用</option>
-          ${mpOptions.map(c=>`<option value="${c.id}" ${S.autoHeal.mpItem===c.id?'selected':''}>${c.name}</option>`).join("")}
-        </select>
-        <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
-          <input type="checkbox" data-autobuy="mp" ${S.autoHeal.mpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
-        </label>
-      </div>
-      <div style="margin-top:10px; padding-top:10px; border-top:1px dotted #382c1c;">
-        <label style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--dim-text); cursor:pointer;">
-          <input type="checkbox" data-fleeboss="1" ${S.combatOptions.fleeBoss?'checked':''}> 遇見首領（BOSS）自動逃跑，直接繼續下一場戰鬥
-        </label>
-      </div>`;
-  const autoPanel = `<div class="wxg-panel">
+  // 武當的「戰鬥選項」整合進「戰鬥邏輯」分頁了（見 renderWudangLogic），側欄不再重複顯示。
+  const autoPanel = S.sectKey==="wudang" ? '' : `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="autoheal" style="cursor:pointer;"><span class="dot"></span><h3>戰鬥選項</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.autoheal?'▾':'▸'}</span></div>
-    ${exp.autoheal?autoBody:''}
+    ${exp.autoheal?renderAutoHealBody():''}
   </div>`;
 
   const primaryBody = ["臂力","身法","內息","罡氣","體魄"].map(k=>
@@ -802,11 +808,15 @@ function wudangMoveTooltipHtml(m){
 // 戰鬥邏輯：幫每一招已裝備的招式設定施放條件（HP/MP 高於/低於 X%），沒設定條件（百分比欄位
 // 空白）的招式永遠視為條件成立，不影響「見招拆招」原本的判斷。
 function renderWudangLogic(){
+  const combatOptionsPanel = `<div class="wxg-panel">
+    <div class="wxg-panel-head martial"><span class="dot"></span><h3>戰鬥選項</h3></div>
+    ${renderAutoHealBody()}
+  </div>`;
   const equipped = WUDANG_SLOT_TYPES.flatMap(t=>(S.wudangSlots[t]||[]).map(id=>({id,type:t})))
     .map(x=>({...x, def:WUDANG_MOVE_LIST.find(m=>m.id===x.id)}))
     .filter(x=>x.def);
   if(equipped.length===0){
-    return `<div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>戰鬥邏輯</h3></div>
+    return combatOptionsPanel + `<div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>戰鬥邏輯</h3></div>
       <div class="wxg-hint">先到「武學」分頁的技能欄裝備招式，才能在這裡設定施放條件。</div>
     </div>`;
   }
@@ -828,7 +838,7 @@ function renderWudangLogic(){
       ${c.pct?`<button class="wxg-btn crimson small" data-wudangcondclear="${id}">清除</button>`:''}
     </div>`;
   }).join("");
-  return `
+  return combatOptionsPanel + `
     <div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>戰鬥邏輯</h3></div>
       <div class="wxg-hint">幫已裝備的招式設定施放條件，例如「HP 低於 30%」才會考慮用這招——不符合條件時，系統會跳過這招、改看下一個優先順位。百分比欄位留空＝不限制，永遠可以用。</div>
     </div>
@@ -928,10 +938,12 @@ function renderEquip(){
     const inv = filtered.map(({it,idx})=>{
       if(it.kind==="consumable"){
         const c = findConsumable(it.refId);
+        const onCd = isInCombat() && S.potionCd>0;
         return `<div class="wxg-panel"><div class="wxg-panel-head"><span class="dot"></span><h3>${it.name}</h3><span class="wxg-tag jade">藥品 x${it.qty}</span></div>
           <div class="wxg-hint">${c?c.desc:''}</div>
+          ${onCd?`<div class="wxg-hint" style="color:#e2685c;">戰鬥中服藥冷卻中，還要 ${S.potionCd} 回合</div>`:''}
           <div style="display:flex; gap:6px; margin-top:6px;">
-            <button class="wxg-btn jade small" data-useconsumable="${idx}">使用</button>
+            <button class="wxg-btn jade small" data-useconsumable="${idx}" ${onCd?'disabled':''}>使用</button>
             <button class="wxg-btn crimson small" data-bagsell="${idx}">販售一份（1銅錢）</button>
           </div></div>`;
       }
