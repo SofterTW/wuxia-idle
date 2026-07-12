@@ -415,7 +415,7 @@ function renderWudangArenaStage(){
   </div>
   <div class="wxg-map-hud">
     ${playerCard}
-    <div class="wxg-vs-col" style="flex:0 0 auto;">
+    <div class="wxg-vs-col">
       <div class="wxg-vs" style="font-size:14px;">目前狩獵區：${zone.name}</div>
       ${S.stageEffects && S.stageEffects.length>0 ? S.stageEffects.map((t,i)=>`<div class="wxg-effect-banner" style="animation-delay:${i*0.15}s;">${t}</div>`).join("") : ""}
     </div>
