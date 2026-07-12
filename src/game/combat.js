@@ -372,6 +372,15 @@ function wudangEquippedIds(){
   return new Set(Object.values(s).flat().filter(Boolean));
 }
 
+// 戰鬥邏輯分頁設定的施放條件：{resource:"HP"|"MP", compare:"above"|"below", pct:1~100}。
+// 沒設定條件（或 pct 空白）的招式永遠視為條件成立，不影響原本的見招拆招邏輯。
+function wudangConditionMet(moveId){
+  const c = S.wudangMoveConditions[moveId];
+  if(!c || !c.pct) return true;
+  const val = c.resource==="MP" ? (S.mpMax? S.mp/S.mpMax*100 : 0) : (S.hpMax? S.hp/S.hpMax*100 : 0);
+  return c.compare==="below" ? val<c.pct : val>c.pct;
+}
+
 // 新角色／舊存檔補欄位用的預設技能欄：依 WUDANG_MOVE_LIST 原本的順序，把已解鎖套路的招式
 // 依類型塞進技能欄，塞滿該類型上限（WUDANG_SLOT_CAPS）就換下一招，玩家可以之後自己在
 // 「武學」分頁調整。
@@ -393,7 +402,7 @@ function defaultWudangSlots(){
 function pickWudangMove(target){
   const equipped = wudangEquippedIds();
   let known = WUDANG_MOVE_LIST.filter(m=>
-    S.wudangMovesetsUnlocked[m.moveset] && equipped.has(m.id) && wudangMoveOffCd(m) && (!m.mpCost || S.mp>=m.mpCost));
+    S.wudangMovesetsUnlocked[m.moveset] && equipped.has(m.id) && wudangMoveOffCd(m) && (!m.mpCost || S.mp>=m.mpCost) && wudangConditionMet(m.id));
   if(S.wudangLastMoveset && S.wudangSwitchCd>0){
     known = known.filter(m=>m.moveset===S.wudangLastMoveset);
   }

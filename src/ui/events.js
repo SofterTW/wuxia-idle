@@ -142,6 +142,28 @@ function bindGlobal(){
     if(i<arr.length-1){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; render(); }
   });
   document.querySelectorAll('[data-togglenside]').forEach(el=> el.onclick=()=>{ const k=el.dataset.togglenside; S.sideExpanded[k]=!S.sideExpanded[k]; render(); });
+  // 戰鬥邏輯分頁：每招的施放條件（HP/MP 高於/低於 X%），存進 S.wudangMoveConditions[moveId]。
+  function ensureWudangCond(id){
+    if(!S.wudangMoveConditions[id]) S.wudangMoveConditions[id] = {resource:"HP", compare:"above", pct:null};
+    return S.wudangMoveConditions[id];
+  }
+  document.querySelectorAll('[data-wudangcondresource]').forEach(el=> el.onchange=()=>{
+    ensureWudangCond(el.dataset.wudangcondresource).resource = el.value; render();
+  });
+  document.querySelectorAll('[data-wudangcondcompare]').forEach(el=> el.onchange=()=>{
+    ensureWudangCond(el.dataset.wudangcondcompare).compare = el.value; render();
+  });
+  document.querySelectorAll('[data-wudangcondpct]').forEach(el=> el.onchange=()=>{
+    let v = parseInt(el.value,10);
+    if(isNaN(v)) v = null; else v = Math.max(1, Math.min(100, v));
+    ensureWudangCond(el.dataset.wudangcondpct).pct = v;
+    render();
+  });
+  document.querySelectorAll('[data-wudangcondclear]').forEach(el=> el.onclick=(e)=>{
+    e.stopPropagation();
+    delete S.wudangMoveConditions[el.dataset.wudangcondclear];
+    render();
+  });
   document.querySelectorAll('[data-primarykey]').forEach(el=>{
     el.onmouseenter = ()=>{
       const k = el.dataset.primarykey;

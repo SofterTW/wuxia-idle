@@ -39,6 +39,7 @@ function newGame(sectKey){
     rage:0, wudangMoveState:{}, wudangMovesetsUnlocked:{}, monsters:[],
     wudangFullBlockNext:false, wudangCritNext:false,
     wudangSlots:{"實招":[],"虛招":[],"架招":[],"氣招":[],"怒氣大招":[]}, wudangLastMoveset:null, wudangSwitchCd:0,
+    wudangMoveConditions:{},
   };
   if(sectKey==="wudang"){
     // 稀有度兌換系統（武學閣等）還沒做，先讓武當四套全部直接解鎖，才能測試戰鬥引擎本身。

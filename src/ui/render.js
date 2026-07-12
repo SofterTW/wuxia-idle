@@ -385,8 +385,9 @@ function renderStage(){
 }
 
 function renderNavList(){
-  const tabColors = {overview:"#d4af37", internal:"#5eab88", martial:"#d1564c", equip:"#a78bd6", map:"#4dd0c8", quest:"#4a86c0", codex:"#f3a03c"};
-  const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務", codex:"遊戲百科"};
+  const tabColors = {overview:"#d4af37", internal:"#5eab88", martial:"#d1564c", equip:"#a78bd6", map:"#4dd0c8", quest:"#4a86c0", wudanglogic:"#4a86c0", codex:"#f3a03c"};
+  const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務", wudanglogic:"戰鬥邏輯", codex:"遊戲百科"};
+  const wudangCondCount = Object.values(S.wudangMoveConditions||{}).filter(c=>c && c.pct).length;
   const badges = {
     overview: "",
     internal: `第${getInternalTier(S.activeInternal)+1}層`,
@@ -394,9 +395,13 @@ function renderNavList(){
     equip: `${Object.values(S.equipment).filter(Boolean).length}/${SLOT_LIST.length}`,
     map: locationName(),
     quest: S.quest ? (S.quest.killsDone>=S.quest.killsNeeded ? "可回報" : `${S.quest.killsDone}/${S.quest.killsNeeded}`) : "",
+    wudanglogic: wudangCondCount>0 ? `${wudangCondCount}條件` : "",
     codex: "",
   };
-  const items = ["overview","internal","martial","equip","map","quest","codex"].map(t=>{
+  const tabOrder = ["overview","internal","martial","equip","map","quest"];
+  if(S.sectKey==="wudang") tabOrder.push("wudanglogic");
+  tabOrder.push("codex");
+  const items = tabOrder.map(t=>{
     const c = tabColors[t];
     const active = S.tab===t;
     const badge = badges[t];
@@ -551,6 +556,7 @@ function renderTab(){
   if(S.tab==="equip") return renderEquip();
   if(S.tab==="map") return renderMap();
   if(S.tab==="quest") return renderQuest();
+  if(S.tab==="wudanglogic") return renderWudangLogic();
   if(S.tab==="codex") return renderCodex();
 }
 
@@ -708,8 +714,8 @@ function renderMartialWudang(){
     </div>`;
   }).join("");
 
-  const rows = WUDANG_MOVESETS.map(ms=>{
-    const unlocked = !!S.wudangMovesetsUnlocked[ms.key];
+  const rows = WUDANG_MOVESETS.filter(ms=>S.wudangMovesetsUnlocked[ms.key]).map(ms=>{
+    const unlocked = true;
     const info = MOVESET_RARITY_INFO[ms.rarity] || {name:"？",color:"var(--dim-text)"};
     const moveRows = ms.moves.map(m=>{
       const st = S.wudangMoveState[m.id];
@@ -738,6 +744,42 @@ function renderMartialWudang(){
       ${slotSection}
     </div>
     ${rows}
+  `;
+}
+// 戰鬥邏輯：幫每一招已裝備的招式設定施放條件（HP/MP 高於/低於 X%），沒設定條件（百分比欄位
+// 空白）的招式永遠視為條件成立，不影響「見招拆招」原本的判斷。
+function renderWudangLogic(){
+  const equipped = WUDANG_SLOT_TYPES.flatMap(t=>(S.wudangSlots[t]||[]).map(id=>({id,type:t})))
+    .map(x=>({...x, def:WUDANG_MOVE_LIST.find(m=>m.id===x.id)}))
+    .filter(x=>x.def);
+  if(equipped.length===0){
+    return `<div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>戰鬥邏輯</h3></div>
+      <div class="wxg-hint">先到「武學」分頁的技能欄裝備招式，才能在這裡設定施放條件。</div>
+    </div>`;
+  }
+  const rows = equipped.map(({id,type,def})=>{
+    const c = S.wudangMoveConditions[id] || {};
+    return `<div class="wxg-row" style="flex-wrap:wrap; gap:6px; align-items:center; padding:6px 2px;">
+      <span style="flex:1 1 140px; min-width:120px;"><span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[type]}; color:${WUDANG_TYPE_COLOR[type]};">${type}</span> ${def.name}</span>
+      <select data-wudangcondresource="${id}" style="background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+        <option value="HP" ${(c.resource||"HP")==="HP"?'selected':''}>HP</option>
+        <option value="MP" ${c.resource==="MP"?'selected':''}>MP</option>
+      </select>
+      <select data-wudangcondcompare="${id}" style="background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+        <option value="above" ${(c.compare||"above")==="above"?'selected':''}>高於</option>
+        <option value="below" ${c.compare==="below"?'selected':''}>低於</option>
+      </select>
+      <input type="number" min="1" max="100" placeholder="不限" value="${c.pct||''}" data-wudangcondpct="${id}"
+        style="width:64px; background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+      <span style="color:var(--dim-text); font-size:11px;">%</span>
+      ${c.pct?`<button class="wxg-btn crimson small" data-wudangcondclear="${id}">清除</button>`:''}
+    </div>`;
+  }).join("");
+  return `
+    <div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>戰鬥邏輯</h3></div>
+      <div class="wxg-hint">幫已裝備的招式設定施放條件，例如「HP 低於 30%」才會考慮用這招——不符合條件時，系統會跳過這招、改看下一個優先順位。百分比欄位留空＝不限制，永遠可以用。</div>
+    </div>
+    <div class="wxg-panel">${rows}</div>
   `;
 }
 function renderMartial(){
