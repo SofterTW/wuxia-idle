@@ -303,105 +303,26 @@ function isMissFloatText(t){
   return t==="身法閃避！" || t==="禪定・免疫！" || t==="攻擊被無敵化解";
 }
 
-// 頭像移動的平滑內插：wudangMoveTick() 每 150ms 才更新一次「邏輯座標」（S.wudangPlayerPos／
-// m.pos），若畫面直接照這個頻率貼上去，肉眼看起來就是格子跳動；CSS transition 補間又會被
-// 攻擊 tick 觸發的完整 render() 整個砍掉重建打斷，變成攻擊那一刻全部怪物一起頓一下。
-// 這裡改用 requestAnimationFrame（瀏覽器畫面更新率，約 60fps）自己跑一個持續的視覺位置，
-// 每一幀都朝「目前的邏輯座標」線性靠近一點（wxgLerp），不管邏輯座標多久才變一次，視覺上
-// 永遠是連續平滑地在追。視覺位置存在 __wxgVisualPos（模組層級變數，不受 DOM 重建影響），
-// 就算 render() 換了新的 DOM 節點，這個迴圈下一幀直接抓新節點繼續補間，不會斷、不會跳。
-let __wxgVisualPos = { player:null, mobs:{} };
-function wxgLerp(a, b, t){ return a + (b-a)*t; }
-function wxgArenaAnimFrame(){
-  requestAnimationFrame(wxgArenaAnimFrame);
-  if(!S || S.sectKey!=="wudang" || S.location==="jinling" || S.visitingSect) return;
-  const playerEl = document.querySelector('.wxg-map-player');
-  if(playerEl && S.wudangPlayerPos){
-    if(!__wxgVisualPos.player) __wxgVisualPos.player = {...S.wudangPlayerPos};
-    const vp = __wxgVisualPos.player;
-    vp.x = wxgLerp(vp.x, S.wudangPlayerPos.x, 0.25);
-    vp.y = wxgLerp(vp.y, S.wudangPlayerPos.y, 0.25);
-    playerEl.style.left = vp.x+'%';
-    playerEl.style.top = vp.y+'%';
-  }
-  const seenUids = new Set();
-  (S.monsters||[]).forEach(m=>{
-    if(m.hp<=0 || !m.pos) return;
-    seenUids.add(m.uid);
-    const el = document.querySelector(`.wxg-map-mob[data-mobuid="${m.uid}"]`);
-    if(!el) return;
-    if(!__wxgVisualPos.mobs[m.uid]) __wxgVisualPos.mobs[m.uid] = {...m.pos};
-    const vp = __wxgVisualPos.mobs[m.uid];
-    vp.x = wxgLerp(vp.x, m.pos.x, 0.25);
-    vp.y = wxgLerp(vp.y, m.pos.y, 0.25);
-    el.style.left = vp.x+'%';
-    el.style.top = vp.y+'%';
-  });
-  // 怪物死亡/補位後 uid 不會再出現，清掉殘留紀錄，避免舊資料越積越多。
-  Object.keys(__wxgVisualPos.mobs).forEach(uid=>{ if(!seenUids.has(uid)) delete __wxgVisualPos.mobs[uid]; });
-}
-requestAnimationFrame(wxgArenaAnimFrame);
-
-// 武當專用：地圖上同時有多隻怪物，玩家自動找最近的存活目標走過去打，取代掉「兩顆頭像面對面」
-// 的舊版對決畫面。其他門派因為戰鬥引擎還是單一目標（S.monster），沿用下面 renderStage() 原本
-// 的兩人對決版面，等其他門派也轉成多目標引擎後再比照辦理。
+// 武當專用：玩家卡＋最多幾張怪物卡並排的戰鬥卡片列，取代掉「地圖走位、頭像面對面」的舊版
+// 對決畫面——角色固定站在卡片裡不移動，只靠 hit-flash／hit-knock 之類的簡單受擊動畫表現戰鬥
+// 節奏，之後要疊更花俏的特效直接加在卡片的頭像上即可，不用再管座標系統。其他門派因為戰鬥
+// 引擎還是單一目標（S.monster），沿用下面 renderStage() 原本的兩人對決版面。
 function renderWudangArenaStage(){
   const zoneKey = zoneBgClass();
   const sceneSvg = `<div class="wxg-scene">${ZONE_SCENES[zoneKey]}</div>`;
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
-  const playerPos = S.wudangPlayerPos || WUDANG_ARENA_PATROL[0];
-  const engaged = nearestAliveWudangMonster(playerPos);
+  const target = firstAliveMonster();
   const sectIcon = portraitImgHtml(SECT_PORTRAIT[S.sectKey]);
 
-  // 移動已經改成獨立的 wudangMoveTick()，用比畫面重繪更短的間隔持續切小步更新座標
-  // （見 combat.js／loop.js），render() 每次抓到的都已經是最新位置，直接照座標畫上去就會很
-  // 順暢，不用再靠 CSS keyframe 補一段「這個 tick 走多遠」的動畫。
   const playerHitCls = S.hitPlayer ? ' hit-knock-self hit-flash' : '';
-
-  const mobsHtml = (S.monsters||[]).filter(m=>m.hp>0 && m.pos).map(m=>{
-    const isEngaged = engaged===m;
-    const hostile = m.aggressive || m.aggroed;
-    const enemyHitCls = (isEngaged && S.hitEnemy) ? (' hit-knock-enemy hit-flash'+(S.hitEnemyCrit?' hit-crit':'')) : '';
-    const monsterIcon = portraitImgHtml(m.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT);
-    const aggroTag = m.isBoss ? '' : (hostile ? `<span class="wxg-map-mob-tag hostile">${m.aggroed&&!m.aggressive?'已激怒':'主動'}</span>` : `<span class="wxg-map-mob-tag passive">閒晃</span>`);
-    return `<div class="wxg-map-mob wxg-idle-bob${m.isBoss?' boss':''}${hostile?' hostile':''}" data-mobuid="${m.uid}" style="left:${m.pos.x}%; top:${m.pos.y}%;"${isEngaged?` data-monsterinfohover="1"`:''}>
-      <div class="wxg-map-mob-portrait-col">
-        ${isEngaged && S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
-        <div class="wxg-portrait enemy${enemyHitCls}">${monsterIcon}</div>
-      </div>
-      <div class="wxg-map-mob-info">
-        <div class="wxg-map-mob-name">${m.isBoss?'👑 ':''}${m.name}${aggroTag}</div>
-        <div class="wxg-map-mob-hpbar"><div class="wxg-map-mob-hpfill" style="width:${Math.max(0,m.hp/m.hpMax*100)}%;"></div></div>
-      </div>
-    </div>`;
-  }).join("");
-
-  const deathPos = (S.deathFlash && S.deathFlash.pos) ? S.deathFlash.pos : null;
-  const deathGhost = deathPos ? `<div style="position:absolute; left:${deathPos.x}%; top:${deathPos.y}%; width:64px; height:64px; margin-left:-32px; z-index:4;">
-      <div class="wxg-death-ghost" style="position:absolute; inset:0;">${portraitImgHtml(S.deathFlash.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT)}</div>
-    </div>` : '';
-
-  const playerHtml = `<div class="wxg-map-player wxg-idle-bob" style="left:${playerPos.x}%; top:${playerPos.y}%;">
-    ${S.floatPlayer?`<div class="wxg-float self${isMissFloatText(S.floatPlayer)?' miss':''}">${S.floatPlayer}</div>`:""}
-    <div class="wxg-portrait${playerHitCls}">${sectIcon}</div>
-  </div>`;
-
-  const wudangStanceTag = engaged ? `<div class="wxg-tag" style="margin-top:3px; ${engaged.stance==='架招'?'border-color:#4dd0c8;color:#4dd0c8;':engaged.stance==='虛招'?'border-color:#e2685c;color:#e2685c;':'border-color:#d1564c;color:#d1564c;'}">對方招式：${engaged.stance||'實招'}</div>` : '';
-  const wudangDebuffRows = engaged ? wudangMonsterDebuffHtml(engaged) : '';
   const wudangShieldBuff = (S.statusEffects||[]).find(e=>e.shieldPool>0);
 
-  const targetCard = engaged ? `
-    <div class="wxg-map-target wxg-map-target-foe"${engaged?` data-monsterinfohover="1"`:''}>
-      <div class="wxg-fname">${engaged.isBoss?'👑 ':''}${engaged.name}<span class="wxg-fsub" style="margin-left:6px;">Lv.${engaged.level}</span></div>
-      ${wudangStanceTag}
-      ${wudangDebuffRows}
-      <div class="wxg-gauge-wrap" style="margin-top:4px;">${pillbar('氣','en',engaged.hp,engaged.hpMax,'en',S.hitEnemy?'gauge-flash':'')}</div>
-    </div>` : `<div class="wxg-map-target wxg-map-target-foe"><div class="wxg-fname">—</div><div class="wxg-stage-hint">正在地圖上尋找下一個目標……</div></div>`;
-
   const playerCard = `
-    <div class="wxg-map-target">
-      <div class="wxg-fname">「${S.title}」${S.sect.name}弟子</div>
-      <div class="wxg-gauge-wrap" style="margin-top:4px;">
+    <div class="wxg-ccard wxg-ccard-player">
+      ${S.floatPlayer?`<div class="wxg-float self${isMissFloatText(S.floatPlayer)?' miss':''}">${S.floatPlayer}</div>`:""}
+      <div class="wxg-portrait wxg-idle-bob${playerHitCls}">${sectIcon}</div>
+      <div class="wxg-ccard-name">「${S.title}」${S.sect.name}弟子</div>
+      <div class="wxg-gauge-wrap">
         ${pillbar('氣','hp',S.hp,S.hpMax,'hp',S.hitPlayer?'gauge-flash':'')}
         ${pillbar('內','mp',S.mp,S.mpMax,'mp')}
         ${pillbar('怒','rage',S.rage,100,'rage')}
@@ -409,21 +330,39 @@ function renderWudangArenaStage(){
       </div>
     </div>`;
 
+  const mobCards = (S.monsters||[]).filter(m=>m.hp>0).map(m=>{
+    const isTarget = target===m;
+    const hostile = m.aggressive || m.aggroed;
+    const enemyHitCls = (isTarget && S.hitEnemy) ? (' hit-knock-enemy hit-flash'+(S.hitEnemyCrit?' hit-crit':'')) : '';
+    const monsterIcon = portraitImgHtml(m.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT);
+    const aggroTag = m.isBoss ? '' : (hostile ? `<span class="wxg-map-mob-tag hostile">${m.aggroed&&!m.aggressive?'已激怒':'主動'}</span>` : `<span class="wxg-map-mob-tag passive">尚未參戰</span>`);
+    const stanceTag = isTarget ? `<div class="wxg-tag" style="margin-top:3px; ${m.stance==='架招'?'border-color:#4dd0c8;color:#4dd0c8;':m.stance==='虛招'?'border-color:#e2685c;color:#e2685c;':'border-color:#d1564c;color:#d1564c;'}">招式：${m.stance||'實招'}</div>` : '';
+    const debuffRows = wudangMonsterDebuffHtml(m);
+    return `<div class="wxg-ccard wxg-ccard-enemy${m.isBoss?' boss':''}${hostile?' hostile':''}${isTarget?' target':''}" data-monsterinfohover="1" data-mobuid="${m.uid}">
+      ${isTarget && S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
+      <div class="wxg-portrait enemy wxg-idle-bob${enemyHitCls}">${monsterIcon}</div>
+      <div class="wxg-ccard-name">${m.isBoss?'👑 ':''}${m.name}${aggroTag}</div>
+      <div class="wxg-fsub">Lv.${m.level}</div>
+      ${stanceTag}
+      ${debuffRows}
+      <div class="wxg-map-mob-hpbar"><div class="wxg-map-mob-hpfill" style="width:${Math.max(0,m.hp/m.hpMax*100)}%;"></div></div>
+    </div>`;
+  }).join("");
+
   return `
-  <div class="wxg-arena-map">
+  <div class="wxg-arena-stage">
     ${sceneSvg}
     <div class="wxg-corner tl"></div><div class="wxg-corner tr"></div><div class="wxg-corner bl"></div><div class="wxg-corner br"></div>
-    ${mobsHtml}
-    ${deathGhost}
-    ${playerHtml}
+    <div class="wxg-card-row">
+      ${playerCard}
+      <div class="wxg-card-row-enemies">${mobCards}</div>
+    </div>
   </div>
   <div class="wxg-map-hud">
-    ${playerCard}
-    <div class="wxg-vs-col">
+    <div class="wxg-vs-col" style="flex:1;">
       <div class="wxg-vs" style="font-size:14px;">目前狩獵區：${zone.name}</div>
       ${S.stageEffects && S.stageEffects.length>0 ? S.stageEffects.map((t,i)=>`<div class="wxg-effect-banner" style="animation-delay:${i*0.15}s;">${t}</div>`).join("") : ""}
     </div>
-    ${targetCard}
   </div>`;
 }
 

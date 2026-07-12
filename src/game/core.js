@@ -111,46 +111,11 @@ function spawnMonster(avoidBoss){
   S.monster.statusEffects = [];
 }
 
-// 武當專用：地圖上的怪物是自由座標（%），不是固定格位——生成時在場地範圍內隨機找一個
-// 跟其他怪物有一定間距的點。場地範圍刻意避開地圖最下方，那一排留給玩家沒有目標時的
-// 巡邏點（WUDANG_ARENA_PATROL），兩者不會疊在一起。
-const WUDANG_ARENA_BOUNDS = {minX:12, maxX:88, minY:14, maxY:66};
-const WUDANG_ARENA_PATROL = [
-  {x:42, y:88}, {x:58, y:88}, {x:58, y:94}, {x:42, y:94},
-];
-const WUDANG_ARENA_POOL_SIZE = 4; // 地圖上同時維持存活的怪物數量，死一隻立刻補一隻
+// 武當專用：卡片列戰鬥（不做地圖走位，玩家卡＋最多幾張怪物卡並排，死一隻立刻補一隻）。
+const WUDANG_ARENA_POOL_SIZE = 4; // 同時維持存活的怪物數量
 const WUDANG_AGGRO_CHANCE = 0; // 新生成的怪物有幾成機率是「主動攻擊」型；先讓目前3個狩獵區都是被動怪，首領仍固定主動
-const WUDANG_MOVE_STEP = 14;      // 追擊（主動/已被激怒）時，每 tick 最多移動的場地百分比距離
-const WUDANG_WANDER_STEP = 8;     // 被動閒晃時，每 tick 最多移動的距離（比追擊慢，看起來比較悠閒）
-// 判定「已經走到對方旁邊、可以出招」的距離門檻——玩家頭像 76px、怪物頭像 56px，
-// 兩者半徑相加約是場地寬度的 7~8%，這裡抓 10 留一點餘裕，讓兩個圈圈的邊邊碰在一起就停下
-// 開打，不會整個疊在一起互相擋住（之前 stepToward 沒有停在門檻前、會直接走到完全同一點）。
-const WUDANG_ENGAGE_DIST = 10;
-// 移動改成跟戰鬥 tick 脫鉤、切更小步的獨立節奏（見 loop.js 的 wudangMoveTick 專用計時器），
-// 這樣走路才會順暢，不是「一個戰鬥 tick 才挪一次位置」的頓挫感。這個數字是「一個戰鬥 tick
-// 之間切成幾小步」，移動時的距離就是 WUDANG_MOVE_STEP / 這個數字，維持人跟怪物的實際移動
-// 速度（每秒走多遠）不變，只是取樣切得更細。loop.js 會用同一個比例去算移動計時器的間隔。
-const WUDANG_MOVE_STEPS_PER_TICK = 8;
 
-function wudangRandomPoint(){
-  return {
-    x: WUDANG_ARENA_BOUNDS.minX + Math.random()*(WUDANG_ARENA_BOUNDS.maxX-WUDANG_ARENA_BOUNDS.minX),
-    y: WUDANG_ARENA_BOUNDS.minY + Math.random()*(WUDANG_ARENA_BOUNDS.maxY-WUDANG_ARENA_BOUNDS.minY),
-  };
-}
-function wudangPickSpawnPoint(){
-  // 找一個跟現有怪物都保持一定距離的點，試幾次找不到就將就用最後一次的結果，避免無限迴圈。
-  let best = wudangRandomPoint();
-  for(let tries=0; tries<8; tries++){
-    const p = wudangRandomPoint();
-    const tooClose = S.monsters.some(m=> m.hp>0 && m.pos && Math.hypot(m.pos.x-p.x, m.pos.y-p.y) < 16);
-    if(!tooClose){ best = p; break; }
-    best = p;
-  }
-  return best;
-}
-
-// 生成單一怪物到地圖上（死一隻補一隻用）。avoidBoss=true 時強制不生首領，用在「首領本來
+// 生成單一怪物（死一隻補一隻用）。avoidBoss=true 時強制不生首領，用在「首領本來
 // 該出現，但玩家開了遇首領自動逃跑」的情況，逃跑後改補一隻普通怪。
 function spawnOneWudangMonster(avoidBoss){
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
@@ -171,7 +136,7 @@ function spawnOneWudangMonster(avoidBoss){
     name: isBoss?`【首領】${def.name}`:def.name, level:def.level, zone:zone.id,
     hpMax:def.hpMax, hp:def.hpMax, atk:def.atk, def:def.def, isBoss, row:S.monsters.length,
     stunned:false, staggerTicks:0, defReduceTicks:0, statusEffects:[], stance:"實招",
-    pos: wudangPickSpawnPoint(), aggressive, aggroed:false, wanderTarget:null,
+    aggressive, aggroed:false,
   });
 }
 

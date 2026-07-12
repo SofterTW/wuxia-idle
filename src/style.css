@@ -61,52 +61,38 @@
    都不會被撐到往上跟頭像重疊。 */
 .wxg-fighter{align-self:flex-start; margin-top:145px;}
 
-/* ---- 武當專用：戰鬥地圖（多隻怪同時在場，玩家自動走位挑最近的打） ---- */
-.wxg-arena-map{
-  position:relative; margin:12px 14px 0; padding:0; border-radius:6px; overflow:hidden;
+/* ---- 武當專用：戰鬥卡片列（玩家卡＋最多幾張怪物卡並排，角色固定不動，只靠受擊動畫表現
+   戰鬥節奏；取代掉舊版「地圖走位、頭像面對面撞怪」的版面，之後要加特效直接疊在卡片頭像上）---- */
+.wxg-arena-stage{
+  position:relative; margin:12px 14px 0; padding:16px 14px; border-radius:6px; overflow:hidden;
   background:linear-gradient(145deg, var(--wood1), var(--wood2));
   border:1px solid var(--gold-dk); box-shadow:0 0 0 1px #000 inset, 0 6px 14px #0009;
-  min-height:300px;
 }
-.wxg-map-player, .wxg-map-mob{
-  position:absolute; width:80px; margin-left:-40px; text-align:center; z-index:5; top:0;
-  /* 移動 tick 只直接改 left/top、不整個重建節點（見 render.js updateWudangArenaPositions）。
-     這裡本來加了 transition 想讓瀏覽器補間更順，但攻擊 tick 一旦觸發完整 render()，整個
-     舞台的節點會被砍掉重建，任何「正在補間中」的 transition 都會被腰斬、直接跳到終點——
-     這時反而變成「攻擊那一刻全部怪物一起頓一下」的頓挫感，比沒有 transition 還明顯。
-     移動 tick 本身頻率已經夠高（見 combat.js WUDANG_MOVE_STEPS_PER_TICK），單靠高頻率的
-     小步更新就夠順了，不需要 transition 這種會被完整重繪打斷的補間方式。 */
-}
-/* 怪物頭像改成「頭像置中在座標點上、名稱＋血條往右延伸」的橫向排版，而不是原本疊在頭像
-   正上/正下方——這樣傷害飄字（wxg-float，置中蓋在頭像正上方）出現時中間這塊完全淨空，
-   不會跟名稱、血條擠在一起。margin-left 只抵消頭像本身半徑（56px的一半），不是整個區塊的
-   一半寬，所以錨點是頭像中心對齊座標，名稱/血條是額外往右多出來的部分。 */
-.wxg-map-mob{
-  width:auto; margin-left:-28px; z-index:4; text-align:left;
-  display:flex; align-items:flex-start; gap:4px;
-}
-.wxg-map-mob-portrait-col{ position:relative; flex-shrink:0; }
-/* 用固定 width（不是 min/max-width）——原本內容剛好貼合欄寬時，靠左靠右幾乎看不出差異，
-   固定寬度才能讓「貼齊最右邊」這件事有實際可見的空間可以推過去。 */
-.wxg-map-mob-info{ padding-top:4px; width:110px; text-align:right; }
-.wxg-map-mob-name{
+.wxg-card-row{ position:relative; z-index:2; display:flex; align-items:flex-start; gap:18px; }
+.wxg-card-row-enemies{ flex:1; display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-end; }
+.wxg-ccard{ position:relative; width:120px; text-align:center; flex-shrink:0; }
+.wxg-ccard .wxg-portrait{ width:68px; height:68px; margin:0 auto 6px; }
+.wxg-ccard .wxg-portrait svg{ width:68px; height:68px; }
+.wxg-ccard-player .wxg-portrait{ width:82px; height:82px; }
+.wxg-ccard-player .wxg-portrait svg{ width:82px; height:82px; }
+.wxg-ccard-name{
   font-size:10.5px; font-weight:700; color:var(--ink-text); text-shadow:0 0 4px #000, 0 0 2px #000;
-  white-space:normal; overflow:visible; text-overflow:clip; line-height:1.3; word-break:keep-all;
+  line-height:1.3;
 }
-.wxg-map-mob.boss .wxg-map-mob-name{ color:#ff8a4a; }
+.wxg-ccard-enemy.boss .wxg-ccard-name{ color:#ff8a4a; }
+/* 主動攻擊／已被激怒的怪物頭像加一圈警戒紅光，被動未參戰的維持原本淡定的樣子；
+   目前鎖定的目標另外用金色光圈標出來，兩者可以同時成立（一眼看出「誰會打我」跟「我在打誰」）。 */
+.wxg-ccard-enemy.hostile .wxg-portrait.enemy{
+  box-shadow:0 0 0 3px #1a1109, 0 0 0 4px rgba(209,86,76,.85), 0 0 14px 3px rgba(209,86,76,.55), 0 4px 10px rgba(0,0,0,.65), inset 0 0 16px 5px rgba(0,0,0,.85);
+}
+.wxg-ccard-enemy.target .wxg-portrait{
+  box-shadow:0 0 0 3px #1a1109, 0 0 0 4px rgba(212,175,55,.85), 0 0 14px 3px rgba(212,175,55,.55), 0 4px 10px rgba(0,0,0,.65), inset 0 0 16px 5px rgba(0,0,0,.85);
+}
 .wxg-map-mob-hpbar{
-  height:5px; border-radius:999px; background:#0a0805; border:1px solid #000; margin:2px 0 0;
+  height:5px; border-radius:999px; background:#0a0805; border:1px solid #000; margin:5px 0 0;
   box-shadow:0 0 0 1px #4a3218; overflow:hidden; width:100%;
 }
 .wxg-map-mob-hpfill{height:100%; background:linear-gradient(180deg,#7ec9a2,var(--jade) 60%,#204a3a); transition:width .35s;}
-.wxg-map-player .wxg-portrait{width:76px; height:76px;}
-.wxg-map-player .wxg-portrait svg{width:76px; height:76px;}
-.wxg-map-mob .wxg-portrait{width:56px; height:56px;}
-.wxg-map-mob .wxg-portrait svg{width:56px; height:56px;}
-/* 主動攻擊／已被激怒的怪物頭像加一圈警戒紅光，被動閒晃的維持原本淡定的樣子，一眼分得出誰會衝過來。 */
-.wxg-map-mob.hostile .wxg-portrait.enemy{
-  box-shadow:0 0 0 3px #1a1109, 0 0 0 4px rgba(209,86,76,.85), 0 0 14px 3px rgba(209,86,76,.55), 0 4px 10px rgba(0,0,0,.65), inset 0 0 16px 5px rgba(0,0,0,.85);
-}
 .wxg-map-mob-tag{
   display:inline-block; margin-left:3px; padding:0 4px; border-radius:3px; font-size:8.5px; font-weight:700;
   vertical-align:middle; letter-spacing:.5px;
@@ -114,43 +100,11 @@
 .wxg-map-mob-tag.hostile{ background:rgba(209,86,76,.25); color:#ff9a8c; border:1px solid rgba(209,86,76,.6); }
 .wxg-map-mob-tag.passive{ background:rgba(126,201,162,.18); color:#9fd9bc; border:1px solid rgba(126,201,162,.5); }
 .wxg-map-hud{
-  position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between;
-  gap:14px; padding:10px 16px; margin:0 14px; border-top:1px solid var(--gold-dk);
+  position:relative; z-index:2; padding:10px 16px; margin:0 14px; border-top:1px solid var(--gold-dk);
   background:linear-gradient(180deg, rgba(24,16,9,.9), rgba(18,12,7,.9));
 }
-/* 中間「目前狩獵區」欄位顯示招式命中/傷害訊息的橫幅，內容筆數不固定（0～多筆同時疊加）。
-   兩側玩家卡／目標卡是 flex:1，但內容（名稱＋血條）本身沒那麼寬，會在卡片自己的配額裡
-   留下大片沒用到的空白——把中間欄位加寬，等於把這塊閒置空間讓出來給它用，畫面比較不會有
-   突兀的空洞。用「固定 height + overflow-y:auto」而不是 min-height：min-height 只保證
-   下限，橫幅疊多筆時還是會把整排撐更高；固定 height 才是真的不管內容多少都不會再變動，
-   超出的部分用捲動處理，不會裁切看不到。用比 .wxg-vs-col{flex:1} 更高優先度的
-   .wxg-map-hud .wxg-vs-col 選擇器覆寫，只影響地圖版面，不動舊版兩人對決版面
-   （renderStage）原本 flex:1 置中的寫法。 */
-.wxg-map-hud .wxg-vs-col{
-  flex:0 0 320px; height:96px; overflow-y:auto; display:flex; flex-direction:column;
-  justify-content:center;
-}
+.wxg-map-hud .wxg-vs-col{ height:80px; overflow-y:auto; display:flex; flex-direction:column; justify-content:center; }
 .wxg-map-hud .wxg-effect-banner{ white-space:normal; word-break:break-word; max-width:100%; }
-/* 人物/目標卡片裡的血條縮短到原本一半寬（原本 flex:1 撐滿整行），空出來的寬度留給
-   套路傷害顯示（架招/虛招標籤、招式命中訊息等）用，不會再被血條擠壓。只影響地圖版面的
-   資訊卡，不動其他地方共用的 .wxg-gauge（例如舊版兩人對決、側欄）。 */
-.wxg-map-target .wxg-gauge{ flex:0 0 50%; }
-/* 兩側顯示人物／目標資訊的卡片：招式狀態（架招/虛招標籤）、中毒/破防/硬直等 debuff 標籤、
-   護盾條，都是有才顯示、沒有就整行消失，內容行數一直變會讓卡片高度跟著抖，這排是
-   align-items:center 的 flex，任一張卡片變高變矮都會拖著整排（包含沒在變化的那張）一起跳。
-   保留固定 min-height（大約：名稱一行＋狀態標籤一行＋兩行 debuff＋血條），沒那麼多內容時
-   也占住這個高度；真的超過時仍讓它自然往下長，不裁切，只是不會再比這個矮。 */
-.wxg-map-target{ min-height:112px; }
-.wxg-map-hud .wxg-fname{ margin-bottom:2px; }
-.wxg-map-target{ flex:1; min-width:0; }
-/* 只有右邊「目標」卡片（.wxg-map-target-foe）的名稱、招式標籤、血條要貼齊最右邊；
-   左邊玩家自己的卡片維持原本靠左，不能共用同一個 .wxg-map-target 選擇器（上一版就是
-   因為兩張卡都用同一個 class，結果玩家卡也被一起推到右邊）。.wxg-gauge 已經縮到一半寬，
-   pillrow 本身是 flex，預設內容靠左堆疊、右側留白，要用 justify-content:flex-end 才會
-   真的把血條那排推到右邊；.wxg-fname／.wxg-tag 是行內／行內區塊內容，用 text-align:right
-   讓整張卡片文字都靠右對齊即可。 */
-.wxg-map-target-foe{ text-align:right; }
-.wxg-map-target-foe .wxg-pillrow{ justify-content:flex-end; }
 .wxg-scene{position:absolute; inset:0; z-index:0; overflow:hidden;}
 .wxg-scene svg{width:100%; height:100%; display:block;}
 .wxg-scene.bg-photo{background-size:cover; background-position:center 42%;}

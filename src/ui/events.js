@@ -364,7 +364,10 @@ function bindGlobal(){
   });
   document.querySelectorAll('[data-monsterinfohover]').forEach(el=>{
     el.onmouseenter = ()=>{
-      const m = S.monster || (S.monsters && S.monsters[0]);
+      // 武當卡片列每張怪物卡都可以 hover（不像舊版地圖只有「目前交手對象」那一張有這個屬性），
+      // 要用 data-mobuid 找出「這張卡片對應的是哪一隻」，不能再籠統地抓 S.monsters[0]。
+      const uid = el.dataset.mobuid;
+      const m = uid!=null ? (S.monsters||[]).find(x=>String(x.uid)===uid) : (S.monster || (S.monsters && S.monsters[0]));
       if(!m) return;
       const tip = getFloatTooltipEl();
       tip.innerHTML = monsterInfoTooltipHtml(m);
