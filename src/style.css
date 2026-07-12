@@ -70,6 +70,10 @@
 }
 .wxg-map-player, .wxg-map-mob{
   position:absolute; width:80px; margin-left:-40px; text-align:center; z-index:5; top:0;
+  /* 移動計時器頻率沒辦法拉到跟畫面更新一樣快（會整個重繪太耗），改成移動時只直接改
+     left/top 這兩個屬性、不整個重建節點，靠這個 transition 讓瀏覽器自己內插出中間的畫面，
+     實際更新次數不多也能感覺很順，而不是每次都用完整 render() 硬跳過去。 */
+  transition: left .16s linear, top .16s linear;
 }
 .wxg-map-mob{ width:64px; margin-left:-32px; z-index:4; }
 .wxg-map-mob-name{

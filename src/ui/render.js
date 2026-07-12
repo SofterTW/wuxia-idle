@@ -303,6 +303,30 @@ function isMissFloatText(t){
   return t==="身法閃避！" || t==="禪定・免疫！" || t==="攻擊被無敵化解";
 }
 
+// 移動計時器用的輕量更新：只改 DOM 節點既有的 left/top 這兩個 style 屬性，不整個重繪。
+// 原本每次移動 tick 都呼叫完整的 render()，代價是①整個舞台（含傷害飄字、受擊特效等短命
+// CSS 動畫）被砍掉重建，動畫還沒播完就被打斷、看起來像一直閃爍；②光是切換位置也要
+// Math.max(12,...) 頻率重建一整棵 DOM，移動本身反而不順（下一次 render 前畫面完全靜止，
+// 才用小幅度跳一次，肉眼看起來像格子跳動）。改成只搬 style.left/top，並讓 CSS
+// transition（見 style.css .wxg-map-player/.wxg-map-mob）在兩次更新之間幫忙補間，實際
+// 更新頻率不變，但視覺上會連續平滑；其餘內容（血條、飄字、招式判定）維持只在完整
+// render() 時更新，不會被這裡打斷，動畫才能播完整段。
+function updateWudangArenaPositions(){
+  if(!S || S.sectKey!=="wudang" || S.location==="jinling" || S.visitingSect) return;
+  const playerEl = document.querySelector('.wxg-map-player');
+  if(playerEl && S.wudangPlayerPos){
+    playerEl.style.left = S.wudangPlayerPos.x+'%';
+    playerEl.style.top = S.wudangPlayerPos.y+'%';
+  }
+  (S.monsters||[]).forEach(m=>{
+    if(m.hp<=0 || !m.pos) return;
+    const el = document.querySelector(`.wxg-map-mob[data-mobuid="${m.uid}"]`);
+    if(!el) return;
+    el.style.left = m.pos.x+'%';
+    el.style.top = m.pos.y+'%';
+  });
+}
+
 // 武當專用：地圖上同時有多隻怪物，玩家自動找最近的存活目標走過去打，取代掉「兩顆頭像面對面」
 // 的舊版對決畫面。其他門派因為戰鬥引擎還是單一目標（S.monster），沿用下面 renderStage() 原本
 // 的兩人對決版面，等其他門派也轉成多目標引擎後再比照辦理。
@@ -325,7 +349,7 @@ function renderWudangArenaStage(){
     const enemyHitCls = (isEngaged && S.hitEnemy) ? (' hit-knock-enemy hit-flash'+(S.hitEnemyCrit?' hit-crit':'')) : '';
     const monsterIcon = portraitImgHtml(m.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT);
     const aggroTag = m.isBoss ? '' : (hostile ? `<span class="wxg-map-mob-tag hostile">${m.aggroed&&!m.aggressive?'已激怒':'主動'}</span>` : `<span class="wxg-map-mob-tag passive">閒晃</span>`);
-    return `<div class="wxg-map-mob wxg-idle-bob${m.isBoss?' boss':''}${hostile?' hostile':''}" style="left:${m.pos.x}%; top:${m.pos.y}%;"${isEngaged?` data-monsterinfohover="1"`:''}>
+    return `<div class="wxg-map-mob wxg-idle-bob${m.isBoss?' boss':''}${hostile?' hostile':''}" data-mobuid="${m.uid}" style="left:${m.pos.x}%; top:${m.pos.y}%;"${isEngaged?` data-monsterinfohover="1"`:''}>
       ${isEngaged && S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
       <div class="wxg-map-mob-name">${m.isBoss?'👑 ':''}${m.name}${aggroTag}</div>
       <div class="wxg-portrait enemy${enemyHitCls}">${monsterIcon}</div>

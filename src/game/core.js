@@ -166,6 +166,8 @@ function spawnOneWudangMonster(avoidBoss){
   // 首領一律主動攻擊，其餘怪物隨機分成主動／被動兩種。
   const aggressive = isBoss || Math.random() < WUDANG_AGGRO_CHANCE;
   S.monsters.push({
+    uid: allocUid(), // 給移動計時器用：只更新座標的輕量重繪要靠這個 id 找到對應的 DOM 節點，
+                      // 不能用陣列 index，因為怪物死亡/補位後 index 會變動、對不上原本那隻。
     name: isBoss?`【首領】${def.name}`:def.name, level:def.level, zone:zone.id,
     hpMax:def.hpMax, hp:def.hpMax, atk:def.atk, def:def.def, isBoss, row:S.monsters.length,
     stunned:false, staggerTicks:0, defReduceTicks:0, statusEffects:[], stance:"實招",
