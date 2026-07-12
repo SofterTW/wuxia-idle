@@ -111,23 +111,40 @@ function spawnMonster(avoidBoss){
   S.monster.statusEffects = [];
 }
 
-// 武當專用：地圖上固定 5 個怪物定位點（座標為戰鬥地圖的 %），怪物生成時隨機分配到其中的
-// 空位，玩家自動找最近的存活目標走過去。座標刻意避開地圖正下方——那一排留給玩家的巡邏點
-// （WUDANG_ARENA_PATROL），兩者不會疊在一起。
-const WUDANG_ARENA_SLOTS = [
-  {x:20, y:26}, {x:50, y:18}, {x:80, y:26}, {x:30, y:64}, {x:70, y:64},
-];
+// 武當專用：地圖上的怪物是自由座標（%），不是固定格位——生成時在場地範圍內隨機找一個
+// 跟其他怪物有一定間距的點。場地範圍刻意避開地圖最下方，那一排留給玩家沒有目標時的
+// 巡邏點（WUDANG_ARENA_PATROL），兩者不會疊在一起。
+const WUDANG_ARENA_BOUNDS = {minX:12, maxX:88, minY:14, maxY:66};
 const WUDANG_ARENA_PATROL = [
   {x:42, y:88}, {x:58, y:88}, {x:58, y:94}, {x:42, y:94},
 ];
-const WUDANG_ARENA_POOL_SIZE = 4; // 地圖上同時維持存活的怪物數量，死一隻立刻在空位補一隻
+const WUDANG_ARENA_POOL_SIZE = 4; // 地圖上同時維持存活的怪物數量，死一隻立刻補一隻
+const WUDANG_AGGRO_CHANCE = 0.45; // 新生成的怪物有幾成機率是「主動攻擊」型
+const WUDANG_MOVE_STEP = 14;      // 追擊（主動/已被激怒）時，每 tick 最多移動的場地百分比距離
+const WUDANG_WANDER_STEP = 8;     // 被動閒晃時，每 tick 最多移動的距離（比追擊慢，看起來比較悠閒）
+const WUDANG_ENGAGE_DIST = 6;     // 判定「已經走到對方旁邊、可以出招」的距離門檻
 
-// 生成單一怪物到地圖上的空位（死一隻補一隻用）。avoidBoss=true 時強制不生首領，
-// 用在「首領本來該出現，但玩家開了遇首領自動逃跑」的情況，逃跑後改補一隻普通怪。
+function wudangRandomPoint(){
+  return {
+    x: WUDANG_ARENA_BOUNDS.minX + Math.random()*(WUDANG_ARENA_BOUNDS.maxX-WUDANG_ARENA_BOUNDS.minX),
+    y: WUDANG_ARENA_BOUNDS.minY + Math.random()*(WUDANG_ARENA_BOUNDS.maxY-WUDANG_ARENA_BOUNDS.minY),
+  };
+}
+function wudangPickSpawnPoint(){
+  // 找一個跟現有怪物都保持一定距離的點，試幾次找不到就將就用最後一次的結果，避免無限迴圈。
+  let best = wudangRandomPoint();
+  for(let tries=0; tries<8; tries++){
+    const p = wudangRandomPoint();
+    const tooClose = S.monsters.some(m=> m.hp>0 && m.pos && Math.hypot(m.pos.x-p.x, m.pos.y-p.y) < 16);
+    if(!tooClose){ best = p; break; }
+    best = p;
+  }
+  return best;
+}
+
+// 生成單一怪物到地圖上（死一隻補一隻用）。avoidBoss=true 時強制不生首領，用在「首領本來
+// 該出現，但玩家開了遇首領自動逃跑」的情況，逃跑後改補一隻普通怪。
 function spawnOneWudangMonster(avoidBoss){
-  const usedSlots = new Set(S.monsters.map(m=>m.arenaSlot));
-  const freeSlotIdx = WUDANG_ARENA_SLOTS.findIndex((_,i)=>!usedSlots.has(i));
-  if(freeSlotIdx===-1) return; // 地圖位置已滿（池數<=可用格數時理論上不會發生）
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
   const isBoss = !avoidBoss && S.killCount>0 && S.killCount%10===0;
   const bossDef = BOSS_ROSTER[zone.id];
@@ -138,11 +155,13 @@ function spawnOneWudangMonster(avoidBoss){
   }
   const roster = MONSTER_ROSTER[zone.id] || [];
   const def = isBoss ? bossDef : roster[Math.floor(Math.random()*roster.length)];
+  // 首領一律主動攻擊，其餘怪物隨機分成主動／被動兩種。
+  const aggressive = isBoss || Math.random() < WUDANG_AGGRO_CHANCE;
   S.monsters.push({
     name: isBoss?`【首領】${def.name}`:def.name, level:def.level, zone:zone.id,
     hpMax:def.hpMax, hp:def.hpMax, atk:def.atk, def:def.def, isBoss, row:S.monsters.length,
     stunned:false, staggerTicks:0, defReduceTicks:0, statusEffects:[], stance:"實招",
-    arenaSlot:freeSlotIdx,
+    pos: wudangPickSpawnPoint(), aggressive, aggroed:false, wanderTarget:null,
   });
 }
 
