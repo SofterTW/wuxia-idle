@@ -125,7 +125,7 @@ function bindGlobal(){
     el.onmouseenter = (e)=>{
       e.stopPropagation();
       const tip = getFloatTooltipEl();
-      tip.innerHTML = `<div class="wxg-tip-row" style="color:var(--ink-text);">${escapeHtml(el.dataset.tip)}</div>`;
+      tip.innerHTML = `<div class="wxg-tip-row" style="color:#fff;">${escapeHtml(el.dataset.tip)}</div>`;
       positionFloatTooltip(tip, el);
     };
     el.onmouseleave = ()=>{ getFloatTooltipEl().style.display = "none"; };
