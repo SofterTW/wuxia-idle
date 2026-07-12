@@ -442,7 +442,11 @@ function applyWudangEffect(effect, move, target, ctx){
     else { S.hp = Math.max(1, S.hp-amt); S.mp = Math.min(S.mpMax, S.mp+amt); }
     addLog(`「${move.name}」將 ${amt} 點${effect.from==="mp"?"內力":"氣血"}轉化為${effect.to==="hp"?"氣血":"內力"}`, 'skill');
   } else if(effect.type==="selfShield"){
-    S.statusEffects.push({kind:"buff", stat:"", value:0, remainingTicks:effect.duration, wudangName:move.name, shieldAbsorbPct:effect.absorbPct});
+    // 護盾是固定容量的血量池（不是每次都重算的百分比減傷），吸滿就沒了；convertToMp 開啟時，
+    // 吸收多少 %氣血上限的傷害，就回多少 %內力上限；breakStunTicks 是碎盾當下震暈所有敵人的硬直。
+    const pool = Math.round(S.hpMax*effect.absorbPct);
+    S.statusEffects.push({kind:"buff", stat:"", value:0, remainingTicks:effect.duration, wudangName:move.name,
+      shieldPool:pool, shieldPoolMax:pool, convertToMp:!!effect.convertToMp, breakStunTicks:effect.breakStunTicks||0});
   } else if(effect.type==="stackBuff"){
     let e = S.statusEffects.find(e=>e.wudangName===effect.name);
     if(!e){ e = {kind:"buff", stat:"", value:0, remainingTicks:effect.duration, wudangName:effect.name, stacks:0, valuePerStack:effect.statValuePerStack, maxStacks:effect.maxStacks}; S.statusEffects.push(e); }
@@ -464,7 +468,7 @@ function applyGuardBreak(effect, target){
   if(!effect) return;
   target.defReduceTicks = Math.max(target.defReduceTicks, effect.duration||8);
   target.wudangGuardBreakPct = effect.defReducePct||0.25;
-  if(effect.clearShield) target.statusEffects = target.statusEffects.filter(e=>!e.shieldAbsorbPct);
+  if(effect.clearShield) target.statusEffects = target.statusEffects.filter(e=>!e.shieldPool);
 }
 
 // 架招格擋成功時的加成（明鏡止水的下次必爆、方外遨遊的完全格擋等）。
@@ -582,10 +586,24 @@ function resolveWudangMonsterAttack(target, playerMove){
   } else {
     S.rage = Math.min(100, S.rage+5);
   }
-  const shieldBuff = S.statusEffects.find(e=>e.shieldAbsorbPct && e.remainingTicks>0);
+  const shieldBuff = S.statusEffects.find(e=>e.shieldPool>0 && e.remainingTicks>0);
   if(shieldBuff && dmg>0){
-    const absorb = Math.min(dmg, Math.round(S.hpMax*shieldBuff.shieldAbsorbPct));
+    const absorb = Math.min(dmg, shieldBuff.shieldPool);
     dmg = Math.max(0, dmg-absorb);
+    shieldBuff.shieldPool -= absorb;
+    if(shieldBuff.convertToMp && absorb>0){
+      const mpRestore = Math.round(S.mpMax * (absorb/S.hpMax));
+      S.mp = Math.min(S.mpMax, S.mp+mpRestore);
+      addLog(`「${shieldBuff.wudangName}」吸收 ${absorb} 點傷害，轉化為 ${mpRestore} 點內力`, 'skill');
+    }
+    if(shieldBuff.shieldPool<=0){
+      S.statusEffects = S.statusEffects.filter(e=>e!==shieldBuff);
+      if(shieldBuff.breakStunTicks>0){
+        S.monsters.forEach(m=>{ if(m.hp>0) m.staggerTicks = Math.max(m.staggerTicks, shieldBuff.breakStunTicks); });
+        addLog(`「${shieldBuff.wudangName}」碎盾！震暈了周圍的敵人`, 'skill');
+        S.stageEffects.push(`<span style="color:#4dd0c8; font-weight:700;">${shieldBuff.wudangName}</span>・碎盾震暈！<span style="color:#4dd0c8; margin-left:5px;">〔氣招發動〕</span>`);
+      }
+    }
   }
   if(dmg>0){
     S.hp -= dmg;

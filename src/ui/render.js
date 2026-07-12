@@ -432,7 +432,7 @@ function renderSide(){
       // 沒意義的「提升0%」，因為這些效果的 stat/value 欄位本來就是空的佔位值）。
       let label = e.wudangName;
       if(e.wudangName==="霸體") label = `霸體（${e.immuneAll?'紅霸體，免疫僵直與所有控制':'黃霸體，免疫受擊僵直'}）`;
-      else if(e.shieldAbsorbPct) label = `${e.wudangName}（護盾，吸收${Math.round(e.shieldAbsorbPct*100)}%上限傷害）`;
+      else if(e.shieldPoolMax) label = `${e.wudangName}（護盾剩餘 ${Math.round(e.shieldPool)}／${e.shieldPoolMax}${e.convertToMp?'，吸收會轉化為內力':''}）`;
       else if(e.stacks!=null) label = `${e.wudangName}　${e.stacks}／${e.maxStacks}層`;
       else if(e.mpOnHit) label = `${e.wudangName}（命中回復內力 ${e.mpOnHit}）`;
       else if(e.kind==="regen") label = `${e.wudangName}（${e.stat==="mp"?"內力":"氣血"}持續回復中）`;
