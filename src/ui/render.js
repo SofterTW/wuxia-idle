@@ -529,9 +529,11 @@ function renderSide(){
   });
 
   const buffBody = rows.length>0 ? rows.join("") : `<div class="wxg-hint">尚未擁有任何生效中的特效。</div>`;
+  // 高倍速時狀態效果會頻繁增減（尤其武當的招式buff），內容筆數一直變會讓這個面板一直大小變化，
+  // 把下面的面板（尤其全局加速）擠得跟著上下跳動、點不到。固定高度＋內部捲動就不會再影響版面。
   const buffPanel = `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="buffs" style="cursor:pointer;"><span class="dot"></span><h3>目前狀態效果</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.buffs?'▾':'▸'}</span></div>
-    ${exp.buffs?buffBody:''}
+    ${exp.buffs?`<div style="max-height:220px; overflow-y:auto;">${buffBody}</div>`:''}
   </div>`;
 
   // 武當的「戰鬥選項」整合進「戰鬥邏輯」分頁了（見 renderWudangLogic），側欄不再重複顯示。
@@ -574,11 +576,11 @@ function renderSide(){
   </div>`;
 
   return `
+    ${speedPanel}
     ${primaryPanel}
     ${buffPanel}
     ${autoPanel}
     ${savePanel}
-    ${speedPanel}
   `;
 }
 
