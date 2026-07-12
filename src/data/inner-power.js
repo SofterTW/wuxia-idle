@@ -594,3 +594,61 @@ const INTERNAL_EFFECT_TABLE = {
   chihuo:   {trigger:'onAttack', resolve:chihuoEffectAt},
   xiaoyao:  {trigger:'onHit', resolve:xiaoyaoEffectAt, condition:(S)=> S.mpMax>0 && S.mp/S.mpMax < 0.20},
 };
+
+// 實力稱號系統：每門心法依「第幾內」（一內～六內）換算不同的每層點數，練得越深、
+// 練的本數階級越高，點數越高。玩家身上會取「所有已學會心法各自換算出的點數」中最高
+// 的那個來對應稱號，不是加總——練多本不會疊加，只看目前練得最深的那本。
+// 一內 = 沒有 _N 後綴的心法（chanding／liangyi／qizhuang／xiaoyao／qijue／chihuo／
+// tonghui／shuangxiu／xuanyuan，以及無門無派的 tuna／jiuyang／beiming／taiji_qi）；
+// 二內～六內 = buildInternalLayers() 自動生成、id 是 `${sectKey}_${rank}` 的進階心法。
+const INTERNAL_RANK_POINTS_PER_LAYER = {1:1.0, 2:3.0, 3:6.0, 4:8.4, 5:13.4, 6:19.4};
+function internalRankOf(techId){
+  const m = /_([2-6])$/.exec(techId);
+  return m ? parseInt(m[1],10) : 1;
+}
+const TITLE_TABLE = [
+  {name:"不堪一擊", req:0},
+  {name:"初學乍練", req:5},
+  {name:"初窺門徑", req:10},
+  {name:"略有小成", req:15},
+  {name:"駕輕就熟", req:20},
+  {name:"融會貫通", req:25},
+  {name:"爐火純青", req:30},
+  {name:"出類拔萃", req:35},
+  {name:"神乎其技", req:36},
+  {name:"出神入化", req:50},
+  {name:"傲視群雄", req:70},
+  {name:"登峰造極", req:90},
+  {name:"無與倫比", req:108},
+  {name:"所向披靡", req:140},
+  {name:"一代宗師", req:180},
+  {name:"神功大成", req:216},
+  {name:"舉世無雙", req:280},
+  {name:"驚才絕艷", req:350},
+  {name:"震古爍今", req:412},
+  {name:"深不可測", req:500},
+  {name:"返璞歸真", req:657},
+  {name:"天人合一", req:800},
+  {name:"唯我獨尊", req:951},
+];
+function titleForPoints(points){
+  let cur = TITLE_TABLE[0];
+  for(const t of TITLE_TABLE){ if(points>=t.req) cur=t; else break; }
+  return cur;
+}
+function nextTitleForPoints(points){
+  return TITLE_TABLE.find(t=>t.req>points) || null;
+}
+// 玩家目前的稱號點數：所有已學會（S.knownInternal 裡有記錄）的心法各自算「目前層數 ×
+// 該心法所屬內功階級的每層點數」，取最大值——這步驟需要 S 跟 getInternalTier()（core.js），
+// 兩者都比 inner-power.js 晚載入，所以這個函式實際呼叫時機是在 recalc() 之後，不是模組載入時。
+function computeTitlePoints(){
+  let max = 0;
+  Object.keys(S.knownInternal||{}).forEach(techId=>{
+    const ppl = INTERNAL_RANK_POINTS_PER_LAYER[internalRankOf(techId)] || 1.0;
+    const layer = getInternalTier(techId) + 1;
+    const points = Math.round(layer*ppl*10)/10;
+    if(points>max) max = points;
+  });
+  return max;
+}

@@ -44,6 +44,8 @@ function recalc(fullRestore){
   S.hpMax = Math.round(p.臂力*2 + p.體魄*7*techDef.hpMult + (layer.hpBonus||0));
   S.mpMax = Math.round(p.內息*4*techDef.mpMult + p.罡氣*1 + (layer.mpBonus||0));
   if(fullRestore){ S.hp=S.hpMax; S.mp=S.mpMax; } else { S.hp=Math.min(S.hp,S.hpMax); S.mp=Math.min(S.mp,S.mpMax); }
+  S.titlePoints = computeTitlePoints();
+  S.title = titleForPoints(S.titlePoints).name;
 }
 // 五大主屬性懸浮提示用：算出某一項主屬性目前實際換算成了哪些二級戰鬥屬性、各多少點。
 // 公式跟 recalc() 裡 S.secondary 的算法要保持一致，只是拆出單一主屬性的那一項。

@@ -11,7 +11,7 @@ function render(){
   root.innerHTML = `
     <div class="wxg-noise"></div>
     <div class="wxg-banner">
-      <div class="wxg-title">江湖夜行<small>${S.sect.name}弟子 · 主修「${INTERNAL_POOL.find(t=>t.id===S.activeInternal).name}」第${getInternalTier(S.activeInternal)+1}層 · 目前所在：${locationName()}</small></div>
+      <div class="wxg-title">江湖夜行<small><span class="wxg-title-badge" data-titletip="1">「${S.title}」</span>${S.sect.name}弟子 · 主修「${INTERNAL_POOL.find(t=>t.id===S.activeInternal).name}」第${getInternalTier(S.activeInternal)+1}層 · 目前所在：${locationName()}</small></div>
       <div class="wxg-stats-strip"><span>擊殺 <b>${S.killCount}</b></span><span>錢財 <b>${formatMoney(S.gold)}</b></span><span>修為 <b>${S.qiPool}</b></span>${S.buffAtkTicks>0?`<span style="color:var(--gold-lt)">培元丹生效中 <b>${S.buffAtkTicks}</b></span>`:''}${S.location!=="jinling"?`<button class="wxg-btn crimson small" data-gotown="1">回城</button>`:''}</div>
     </div>
     ${renderStage()}
@@ -300,7 +300,7 @@ function renderStage(){
           <div class="wxg-portrait big">${sectIcon}</div>
           <div class="wxg-ground-shadow"></div>
         </div>
-        <div class="wxg-fname">${S.sect.name}弟子</div>
+        <div class="wxg-fname">「${S.title}」${S.sect.name}弟子</div>
         <div class="wxg-gauge-wrap">
           ${pillbar('氣','hp',S.hp,S.hpMax,'hp')}
           ${pillbar('內','mp',S.mp,S.mpMax,'mp')}
@@ -334,7 +334,7 @@ function renderStage(){
         <div class="wxg-portrait big${playerHitCls}">${sectIcon}</div>
         <div class="wxg-ground-shadow"></div>
       </div>
-      <div class="wxg-fname">${S.sect.name}弟子</div>
+      <div class="wxg-fname">「${S.title}」${S.sect.name}弟子</div>
       <div class="wxg-gauge-wrap">
         ${pillbar('氣','hp',S.hp,S.hpMax,'hp',S.hitPlayer?'gauge-flash':'')}
         ${pillbar('內','mp',S.mp,S.mpMax,'mp')}
@@ -1190,10 +1190,24 @@ function renderCodex(){
       <div class="wxg-panel" style="cursor:pointer; ${s.locked?'opacity:0.6;':''}" data-codexinternalsect="${s.key}">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>${s.name}${s.locked?'（敬請期待）':''}</h3><span class="wxg-tag" style="margin-left:auto;">查看一～六內 ▸</span></div>
       </div>`).join("");
+    const titleRankRows = RANK_LABELS.map((label,i)=>{
+      const rank = i+1;
+      return `<div class="wxg-row"><span>${label}</span><b style="font-weight:400;">每層 ${INTERNAL_RANK_POINTS_PER_LAYER[rank]} 點</b></div>`;
+    }).join("");
+    const titleRows = TITLE_TABLE.map(t=>`<div class="wxg-row ${t.name===S.title?'active-main':''}"><span>${t.name}</span><b style="font-weight:400;">${t.req} 點</b></div>`).join("");
     return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>內功系統規則</h3></div>
         <div class="wxg-hint">每個門派各有一到六本專屬心法（一內～六內），每本最高 36 層，每一層都有自己專屬的效果，不是統一公式套算出來的。點下方門派可查看該門所有心法，再點心法可查看完整 1～36 層效果。目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。</div>
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>實力稱號</h3></div>
+        <div class="wxg-hint">已學會的每本心法各自換算「目前層數 × 該心法所屬階級的每層點數」，取所有已學會心法裡最高的一個當作稱號點數（不是加總）——練多本不會疊加，看的是練得最深的那一本。點數對應下方稱號門檻，門檻越高的稱號需要練得越深、或練成更高階級的心法。</div>
+        ${titleRankRows}
+      </div>
+      <div class="wxg-panel">
+        <div class="wxg-panel-head internal"><span class="dot"></span><h3>稱號對照表${S?`　目前：<span style="color:var(--gold-lt);">${S.title}（${S.titlePoints} 點）</span>`:''}</h3></div>
+        ${titleRows}
       </div>
       <div class="wxg-hint" style="margin:6px 0;">通用心法（各門派皆可習得）</div>
       ${genericRows}

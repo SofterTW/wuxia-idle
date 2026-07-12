@@ -130,6 +130,27 @@ function bindGlobal(){
     };
     el.onmouseleave = ()=>{ getFloatTooltipEl().style.display = "none"; };
   });
+  document.querySelectorAll('[data-titletip]').forEach(el=>{
+    el.onmouseenter = (e)=>{
+      e.stopPropagation();
+      const tip = getFloatTooltipEl();
+      const rows = Object.keys(S.knownInternal||{}).map(techId=>{
+        const skill = INTERNAL_POOL.find(t=>t.id===techId);
+        if(!skill) return null;
+        const rank = internalRankOf(techId);
+        const ppl = INTERNAL_RANK_POINTS_PER_LAYER[rank] || 1.0;
+        const layer = getInternalTier(techId)+1;
+        const pts = Math.round(layer*ppl*10)/10;
+        return {name:skill.name, layer, pts};
+      }).filter(Boolean).sort((a,b)=>b.pts-a.pts)
+        .map(r=>`<div class="wxg-tip-row"><span>${r.name}（第${r.layer}層）</span><b>${r.pts}</b></div>`).join("");
+      const next = nextTitleForPoints(S.titlePoints);
+      const nextRow = next ? `<div class="wxg-tip-row" style="margin-top:4px; border-top:1px dotted #4a3818; padding-top:4px;"><span>下一階「${next.name}」</span><b>還差 ${Math.round((next.req-S.titlePoints)*10)/10} 點</b></div>` : `<div class="wxg-tip-row" style="margin-top:4px; border-top:1px dotted #4a3818; padding-top:4px;"><span>已是最高稱號</span></div>`;
+      tip.innerHTML = `<div class="wxg-tip-title" style="color:var(--gold-lt);">稱號點數：${S.titlePoints}</div>${rows}${nextRow}`;
+      positionFloatTooltip(tip, el);
+    };
+    el.onmouseleave = ()=>{ getFloatTooltipEl().style.display = "none"; };
+  });
   document.querySelectorAll('[data-savegame]').forEach(el=> el.onclick=(e)=>{
     e.stopPropagation();
     saveGame();
