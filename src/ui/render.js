@@ -1544,14 +1544,26 @@ function renderSectPick(){
   return `
     <div class="wxg-banner"><div class="wxg-title">江湖夜行<small>請選擇門派入門</small></div></div>
     <div class="wxg-sectpick">
-      ${Object.entries(SECTS).map(([key,s])=>`
+      ${Object.entries(SECTS).map(([key,s])=>{
+        const playable = PLAYABLE_SECTS_NOW.includes(key);
+        if(!playable){
+          return `<div class="wxg-sectcard locked" title="五招制武學系統開發中，暫不開放創角">
+            <span class="wxg-lock-badge">開發中</span>
+            <div class="wxg-sect-icon">🔒</div>
+            <h4>${s.name}</h4>
+            <p>${s.passive}</p>
+            <p style="margin-top:6px;">新版五招制武學系統製作中，暫不開放創角，敬請期待</p>
+          </div>`;
+        }
+        return `
         <div class="wxg-sectcard" data-sect="${key}">
           <div class="wxg-sect-icon">${SECT_ICONS[key]}</div>
           <h4>${s.name}</h4>
           <p>限定兵刃：${s.weapon}</p>
           <p>${s.passive}</p>
           <p style="margin-top:6px; font-size:10px;"><span style="color:${PRIMARY_COLORS.臂力}">臂${s.base.臂力}</span>／<span style="color:${PRIMARY_COLORS.身法}">身${s.base.身法}</span>／<span style="color:${PRIMARY_COLORS.內息}">息${s.base.內息}</span>／<span style="color:${PRIMARY_COLORS.罡氣}">罡${s.base.罡氣}</span>／<span style="color:${PRIMARY_COLORS.體魄}">體${s.base.體魄}</span></p>
-        </div>`).join("")}
+        </div>`;
+      }).join("")}
       ${COMING_SOON_SECTS.map(s=>`
         <div class="wxg-sectcard locked" title="尚未開放">
           <span class="wxg-lock-badge">敬請期待</span>

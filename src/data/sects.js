@@ -19,3 +19,8 @@ const COMING_SOON_SECTS = [
   {key:"jile_sect", name:"極樂",   teaser:"傳聞與「雙修訣」有關"},
   {key:"jinyiwei",  name:"錦衣衛", teaser:"傳聞與「玄元經」有關"},
 ];
+
+// 暫時只開放武當創角，其餘五個門派（少林/峨嵋/丐幫/唐門/明教）先鎖在選門派畫面，
+// 等各自的實/虛/架/氣/怒五招制武學系統做好後再一個一個依序解鎖（不影響這些門派
+// 既有存檔玩家，他們照樣用舊系統玩，只是新角色暫時選不到）。
+const PLAYABLE_SECTS_NOW = ["wudang"];
