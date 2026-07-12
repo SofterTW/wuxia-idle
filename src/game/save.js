@@ -49,6 +49,7 @@ function patchLoadedSave(){
   if(S.autoSellTiers===undefined) S.autoSellTiers = {wood:false, bronze:false, iron:false, silver:false, gold:false};
   if(S.potionCd===undefined) S.potionCd = 0;
   if(S.tickSpeedMult===undefined) S.tickSpeedMult = 1;
+  if(S.bagSellConfirmUid===undefined) S.bagSellConfirmUid = null;
   if(S.sectKey==="wudang"){
     WUDANG_MOVESETS.forEach(m=>{ if(S.wudangMovesetsUnlocked[m.key]===undefined) S.wudangMovesetsUnlocked[m.key] = true; });
     if(Object.values(S.wudangSlots).every(arr=>arr.length===0)) S.wudangSlots = defaultWudangSlots();

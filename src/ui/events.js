@@ -276,13 +276,23 @@ function bindGlobal(){
     addLog(`向回春堂買了「${c.name}」，花費 ${formatMoney(c.price)}`, 'system');
     render();
   });
+  // 背包販售：不再跳瀏覽器 confirm() 彈窗，改成點下去先在原地換成「確認賣出／取消」，
+  // 用 uid 記住是哪一件（背包陣列順序可能因為新掉落/賣出而變動，idx 不可靠）。
   document.querySelectorAll('[data-bagsell]').forEach(el=> el.onclick=()=>{
     const idx = parseInt(el.dataset.bagsell);
     const item = S.inventory[idx];
     if(!item) return;
     if(item.locked){ addLog(`「${item.name}」已鎖定，無法販售`, 'warn'); render(); return; }
+    S.bagSellConfirmUid = item.uid;
+    render();
+  });
+  document.querySelectorAll('[data-bagsellcancel]').forEach(el=> el.onclick=()=>{ S.bagSellConfirmUid = null; render(); });
+  document.querySelectorAll('[data-bagsellconfirm]').forEach(el=> el.onclick=()=>{
+    const idx = parseInt(el.dataset.bagsellconfirm);
+    const item = S.inventory[idx];
+    S.bagSellConfirmUid = null;
+    if(!item || item.locked){ render(); return; }
     if(item.kind==="consumable"){
-      if(!confirm(`確定要賣掉一份「${item.name}」換 1 銅錢嗎？（目前 x${item.qty}）`)) return;
       S.gold += 1;
       item.qty -= 1;
       if(item.qty<=0) S.inventory = S.inventory.filter(it=>it!==item);
@@ -290,7 +300,6 @@ function bindGlobal(){
       render();
       return;
     }
-    if(!confirm(`確定要把「${item.name}」賣掉換 1 銅錢嗎？`)) return;
     S.gold += 1;
     S.inventory = S.inventory.filter((_,i)=>i!==idx);
     addLog(`把「${item.name}」隨手賣了，得 1 銅錢`, 'system');

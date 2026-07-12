@@ -943,6 +943,16 @@ function bagCategory(it){
   return "other";
 }
 
+// 背包「販售」原本是跳瀏覽器 confirm() 彈窗二次確認，玩家反應很難點（尤其在小螢幕/高倍速下彈窗
+// 會打斷畫面）。改成點下去先在原地換成「確認賣出／取消」兩顆按鈕，再點一次確認賣出才真的賣掉。
+// 用 uid（不是 idx）記錄目前是哪一件在等確認，因為背包陣列順序可能因為新掉落/賣出而變動。
+function bagSellButtonsHtml(it, idx, label){
+  if(S.bagSellConfirmUid===it.uid){
+    return `<button class="wxg-btn crimson small" data-bagsellconfirm="${idx}">確認賣出</button><button class="wxg-btn small" data-bagsellcancel="1">取消</button>`;
+  }
+  return `<button class="wxg-btn crimson small" data-bagsell="${idx}">${label}</button>`;
+}
+
 function renderEquip(){
   const subTabs = `
     <div class="wxg-subtabs">
@@ -978,7 +988,7 @@ function renderEquip(){
           ${onCd?`<div class="wxg-hint" style="color:#e2685c;">戰鬥中服藥冷卻中，還要 ${S.potionCd} 回合</div>`:''}
           <div style="display:flex; gap:6px; margin-top:6px;">
             <button class="wxg-btn jade small" data-useconsumable="${idx}" ${onCd?'disabled':''}>使用</button>
-            <button class="wxg-btn crimson small" data-bagsell="${idx}">販售一份（1銅錢）</button>
+            ${bagSellButtonsHtml(it, idx, "販售一份（1銅錢）")}
           </div></div>`;
       }
       if(it.kind==="manual"){
@@ -987,7 +997,7 @@ function renderEquip(){
           <div class="wxg-hint">${already?'已學過此招／心法，使用後將轉換為熟練度或修為，不會浪費。':'尚未習得，使用後直接學會。'}</div>
           <div style="display:flex; gap:6px; margin-top:6px;">
             <button class="wxg-btn gold small" data-usemanual="${idx}">使用</button>
-            <button class="wxg-btn crimson small" data-bagsell="${idx}">販售（1銅錢）</button>
+            ${bagSellButtonsHtml(it, idx, "販售（1銅錢）")}
           </div></div>`;
       }
       // equipment
@@ -1001,7 +1011,7 @@ function renderEquip(){
         <div style="display:flex; gap:6px; margin-top:6px;">
           <button class="wxg-btn small" data-equip="${idx}">裝備</button>
           <button class="wxg-btn small" data-locktoggle="${idx}">${it.locked?'解鎖':'鎖定'}</button>
-          ${!it.locked?`<button class="wxg-btn crimson small" data-bagsell="${idx}">販售（1銅錢）</button>`:''}
+          ${!it.locked?bagSellButtonsHtml(it, idx, "販售（1銅錢）"):''}
         </div></div>`;
     }).join("") || (S.inventory.length===0
       ? `<div class="wxg-hint">背包空空如也，繼續戰鬥有機率掉落裝備、藥品與秘笈</div>`
