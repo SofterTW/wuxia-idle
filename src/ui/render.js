@@ -12,7 +12,13 @@ function render(){
     <div class="wxg-noise"></div>
     <div class="wxg-banner">
       <div class="wxg-title">江湖夜行<small><span class="wxg-title-badge" data-titletip="1">「${S.title}」</span>${S.sect.name}弟子 · 主修「${INTERNAL_POOL.find(t=>t.id===S.activeInternal).name}」第${getInternalTier(S.activeInternal)+1}層 · 目前所在：${locationName()}</small></div>
-      <div class="wxg-stats-strip"><span>擊殺 <b>${S.killCount}</b></span><span>錢財 <b>${formatMoney(S.gold)}</b></span><span>修為 <b>${S.qiPool}</b></span>${S.buffAtkTicks>0?`<span style="color:var(--gold-lt)">培元丹生效中 <b>${S.buffAtkTicks}</b></span>`:''}${S.location!=="jinling"?`<button class="wxg-btn crimson small" data-gotown="1">回城</button>`:''}</div>
+      <div class="wxg-stats-strip">
+        <span class="wxg-respill"><span class="icon">💰</span>錢財 <b>${formatMoney(S.gold)}</b></span>
+        <span class="wxg-respill"><span class="icon">⚔️</span>擊殺 <b>${S.killCount}</b></span>
+        <span class="wxg-respill"><span class="icon">☯</span>修為 <b>${S.qiPool}</b></span>
+        ${S.buffAtkTicks>0?`<span class="wxg-respill" style="color:var(--gold-lt); border-color:var(--gold-dk);"><span class="icon">💊</span>培元丹 <b>${S.buffAtkTicks}</b></span>`:''}
+        ${S.location!=="jinling"?`<button class="wxg-btn crimson small" data-gotown="1">回城</button>`:''}
+      </div>
     </div>
     ${renderStage()}
     <div class="wxg-body">
@@ -458,6 +464,7 @@ function renderStage(){
 function renderNavList(){
   const tabColors = {overview:"#d4af37", internal:"#5eab88", martial:"#d1564c", equip:"#a78bd6", map:"#4dd0c8", quest:"#4a86c0", wudanglogic:"#4a86c0", codex:"#f3a03c"};
   const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務", wudanglogic:"戰鬥邏輯", codex:"遊戲百科"};
+  const tabIcons = {overview:"📜", internal:"☯", martial:"⚔️", equip:"🎒", map:"🗺️", quest:"📯", wudanglogic:"🧭", codex:"📚"};
   const wudangCondCount = Object.values(S.wudangMoveConditions||{}).filter(c=>c && c.pct).length;
   const badges = {
     overview: "",
@@ -477,7 +484,7 @@ function renderNavList(){
     const active = S.tab===t;
     const badge = badges[t];
     return `<div class="wxg-navitem ${active?'active':''}" data-tab="${t}" style="--navc:${c};">
-      <span class="wxg-navdot" style="background:${c}; box-shadow:0 0 6px ${c};"></span>
+      <span class="wxg-navicon">${tabIcons[t]}</span>
       <span class="wxg-navlabel">${tabLabels[t]}</span>
       ${badge?`<span class="wxg-navbadge" style="color:${c}; border-color:${c}55;">${badge}</span>`:''}
     </div>`;
@@ -648,6 +655,36 @@ function renderSide(){
   `;
 }
 
+// Melvor Idle 風格的「目前狀態卡」：大圖示＋名稱＋層數/進度條，放在分頁最上方顯示玩家目前主修/裝備中的項目。
+function renderSkillStatusCard({icon, name, tag, tierText, progressPct, progressLabel, extraRows}){
+  const pct = Math.max(0, Math.min(100, progressPct||0));
+  return `<div class="wxg-statuscard">
+    <div class="wxg-statuscard-icon">${icon||'☯'}</div>
+    <div class="wxg-statuscard-body">
+      <div class="wxg-statuscard-name">${name}${tag?` <span class="wxg-tag gold">${tag}</span>`:''}</div>
+      <div class="wxg-statuscard-tier">${tierText||''}</div>
+      ${progressPct!=null?`<div class="wxg-progress-wrap"><div class="wxg-progress jade" style="width:${pct}%"></div></div>
+      ${progressLabel?`<div class="wxg-statuscard-tier">${progressLabel}</div>`:''}`:''}
+      ${extraRows||''}
+    </div>
+  </div>`;
+}
+
+// Melvor Idle 風格的「可選項目卡片格」：取代原本逐條展開的手風琴清單，一項一張小卡並排。
+// items: {icon, name, tag, meta, active, disabled, dataAttrs（原始 data-* 字串，沿用既有 events.js 綁定）}
+function renderSkillCardGrid(items){
+  const cells = items.map(it=>{
+    const cls = `wxg-skillcard${it.active?' active':''}${it.disabled?' disabled':''}`;
+    return `<div class="${cls}" ${it.dataAttrs||''}>
+      ${it.active?'<span class="wxg-skillcard-active-flag">● 使用中</span>':''}
+      <div class="wxg-skillcard-icon">${it.icon||'⚔️'}</div>
+      <div class="wxg-skillcard-name">${it.name}${it.tag?` <span class="wxg-tag ${it.tagCls||'jade'}" style="margin-left:2px;">${it.tag}</span>`:''}</div>
+      ${it.meta?`<div class="wxg-skillcard-meta">${it.meta}</div>`:''}
+    </div>`;
+  }).join("");
+  return `<div class="wxg-cardgrid">${cells}</div>`;
+}
+
 function renderTab(){
   if(S.tab==="overview") return renderOverview();
   if(S.tab==="internal") return renderInternal();
@@ -732,6 +769,8 @@ function internalLayerDesc(skill, layerIdx){
   return `第${layerIdx+1}層：${parts.length>0?parts.join('、'):'暫無額外效果'}`;
 }
 
+const INTERNAL_AFFINITY_ICON = {太極:"☯", 陰柔:"🌙", 陽剛:"☀"};
+
 function renderInternal(){
   const knownList = INTERNAL_POOL.filter(t=>S.knownInternal[t.id]);
   const affinityFilter = S.internalFilterAffinity || "全部";
@@ -743,51 +782,89 @@ function renderInternal(){
       </select>
     </div>
   </div>` : '';
-  return `
-    <div class="wxg-panel"><div class="wxg-panel-head internal"><span class="dot"></span><h3>內功修為池：${S.qiPool} 點</h3></div>
-      <div class="wxg-hint">投入不可拆分收回，需用洗髓丹洗點（返還七折，冷卻 20 次戰鬥）。點標題列可展開/收合詳情。</div>
+
+  const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal);
+  let statusCard = '';
+  if(activeTech){
+    const activeKnown = S.knownInternal[activeTech.id];
+    const cap = MAX_OBTAINABLE_TIER - 1;
+    const tier = getInternalTier(activeTech.id);
+    const atCap = tier>=cap;
+    const nextReq = TIER_TABLE[Math.min(tier+1,cap)].req;
+    const pct = !atCap ? Math.min(100,(activeKnown.invested-TIER_TABLE[tier].req)/(nextReq-TIER_TABLE[tier].req)*100) : 100;
+    statusCard = renderSkillStatusCard({
+      icon: INTERNAL_AFFINITY_ICON[activeTech.affinity]||'☯',
+      name: `主修中：${activeTech.name}`,
+      tag: activeTech.affinity,
+      tierText: `第 ${tier+1} 層／共 36 層　·　修為池 ${S.qiPool} 點`,
+      progressPct: pct,
+      progressLabel: !atCap ? `已投入 ${activeKnown.invested} ／ 需 ${nextReq}` : `第 ${tier+1} 層（現有途徑已練滿）`,
+    });
+  }
+
+  const poolPanel = `<div class="wxg-panel"><div class="wxg-panel-head internal"><span class="dot"></span><h3>內功修為池：${S.qiPool} 點</h3></div>
+      <div class="wxg-hint">投入不可拆分收回，需用洗髓丹洗點（返還七折，冷卻 20 次戰鬥）。點卡片可展開/收合詳情。</div>
       <div class="wxg-row" style="margin-top:6px;"><span>持有洗髓丹</span><b>${S.materials.洗髓丹}</b></div>
       <div class="wxg-row"><span>洗點冷卻</span><b>${S.respecCooldown>0?S.respecCooldown+' 次戰鬥':'可用'}</b></div>
-    </div>
+    </div>`;
+
+  const visibleList = knownList.filter(t=> affinityFilter==="全部" || t.affinity===affinityFilter);
+  const grid = renderSkillCardGrid(visibleList.map(t=>{
+    const tier = getInternalTier(t.id);
+    const isMain = S.activeInternal===t.id;
+    return {
+      icon: INTERNAL_AFFINITY_ICON[t.affinity]||'☯',
+      name: t.name,
+      tag: t.affinity,
+      tagCls: t.affinity==='太極'?'gold':'jade',
+      meta: `第${tier+1}層`,
+      active: isMain,
+      dataAttrs: `data-toggleint="${t.id}" style="cursor:pointer;"`,
+    };
+  }));
+
+  const detailPanels = visibleList.filter(t=>S.internalExpanded[t.id]).map(t=>{
+    const known = S.knownInternal[t.id];
+    const cap = MAX_OBTAINABLE_TIER - 1;
+    const tier = getInternalTier(t.id);
+    const atCap = tier>=cap;
+    const nextReq = TIER_TABLE[Math.min(tier+1,cap)].req;
+    const isMain = S.activeInternal===t.id;
+    const tierList = `<div class="wxg-row" style="color:var(--gold-lt);">▶ 目前　${internalLayerDesc(t,tier)}</div>`
+      + (atCap ? '' : `<div class="wxg-row">　下一層　${internalLayerDesc(t,tier+1)}</div>`);
+    const capHint = atCap ? `<div class="wxg-hint" style="margin-top:6px; color:var(--gold-lt);">你的「${t.name}」目前只學到第 ${tier+1} 層，後面的第 ${cap+2}～36 層需要尋得更高深的心法傳承，目前尚無取得途徑，敬請期待日後版本開放。</div>` : '';
+    return `
+    <div class="wxg-panel ${isMain?'active-main':''}">
+      <div class="wxg-panel-head internal">
+        <span class="dot"></span><h3>${t.name}</h3>
+        <span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span>
+        ${isMain?`<span class="wxg-tag gold" style="margin-left:auto;">主修中</span>`:`<button class="wxg-btn gold small" data-setmain="${t.id}" style="margin-left:auto;">使用</button>`}
+      </div>
+      <div class="wxg-hint">${t.desc}</div>
+      <div class="wxg-row" style="margin-top:4px;"><span>資質</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
+      ${t.special?`<div class="wxg-row"><span>被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
+      ${Object.keys(t.layers[35].bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層加成</span><b style="font-weight:400;">${Object.entries(t.layers[35].bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
+      <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層／共 36 層</b></div>
+      <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層</b></div>
+      <div class="wxg-row"><span>已投入</span><b>${known.invested} ${!atCap?`／需 ${nextReq}`:'（現有途徑已練滿）'}</b></div>
+      <div class="wxg-progress-wrap"><div class="wxg-progress jade" style="width:${!atCap?Math.min(100,(known.invested-TIER_TABLE[tier].req)/(nextReq-TIER_TABLE[tier].req)*100):100}%"></div></div>
+      <div class="wxg-hint" style="line-height:1.7; margin-top:6px;">${tierList}</div>
+      ${capHint}
+      <div style="display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;">
+        <button class="wxg-btn jade small" data-invest="${t.id}" data-amt="100">投入100</button>
+        <button class="wxg-btn jade small" data-invest="${t.id}" data-amt="all">全投入</button>
+        <button class="wxg-btn crimson small" data-respec="${t.id}">洗點</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `
+    ${statusCard}
+    ${poolPanel}
     ${knownList.length===0?`<div class="wxg-panel"><div class="wxg-hint">尚未習得任何內功心法，擊殺 Boss 有機率掉落秘笈，於背包使用後習得。</div></div>`:''}
     ${filterBar}
-    ${knownList.filter(t=> affinityFilter==="全部" || t.affinity===affinityFilter).map(t=>{
-      const known = S.knownInternal[t.id];
-      const cap = MAX_OBTAINABLE_TIER - 1;
-      const tier = getInternalTier(t.id);
-      const atCap = tier>=cap;
-      const nextReq = TIER_TABLE[Math.min(tier+1,cap)].req;
-      const isMain = S.activeInternal===t.id;
-      const expanded = !!S.internalExpanded[t.id];
-      const tierList = `<div class="wxg-row" style="color:var(--gold-lt);">▶ 目前　${internalLayerDesc(t,tier)}</div>`
-        + (atCap ? '' : `<div class="wxg-row">　下一層　${internalLayerDesc(t,tier+1)}</div>`);
-      const capHint = atCap ? `<div class="wxg-hint" style="margin-top:6px; color:var(--gold-lt);">你的「${t.name}」目前只學到第 ${tier+1} 層，後面的第 ${cap+2}～36 層需要尋得更高深的心法傳承，目前尚無取得途徑，敬請期待日後版本開放。</div>` : '';
-      return `
-      <div class="wxg-panel ${isMain?'active-main':''}">
-        <div class="wxg-panel-head internal" data-toggleint="${t.id}" style="cursor:pointer;">
-          <span class="dot"></span><h3>${t.name}</h3>
-          <span class="wxg-tag ${t.affinity==='太極'?'gold':'jade'}">${t.affinity}</span>
-          <span class="wxg-chevron" style="margin-left:6px; color:var(--dim-text); font-size:10px;">${expanded?'▾':'▸'}</span>
-          ${isMain?`<span class="wxg-tag gold" style="margin-left:auto;">主修中</span>`:`<button class="wxg-btn gold small" data-setmain="${t.id}" style="margin-left:auto;">使用</button>`}
-        </div>
-        ${expanded?`
-        <div class="wxg-hint">${t.desc}</div>
-        <div class="wxg-row" style="margin-top:4px;"><span>資質</span><b style="font-weight:400;">內功威力 x${t.powerMult.toFixed(2)}　氣血 x${t.hpMult.toFixed(2)}　內力 x${t.mpMult.toFixed(2)}　內功防禦 x${t.defMult.toFixed(2)}</b></div>
-        ${t.special?`<div class="wxg-row"><span>被動</span><b style="font-weight:400; color:var(--gold-lt);">${t.special}</b></div>`:''}
-        ${Object.keys(t.layers[35].bonusStat||{}).length>0?`<div class="wxg-row"><span>第36層滿層加成</span><b style="font-weight:400;">${Object.entries(t.layers[35].bonusStat).map(([k,v])=>`${k}+${v}`).join('、')}</b></div>`:''}
-        <div class="wxg-row"><span>目前層數</span><b>第 ${tier+1} 層／共 36 層</b></div>
-        <div class="wxg-row"><span>目前可學上限</span><b>第 ${MAX_OBTAINABLE_TIER} 層</b></div>
-        <div class="wxg-row"><span>已投入</span><b>${known.invested} ${!atCap?`／需 ${nextReq}`:'（現有途徑已練滿）'}</b></div>
-        <div class="wxg-progress-wrap"><div class="wxg-progress jade" style="width:${!atCap?Math.min(100,(known.invested-TIER_TABLE[tier].req)/(nextReq-TIER_TABLE[tier].req)*100):100}%"></div></div>
-        <div class="wxg-hint" style="line-height:1.7; margin-top:6px;">${tierList}</div>
-        ${capHint}
-        <div style="display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;">
-          <button class="wxg-btn jade small" data-invest="${t.id}" data-amt="100">投入100</button>
-          <button class="wxg-btn jade small" data-invest="${t.id}" data-amt="all">全投入</button>
-          <button class="wxg-btn crimson small" data-respec="${t.id}">洗點</button>
-        </div>`:``}
-      </div>`;
-    }).join("")}
+    ${grid}
+    ${detailPanels}
   `;
 }
 
@@ -952,41 +1029,54 @@ function renderMartial(){
     </div>`;
   }).join("");
 
-  const known = Object.entries(S.knownMartial).map(([id,k])=>{
+  const knownEntries = Object.entries(S.knownMartial);
+  const grid = renderSkillCardGrid(knownEntries.map(([id,k])=>{
+    const def = Object.values(MARTIAL_POOL).flat().find(m=>m.id===id);
+    const isEquipped = S.martialSlots.indexOf(id)>=0;
+    return {
+      icon: def.dmgType==='外功' ? '⚔️' : '☯',
+      name: def.name,
+      tag: def.affinity,
+      tagCls: 'jade',
+      meta: `第${k.layer}層`,
+      active: isEquipped,
+      dataAttrs: `data-togglemartial="${id}" style="cursor:pointer;"`,
+    };
+  }));
+
+  const detailPanels = knownEntries.filter(([id])=>S.martialExpanded[id]).map(([id,k])=>{
     const def = Object.values(MARTIAL_POOL).flat().find(m=>m.id===id);
     const need = MARTIAL_TIER_TABLE[k.layer] ?? null;
     const canUp = k.layer<9 && k.proficiency>=need;
-    const expanded = !!S.martialExpanded[id];
-    const equippedSlot = S.martialSlots.indexOf(id);
-    const isEquipped = equippedSlot>=0;
+    const isEquipped = S.martialSlots.indexOf(id)>=0;
     const layerList = [1,2,3,4,5,6,7,8,9].map(li=>{
       const cur = li===k.layer;
       return `<div class="wxg-row" style="${cur?'color:var(--gold-lt)':''}">${cur?'▶ ':'　'}第${li}層：${martialLayerDesc(def,li)}</div>`;
     }).join("");
     return `
       <div class="wxg-panel ${isEquipped?'active-main':''}">
-        <div class="wxg-panel-head martial" data-togglemartial="${id}" style="cursor:pointer;">
+        <div class="wxg-panel-head martial">
           <span class="dot"></span><h3>${def.name}</h3>
           <span class="wxg-tag crimson">${def.dmgType}</span><span class="wxg-tag jade">${def.affinity}</span>
           <span class="wxg-tag gold">第${k.layer}層</span>
-          <span class="wxg-chevron" style="margin-left:6px; color:var(--dim-text); font-size:10px;">${expanded?'▾':'▸'}</span>
           <button class="wxg-btn ${isEquipped?'crimson':'gold'} small" data-usemartial="${id}" style="margin-left:auto;">${isEquipped?'卸下':'使用'}</button>
         </div>
-        ${expanded?`
         <div class="wxg-row"><span>${k.layer<9?'熟練度':'狀態'}</span><b>${k.layer<9?`${k.proficiency} / ${need}`:'大成'}</b></div>
         <div class="wxg-progress-wrap"><div class="wxg-progress crimson" style="width:${k.layer<9?Math.min(100,k.proficiency/need*100):100}%"></div></div>
         <div class="wxg-hint" style="line-height:1.7; margin:6px 0;">${layerList}</div>
-        <button class="wxg-btn small" ${canUp?'':'disabled'} data-upgrade="${id}">升級（淬鍊石 x${k.layer*3}）</button>`:``}
+        <button class="wxg-btn small" ${canUp?'':'disabled'} data-upgrade="${id}">升級（淬鍊石 x${k.layer*3}）</button>
       </div>`;
   }).join("");
 
   return `
     <div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>武學技能欄</h3></div>
       <div class="wxg-slotgrid">${slots}</div>
-      <div class="wxg-hint" style="margin-top:6px;">在下方招式列表點「使用」直接裝入空位，點技能欄圖示可卸下。</div>
+      <div class="wxg-hint" style="margin-top:6px;">點下方招式卡片查看詳情並「使用」直接裝入空位，點技能欄圖示可卸下。</div>
       <div class="wxg-row" style="margin-top:6px;"><span>持有淬鍊石</span><b>${S.materials.淬鍊石}</b></div>
     </div>
-    ${known}
+    ${knownEntries.length===0?`<div class="wxg-panel"><div class="wxg-hint">尚未習得任何武學招式，擊殺 Boss 有機率掉落秘笈，於背包使用後習得。</div></div>`:''}
+    ${grid}
+    ${detailPanels}
   `;
 }
 

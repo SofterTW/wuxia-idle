@@ -29,24 +29,31 @@
 .wxg-mono{font-family:"JetBrains Mono",monospace;}
 
 /* ---- 牌匾標題 ---- */
+/* ---- 頂部資源列（仿 Melvor Idle 窄版頂欄：稱號/位置靠左，資源以圖示膠囊排右） ---- */
 .wxg-banner{
-  position:relative; padding:12px 30px 14px; margin:10px 14px 0;
+  position:relative; padding:8px 24px 9px; margin:10px 14px 0;
   background:linear-gradient(180deg, #3a2810, #221507);
-  clip-path:polygon(0 0,100% 0,97% 100%,3% 100%);
+  clip-path:polygon(0 0,100% 0,98% 100%,2% 100%);
   border-bottom:2px solid var(--gold-dk);
-  display:flex; align-items:center; justify-content:space-between;
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
 }
 .wxg-banner::before, .wxg-banner::after{
   content:""; position:absolute; top:0; bottom:0; width:3px; background:var(--gold);
 }
 .wxg-banner::before{left:0;} .wxg-banner::after{right:0;}
-.wxg-title{font-family:"Noto Serif TC","Microsoft JhengHei",serif; font-weight:900; font-size:21px; letter-spacing:7px;
+.wxg-title{font-family:"Noto Serif TC","Microsoft JhengHei",serif; font-weight:900; font-size:16px; letter-spacing:5px;
   color:var(--gold-lt); text-shadow:1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 12px rgba(212,175,55,.35);
+  white-space:nowrap;
 }
-.wxg-title small{display:block; font-size:11.5px; letter-spacing:1.5px; color:var(--dim-text); font-weight:500; margin-top:3px;}
+.wxg-title small{display:block; font-size:10.5px; letter-spacing:1px; color:var(--dim-text); font-weight:500; margin-top:2px; letter-spacing:.5px; white-space:normal;}
 .wxg-title-badge{color:var(--gold-lt); cursor:help; font-weight:700;}
-.wxg-stats-strip{display:flex; gap:18px; font-size:12px; color:var(--dim-text);}
+.wxg-stats-strip{display:flex; gap:8px; font-size:11.5px; color:var(--dim-text); flex-wrap:wrap; align-items:center;}
 .wxg-stats-strip b{color:var(--gold-lt); font-family:"JetBrains Mono";}
+.wxg-respill{
+  display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:12px;
+  background:linear-gradient(160deg,#241a0e,#150f08); border:1px solid #4a3818; white-space:nowrap;
+}
+.wxg-respill .icon{font-size:12px;}
 
 /* ---- 戰鬥舞台 ---- */
 .wxg-stage{
@@ -237,6 +244,7 @@
   border-left-color:var(--navc, var(--gold)); color:var(--navc, var(--gold-lt));
   box-shadow:0 0 10px -2px var(--navc, var(--gold)) inset;}
 .wxg-navdot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+.wxg-navicon{width:20px; flex-shrink:0; text-align:center; font-size:15px; filter:drop-shadow(0 0 3px var(--navc, transparent));}
 .wxg-navlabel{flex:1;}
 .wxg-navbadge{font-size:9px; padding:1px 6px; border-radius:8px; border:1px solid; font-weight:700; font-family:"JetBrains Mono",monospace;}
 .wxg-side.collapsed .wxg-navlabel, .wxg-side.collapsed .wxg-navbadge{display:none;}
@@ -428,6 +436,46 @@
 .wxg-tag.jade{background:var(--jade); color:#eafff2;}
 .wxg-tag.gold{background:var(--gold); color:#2a1c08;}
 .wxg-tag.crimson{background:var(--crimson); color:#ffe9e6;}
+
+/* ---- Melvor 風格「目前狀態卡＋可選項目卡片格」版型（見 render.js 的 renderSkillStatusCard/renderSkillCardGrid） ---- */
+.wxg-statuscard{
+  display:flex; align-items:center; gap:14px; border-radius:6px; padding:14px 16px; margin-bottom:12px;
+  background:
+    linear-gradient(160deg,#241a0e,#150f08) padding-box,
+    linear-gradient(135deg, #4a3613 0%, #b89243 20%, #6e5220 42%, #e6c474 60%, #5c4318 80%, #c9a14a 100%) border-box;
+  border:1.5px solid transparent; box-shadow:0 0 12px rgba(212,175,55,.18), 0 3px 10px #0009;
+}
+.wxg-statuscard-icon{
+  width:56px; height:56px; flex-shrink:0; border-radius:50%; font-size:28px;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 35% 30%, #3a2810, #150e06); border:2px solid var(--gold);
+}
+.wxg-statuscard-body{flex:1; min-width:0;}
+.wxg-statuscard-name{font-family:"Noto Serif TC"; font-weight:800; font-size:15px; color:var(--gold-lt); letter-spacing:1px;}
+.wxg-statuscard-tier{font-size:11.5px; color:var(--dim-text); margin-top:2px;}
+.wxg-cardgrid{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;}
+.wxg-skillcard{
+  position:relative; width:150px; border-radius:6px; padding:10px 10px 9px; cursor:pointer;
+  background:linear-gradient(160deg,#221808,#140d05); border:1.5px solid #4a3818;
+  display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px;
+}
+.wxg-skillcard:hover{border-color:var(--gold);}
+.wxg-skillcard.active{
+  border-color:var(--jade-lt); box-shadow:0 0 10px rgba(94,171,136,.35);
+  background:linear-gradient(160deg,#1c2a1f,#140d05);
+}
+.wxg-skillcard.disabled{opacity:.5; cursor:default;}
+.wxg-skillcard-icon{
+  width:38px; height:38px; border-radius:50%; font-size:19px;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 35% 30%, #3a2810, #150e06); border:2px solid var(--crimson);
+}
+.wxg-skillcard-name{font-size:12px; font-weight:700; color:var(--ink-text); line-height:1.3;}
+.wxg-skillcard-meta{font-size:10px; color:var(--dim-text);}
+.wxg-skillcard-active-flag{
+  position:absolute; top:5px; right:6px; font-size:9px; color:var(--jade-lt); font-weight:800;
+}
+@media (max-width:700px){ .wxg-skillcard{width:calc(50% - 5px);} }
 .wxg-hint{font-size:11.5px; color:#a99b7c; margin-top:6px; line-height:1.65;}
 
 .wxg-equip-slot{
