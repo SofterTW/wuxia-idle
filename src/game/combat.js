@@ -87,9 +87,14 @@ function combatTick(){
     // 唐門：淬毒，普攻附加中毒疊層（七絕經練成後額外多疊一層）
     if(S.sectKey==="tangmen" && S.monster.hp>0){
       const before = S.monster.poisonStacks||0;
-      const gain = 1 + (activeTech.id==="qijue" ? activeTech.specialValue.extraPoisonStack : 0);
+      const qijueBonus = activeTech.id==="qijue" ? activeTech.specialValue.extraPoisonStack : 0;
+      const gain = 1 + qijueBonus;
       S.monster.poisonStacks = Math.min(5, before+gain);
-      if(S.monster.poisonStacks>before){ S.stageEffects.push(`淬毒！（${S.monster.poisonStacks}層）`); S.triggerFlash.sectPassive = true; }
+      if(S.monster.poisonStacks>before){
+        S.stageEffects.push(`淬毒！（${S.monster.poisonStacks}層）`);
+        S.triggerFlash.sectPassive = true;
+        if(qijueBonus>0) S.triggerFlash.internalLayer = true;
+      }
     }
     // 明教：天魔解體，跨過門檻時觸發提示（僅在剛進入低血狀態當下顯示一次；赤火功會提高門檻）
     const tianmoThreshold = activeTech.id==="chihuo" ? activeTech.specialValue.hpThreshold : 0.5;
