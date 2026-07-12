@@ -1,11 +1,22 @@
 function bindSectPick(){ document.querySelectorAll('[data-sect]').forEach(el=>{ el.onclick = ()=> newGame(el.dataset.sect); }); }
 
-// 五大主屬性懸浮提示：獨立掛在 <body> 底下（不是 #root 裡面），render() 每次重繪不會動到它，
+// 通用懸浮提示：獨立掛在 <body> 底下（不是 #root 裡面），render() 每次重繪不會動到它，
 // 也不會被側欄 overflow-y:auto 裁切（側欄裁切了橫向溢出，直接掛在裡面的提示框會被切掉）。
-function getPrimaryTooltipEl(){
+function getFloatTooltipEl(){
   let el = document.getElementById('wxg-float-tooltip');
   if(!el){ el = document.createElement('div'); el.id = 'wxg-float-tooltip'; document.body.appendChild(el); }
   return el;
+}
+function positionFloatTooltip(tip, anchorEl){
+  tip.style.display = "block";
+  const rect = anchorEl.getBoundingClientRect();
+  let left = rect.right + 8;
+  let top = rect.top;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  if(left + tw > window.innerWidth) left = Math.max(4, rect.left - 8 - tw);
+  if(top + th > window.innerHeight) top = Math.max(4, window.innerHeight - th - 4);
+  tip.style.left = left + "px";
+  tip.style.top = top + "px";
 }
 
 function bindGlobal(){
@@ -102,20 +113,28 @@ function bindGlobal(){
   document.querySelectorAll('[data-primarykey]').forEach(el=>{
     el.onmouseenter = ()=>{
       const k = el.dataset.primarykey;
-      const tip = getPrimaryTooltipEl();
+      const tip = getFloatTooltipEl();
       const rows = primaryContributions(k).map(c=>`<div class="wxg-tip-row"><span>${c.stat}</span><b>+${Math.round(c.val)}</b></div>`).join("");
       tip.innerHTML = `<div class="wxg-tip-title" style="color:${PRIMARY_COLORS[k]};">${k} 換算・二級戰鬥屬性</div>${rows}`;
-      tip.style.display = "block";
-      const rect = el.getBoundingClientRect();
-      let left = rect.right + 8;
-      let top = rect.top;
-      const tw = tip.offsetWidth, th = tip.offsetHeight;
-      if(left + tw > window.innerWidth) left = Math.max(4, rect.left - 8 - tw);
-      if(top + th > window.innerHeight) top = Math.max(4, window.innerHeight - th - 4);
-      tip.style.left = left + "px";
-      tip.style.top = top + "px";
+      positionFloatTooltip(tip, el);
     };
-    el.onmouseleave = ()=>{ getPrimaryTooltipEl().style.display = "none"; };
+    el.onmouseleave = ()=>{ getFloatTooltipEl().style.display = "none"; };
+  });
+  // 通用「?」說明圖示：data-tip 存的是已跳脫過的說明文字，滑鼠移過去彈懸浮視窗。
+  document.querySelectorAll('[data-tip]').forEach(el=>{
+    el.onmouseenter = (e)=>{
+      e.stopPropagation();
+      const tip = getFloatTooltipEl();
+      tip.innerHTML = `<div class="wxg-tip-row" style="color:var(--ink-text);">${escapeHtml(el.dataset.tip)}</div>`;
+      positionFloatTooltip(tip, el);
+    };
+    el.onmouseleave = ()=>{ getFloatTooltipEl().style.display = "none"; };
+  });
+  document.querySelectorAll('[data-savegame]').forEach(el=> el.onclick=(e)=>{
+    e.stopPropagation();
+    saveGame();
+    addLog("已手動存檔", "system");
+    render();
   });
   document.querySelectorAll('[data-togglemartial]').forEach(el=> el.onclick=()=>{ const id=el.dataset.togglemartial; S.martialExpanded[id]=!S.martialExpanded[id]; render(); });
   document.querySelectorAll('[data-usemartial]').forEach(el=> el.onclick=(e)=>{
