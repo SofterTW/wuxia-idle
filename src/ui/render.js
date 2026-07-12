@@ -462,9 +462,9 @@ function renderStage(){
 }
 
 function renderNavList(){
-  const tabColors = {overview:"#d4af37", internal:"#5eab88", martial:"#d1564c", equip:"#a78bd6", map:"#4dd0c8", quest:"#4a86c0", wudanglogic:"#4a86c0", codex:"#f3a03c"};
-  const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務", wudanglogic:"戰鬥邏輯", codex:"遊戲百科"};
-  const tabIcons = {overview:"📜", internal:"☯", martial:"⚔️", equip:"🎒", map:"🗺️", quest:"📯", wudanglogic:"🧭", codex:"📚"};
+  const tabColors = {overview:"#d4af37", internal:"#5eab88", martial:"#d1564c", equip:"#a78bd6", map:"#4dd0c8", quest:"#4a86c0", wudanglogic:"#4a86c0", codex:"#f3a03c", settings:"#8a7d63"};
+  const tabLabels = {overview:"總覽", internal:"內功", martial:"武學", equip:"裝備", map:"地圖", quest:"任務", wudanglogic:"戰鬥邏輯", codex:"遊戲百科", settings:"設定"};
+  const tabIcons = {overview:"📜", internal:"☯", martial:"⚔️", equip:"🎒", map:"🗺️", quest:"📯", wudanglogic:"🧭", codex:"📚", settings:"⚙️"};
   const wudangCondCount = Object.values(S.wudangMoveConditions||{}).filter(c=>c && c.pct).length;
   const badges = {
     overview: "",
@@ -475,10 +475,12 @@ function renderNavList(){
     quest: S.quest ? (S.quest.killsDone>=S.quest.killsNeeded ? "可回報" : `${S.quest.killsDone}/${S.quest.killsNeeded}`) : "",
     wudanglogic: wudangCondCount>0 ? `${wudangCondCount}條件` : "",
     codex: "",
+    settings: "",
   };
   const tabOrder = ["overview","internal","martial","equip","map","quest"];
   if(S.sectKey==="wudang") tabOrder.push("wudanglogic");
   tabOrder.push("codex");
+  tabOrder.push("settings");
   const items = tabOrder.map(t=>{
     const c = tabColors[t];
     const active = S.tab===t;
@@ -545,7 +547,8 @@ function renderAutoHealBody(){
         </label>
       </div>`;
 }
-function renderSide(){
+// 「目前狀態效果」面板：原本常駐在左側欄，現在移進「總覽」分頁顯示（見 renderOverview）。
+function renderBuffPanel(){
   const exp = S.sideExpanded;
   const flash = S.triggerFlash || {};
   const rows = [];
@@ -602,57 +605,31 @@ function renderSide(){
   // 一直變會讓這個面板一直大小變化，把下面的面板擠得跟著上下跳動、點不到。這裡故意用「固定
   // height」而不是「max-height」——max-height 內容比上限矮時還是會跟著縮小，一樣會跳動；
   // 固定 height + 內部捲動才能保證不管裡面幾筆效果，面板本身的高度永遠不變。
-  const buffPanel = `<div class="wxg-panel">
+  return `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="buffs" style="cursor:pointer;"><span class="dot"></span><h3>目前狀態效果</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.buffs?'▾':'▸'}</span></div>
     ${exp.buffs?`<div style="height:180px; overflow-y:auto;">${buffBody}</div>`:''}
   </div>`;
+}
 
-  // 武當的「戰鬥選項」整合進「戰鬥邏輯」分頁了（見 renderWudangLogic），側欄不再重複顯示。
-  const autoPanel = S.sectKey==="wudang" ? '' : `<div class="wxg-panel">
-    <div class="wxg-panel-head" data-togglenside="autoheal" style="cursor:pointer;"><span class="dot"></span><h3>戰鬥選項</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.autoheal?'▾':'▸'}</span></div>
-    ${exp.autoheal?renderAutoHealBody():''}
-  </div>`;
-
+// 「五大主屬性」面板：原本常駐在左側欄，現在移進「總覽」分頁顯示（見 renderOverview）。
+function renderPrimaryPanel(){
+  const exp = S.sideExpanded;
   const primaryBody = ["臂力","身法","內息","罡氣","體魄"].map(k=>
     `<div class="wxg-row wxg-primary-row" data-primarykey="${k}"><span style="color:${PRIMARY_COLORS[k]};">${k}</span><b style="color:${PRIMARY_COLORS[k]};">${S.derivedPrimary[k]}</b></div>`
   ).join("");
-  const primaryPanel = `<div class="wxg-panel">
+  return `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="primary" style="cursor:pointer;"><span class="dot"></span><h3>五大主屬性</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.primary?'▾':'▸'}</span></div>
     ${exp.primary?primaryBody:''}
   </div>`;
+}
 
-  const savePanel = `<div class="wxg-panel">
-    <div class="wxg-panel-head" data-togglenside="save" style="cursor:pointer;"><span class="dot"></span><h3>存檔</h3><span class="wxg-help-icon" data-tip="${escapeHtml('進度會自動存在這台電腦的瀏覽器裡，換瀏覽器或清瀏覽器資料會遺失，跟其他人共用同一個網址不會互相影響。可以匯出存檔備份，或搬到別的瀏覽器／電腦時匯入。')}">?</span><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.save?'▾':'▸'}</span></div>
-    ${exp.save?`
-    <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
-      <button class="wxg-btn small" data-savegame="1">存檔</button>
-      <button class="wxg-btn small" data-exportsave="1">匯出存檔</button>
-      <label class="wxg-btn small" style="cursor:pointer; margin:0; display:inline-flex; align-items:center;">
-        匯入存檔
-        <input type="file" accept="application/json,.json" data-importsave="1" style="display:none;">
-      </label>
-    </div>
-    <button class="wxg-btn crimson small" data-restartgame="1" style="margin-top:8px;">重新開始（清除存檔）</button>
-    `:''}
+// 左側欄現在只剩「戰鬥選項」（武當已整合進「戰鬥邏輯」分頁，這裡不重複顯示）。
+function renderSide(){
+  const exp = S.sideExpanded;
+  return S.sectKey==="wudang" ? '' : `<div class="wxg-panel">
+    <div class="wxg-panel-head" data-togglenside="autoheal" style="cursor:pointer;"><span class="dot"></span><h3>戰鬥選項</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.autoheal?'▾':'▸'}</span></div>
+    ${exp.autoheal?renderAutoHealBody():''}
   </div>`;
-
-  const curSpeed = S.tickSpeedMult||1;
-  const speedPanel = `<div class="wxg-panel">
-    <div class="wxg-panel-head" data-togglenside="speed" style="cursor:pointer;"><span class="dot"></span><h3>全局加速</h3><span class="wxg-help-icon" data-tip="${escapeHtml('測試用功能：縮短戰鬥 tick 間隔讓遊戲跑更快，不影響數值計算結果，只是變快而已。')}">?</span><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.speed?'▾':'▸'}</span></div>
-    ${exp.speed?`
-    <div style="display:flex; gap:6px; margin-top:8px;">
-      ${[1,10,100].map(m=>`<button class="wxg-btn small ${curSpeed===m?'gold':''}" data-setspeed="${m}">${m}倍</button>`).join("")}
-    </div>
-    `:''}
-  </div>`;
-
-  return `
-    ${speedPanel}
-    ${primaryPanel}
-    ${buffPanel}
-    ${autoPanel}
-    ${savePanel}
-  `;
 }
 
 // Melvor Idle 風格的「目前狀態卡」：大圖示＋名稱＋層數/進度條，放在分頁最上方顯示玩家目前主修/裝備中的項目。
@@ -694,6 +671,42 @@ function renderTab(){
   if(S.tab==="quest") return renderQuest();
   if(S.tab==="wudanglogic") return renderWudangLogic();
   if(S.tab==="codex") return renderCodex();
+  if(S.tab==="settings") return renderSettings();
+}
+
+// 「設定」分頁：全局加速（測試用調速）＋存檔（存檔/匯出/匯入/重新開始），原本常駐在左側欄，
+// 移進獨立分頁後側欄只留「戰鬥選項」。
+function renderSettings(){
+  const exp = S.sideExpanded;
+  const curSpeed = S.tickSpeedMult||1;
+  const speedPanel = `<div class="wxg-panel">
+    <div class="wxg-panel-head" data-togglenside="speed" style="cursor:pointer;"><span class="dot"></span><h3>全局加速</h3><span class="wxg-help-icon" data-tip="${escapeHtml('測試用功能：縮短戰鬥 tick 間隔讓遊戲跑更快，不影響數值計算結果，只是變快而已。')}">?</span><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.speed?'▾':'▸'}</span></div>
+    ${exp.speed?`
+    <div style="display:flex; gap:6px; margin-top:8px;">
+      ${[1,10,100].map(m=>`<button class="wxg-btn small ${curSpeed===m?'gold':''}" data-setspeed="${m}">${m}倍</button>`).join("")}
+    </div>
+    `:''}
+  </div>`;
+
+  const savePanel = `<div class="wxg-panel">
+    <div class="wxg-panel-head" data-togglenside="save" style="cursor:pointer;"><span class="dot"></span><h3>存檔</h3><span class="wxg-help-icon" data-tip="${escapeHtml('進度會自動存在這台電腦的瀏覽器裡，換瀏覽器或清瀏覽器資料會遺失，跟其他人共用同一個網址不會互相影響。可以匯出存檔備份，或搬到別的瀏覽器／電腦時匯入。')}">?</span><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.save?'▾':'▸'}</span></div>
+    ${exp.save?`
+    <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+      <button class="wxg-btn small" data-savegame="1">存檔</button>
+      <button class="wxg-btn small" data-exportsave="1">匯出存檔</button>
+      <label class="wxg-btn small" style="cursor:pointer; margin:0; display:inline-flex; align-items:center;">
+        匯入存檔
+        <input type="file" accept="application/json,.json" data-importsave="1" style="display:none;">
+      </label>
+    </div>
+    <button class="wxg-btn crimson small" data-restartgame="1" style="margin-top:8px;">重新開始（清除存檔）</button>
+    `:''}
+  </div>`;
+
+  return `
+    ${speedPanel}
+    ${savePanel}
+  `;
 }
 
 function sectMechanicStatus(){
@@ -738,6 +751,7 @@ function renderCombatLogPanel(){
 
 function renderOverview(){
   return `
+    ${renderPrimaryPanel()}
     <div class="wxg-panel"><div class="wxg-panel-head"><span class="dot"></span><h3>二級戰鬥屬性</h3></div>
       <div class="wxg-grid2">
         <div class="wxg-row"><span>近身威力</span><b>${fmt(S.secondary.近身威力)}</b></div>
@@ -752,6 +766,7 @@ function renderOverview(){
       <div class="wxg-hint">門派專屬機制：${S.sect.passive}</div>
       <div class="wxg-hint" style="color:var(--gold-lt);">${sectMechanicStatus()}</div>
     </div>
+    ${renderBuffPanel()}
     ${renderCombatLogPanel()}
   `;
 }
