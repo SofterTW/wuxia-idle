@@ -142,6 +142,12 @@
 .wxg-map-target{ min-height:112px; }
 .wxg-map-hud .wxg-fname{ margin-bottom:2px; }
 .wxg-map-target{ flex:1; min-width:0; }
+/* 卡片裡的名稱、招式標籤、血條全部貼齊卡片最右邊——.wxg-gauge 已經縮到一半寬，pillrow
+   本身是 flex，預設內容會靠左堆疊、右側留白，要用 justify-content:flex-end 才會真的把
+   血條那排推到右邊；.wxg-fname／.wxg-tag 這些是行內／行內區塊內容，用 text-align:right
+   讓整張卡片文字都靠右對齊即可。 */
+.wxg-map-target{ text-align:right; }
+.wxg-map-target .wxg-pillrow{ justify-content:flex-end; }
 .wxg-scene{position:absolute; inset:0; z-index:0; overflow:hidden;}
 .wxg-scene svg{width:100%; height:100%; display:block;}
 .wxg-scene.bg-photo{background-size:cover; background-position:center 42%;}
