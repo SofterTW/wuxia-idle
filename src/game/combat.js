@@ -93,7 +93,7 @@ function combatTick(){
       if(S.monster.poisonStacks>before){
         S.stageEffects.push(`淬毒！（${S.monster.poisonStacks}層）`);
         S.triggerFlash.sectPassive = true;
-        if(qijueBonus>0) S.triggerFlash.internalLayer = true;
+        if(qijueBonus>0) S.triggerFlash.internalSpecial = true;
       }
     }
     // 明教：天魔解體，跨過門檻時觸發提示（僅在剛進入低血狀態當下顯示一次；赤火功會提高門檻）
