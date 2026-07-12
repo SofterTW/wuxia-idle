@@ -45,6 +45,45 @@ function recalc(fullRestore){
   S.mpMax = Math.round(p.內息*4*techDef.mpMult + p.罡氣*1 + (layer.mpBonus||0));
   if(fullRestore){ S.hp=S.hpMax; S.mp=S.mpMax; } else { S.hp=Math.min(S.hp,S.hpMax); S.mp=Math.min(S.mp,S.mpMax); }
 }
+// 五大主屬性懸浮提示用：算出某一項主屬性目前實際換算成了哪些二級戰鬥屬性、各多少點。
+// 公式跟 recalc() 裡 S.secondary 的算法要保持一致，只是拆出單一主屬性的那一項。
+function primaryContributions(key){
+  const p = S.derivedPrimary;
+  const tier = getInternalTier(S.activeInternal);
+  const techDef = INTERNAL_POOL.find(t=>t.id===S.activeInternal) || INTERNAL_POOL[0];
+  const xiaoyaoAtkBuff = S.statusEffects.reduce((s,e)=> e.kind==="regen" ? s+(e.atkBuff||0) : s, 0);
+  let atkBuff = 1 + (S.buffAtkTicks>0 ? S.buffAtk : 0) + xiaoyaoAtkBuff;
+  const tianmoThreshold = techDef.id==="chihuo" ? techDef.specialValue.hpThreshold : 0.5;
+  if(S.sectKey==="mingjiao" && S.hpMax>0 && S.hp/S.hpMax < tianmoThreshold) atkBuff *= 1.35;
+  if(key==="臂力") return [
+    {stat:"近身威力", val:p.臂力*atkBuff},
+    {stat:"外功暴擊", val:p.臂力*0.5},
+    {stat:"外功防禦", val:p.臂力*0.2},
+    {stat:"氣血上限", val:p.臂力*2},
+  ];
+  if(key==="身法") return [
+    {stat:"遠程威力", val:p.身法*atkBuff},
+    {stat:"外功命中", val:p.身法},
+    {stat:"閃避值", val:p.身法*0.6*(techDef.id==="xuanyuan"?techDef.specialValue.dodgeMult:1)},
+  ];
+  if(key==="內息") return [
+    {stat:"內功威力", val:p.內息*techDef.powerMult*atkBuff},
+    {stat:"內力上限", val:p.內息*4*techDef.mpMult},
+  ];
+  if(key==="罡氣") return [
+    {stat:"內功命中", val:p.罡氣},
+    {stat:"內功暴擊", val:p.罡氣*0.5},
+    {stat:"內功防禦", val:p.罡氣*0.2*techDef.defMult},
+    {stat:"內力上限", val:p.罡氣*1},
+  ];
+  if(key==="體魄") return [
+    {stat:"外功防禦", val:p.體魄*0.8},
+    {stat:"封勁", val:p.體魄*0.5},
+    {stat:"招架耐力上限", val:p.體魄*21},
+    {stat:"氣血上限", val:p.體魄*7*techDef.hpMult},
+  ];
+  return [];
+}
 function affinityMultiplier(a,m){ if(a==="太極") return 1.16; if(a===m) return 1.20; if(m==="太極") return 1.16; return 1.0; }
 
 function spawnMonster(avoidBoss){
