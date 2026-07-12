@@ -42,6 +42,10 @@ function patchLoadedSave(){
   if(S.wudangLastMoveset===undefined) S.wudangLastMoveset = null;
   if(S.wudangSwitchCd===undefined) S.wudangSwitchCd = 0;
   if(S.wudangMoveConditions===undefined) S.wudangMoveConditions = {};
+  if(S.wudangMovesetExpanded===undefined) S.wudangMovesetExpanded = {};
+  if(S.wudangFilterType===undefined) S.wudangFilterType = "全部";
+  if(S.wudangFilterRarity===undefined) S.wudangFilterRarity = "全部";
+  if(S.internalFilterAffinity===undefined) S.internalFilterAffinity = "全部";
   if(S.sectKey==="wudang"){
     WUDANG_MOVESETS.forEach(m=>{ if(S.wudangMovesetsUnlocked[m.key]===undefined) S.wudangMovesetsUnlocked[m.key] = true; });
     if(Object.values(S.wudangSlots).every(arr=>arr.length===0)) S.wudangSlots = defaultWudangSlots();

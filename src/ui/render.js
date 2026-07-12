@@ -22,7 +22,6 @@ function render(){
     ${S.pickerSlot?renderPicker():""}
     ${S.dialogueNpc?renderNpcDialogue():""}
     ${S.warningModal?renderWarningModal():""}
-    ${S.monsterInfoOpen?renderMonsterInfoModal():""}
   `;
   const newLogEl = document.getElementById('wxgLogScroll');
   if(newLogEl && prevScrollTop>4) newLogEl.scrollTop = prevScrollTop;
@@ -81,32 +80,29 @@ function renderWarningModal(){
   </div>`;
 }
 
-function renderMonsterInfoModal(){
-  const m = S.monster || (S.monsters && S.monsters[0]);
+// 敵人素質懸浮視窗的內容（滑鼠移到敵人頭像上才顯示，見 events.js 的 data-monsterinfohover）。
+function monsterInfoTooltipHtml(m){
   if(!m) return "";
   const statusRows = [];
-  if(m.poisonStacks>0) statusRows.push(`<div class="wxg-row"><span>中毒</span><b style="font-weight:400;">${m.poisonStacks} 層（每回合 ${m.poisonStacks*4} 傷害）</b></div>`);
-  if(m.bleedStacks>0) statusRows.push(`<div class="wxg-row"><span>流血</span><b style="font-weight:400;">${m.bleedStacks} 層（每回合 ${m.bleedStacks*3} 傷害）</b></div>`);
-  if(m.stunned) statusRows.push(`<div class="wxg-row"><span>暈眩</span><b style="font-weight:400;">下回合無法行動</b></div>`);
-  if(m.staggerTicks>0) statusRows.push(`<div class="wxg-row"><span>擊退</span><b style="font-weight:400;">攻擊力減半，剩 ${m.staggerTicks} 回合</b></div>`);
-  if(m.defReduceTicks>0) statusRows.push(`<div class="wxg-row"><span>破防</span><b style="font-weight:400;">防禦力降低，剩 ${m.defReduceTicks} 回合</b></div>`);
+  if(m.poisonStacks>0) statusRows.push(`<div class="wxg-tip-row"><span>中毒</span><b>${m.poisonStacks} 層（每回合 ${m.poisonStacks*4} 傷害）</b></div>`);
+  if(m.bleedStacks>0) statusRows.push(`<div class="wxg-tip-row"><span>流血</span><b>${m.bleedStacks} 層（每回合 ${m.bleedStacks*3} 傷害）</b></div>`);
+  if(m.stunned) statusRows.push(`<div class="wxg-tip-row"><span>暈眩</span><b>下回合無法行動</b></div>`);
+  if(m.staggerTicks>0) statusRows.push(`<div class="wxg-tip-row"><span>擊退／硬直</span><b>剩 ${m.staggerTicks} 回合</b></div>`);
+  if(m.defReduceTicks>0) statusRows.push(`<div class="wxg-tip-row"><span>破防</span><b>防禦力降低，剩 ${m.defReduceTicks} 回合</b></div>`);
   (m.statusEffects||[]).forEach(e=>{
     if(e.kind==="dot_debuff"){
-      statusRows.push(`<div class="wxg-row"><span>${e.element}屬性中毒／灼傷</span><b style="font-weight:400;">每回合 ${e.dmgPerTick} 傷害${e.debuffValue?`，${e.debuffStat}降低 ${Math.round(e.debuffValue*100)}%`:''}，剩 ${e.remainingTicks} 回合</b></div>`);
+      const label = e.wudangMark || `${e.element||''}屬性中毒／灼傷`;
+      statusRows.push(`<div class="wxg-tip-row"><span>${label}</span><b>每回合 ${e.dmgPerTick} 傷害${e.debuffValue?`，${e.debuffStat}降低 ${Math.round(e.debuffValue*100)}%`:''}，剩 ${e.remainingTicks} 回合</b></div>`);
     }
   });
   return `
-  <div class="wxg-modal-overlay" data-closemonsterinfo="1">
-    <div class="wxg-modal" data-stop="1">
-      <div class="wxg-panel-head"><span class="dot"></span><h3>${m.name}</h3>${m.isBoss?`<span class="wxg-tag crimson" style="margin-left:auto;">首領</span>`:''}</div>
-      <div class="wxg-row"><span>等級</span><b>Lv.${m.level}</b></div>
-      <div class="wxg-row"><span>氣血</span><b>${Math.round(m.hp)} / ${m.hpMax}</b></div>
-      <div class="wxg-row"><span>攻擊力</span><b>${m.atk}</b></div>
-      <div class="wxg-row"><span>防禦力</span><b>${m.def}</b></div>
-      ${statusRows.length>0?`<div class="wxg-hint" style="margin:8px 0 2px;">目前異常狀態</div>${statusRows.join("")}`:`<div class="wxg-hint" style="margin-top:8px;">目前沒有中毒、流血等異常狀態。</div>`}
-      <button class="wxg-btn small" style="margin-top:10px;" data-closemonsterinfo="1">關閉</button>
-    </div>
-  </div>`;
+    <div class="wxg-tip-title" style="color:var(--gold-lt);">${m.name}${m.isBoss?'　【首領】':''}</div>
+    <div class="wxg-tip-row"><span>等級</span><b>Lv.${m.level}</b></div>
+    <div class="wxg-tip-row"><span>氣血</span><b>${Math.round(m.hp)} / ${m.hpMax}</b></div>
+    <div class="wxg-tip-row"><span>攻擊力</span><b>${m.atk}</b></div>
+    <div class="wxg-tip-row"><span>防禦力</span><b>${m.def}</b></div>
+    ${statusRows.length>0?`<div class="wxg-tip-title" style="margin-top:5px;">目前異常狀態</div>${statusRows.join("")}`:`<div class="wxg-tip-row"><span>目前沒有異常狀態</span></div>`}
+  `;
 }
 
 function renderNpcDialogue(){
@@ -367,7 +363,7 @@ function renderStage(){
       ${S.stageEffects && S.stageEffects.length>0 ? S.stageEffects.map((t,i)=>`<div class="wxg-effect-banner" style="animation-delay:${i*0.15}s;">${t}</div>`).join("") : ""}
     </div>
     <div class="wxg-fighter">
-      <div class="wxg-portrait-wrap"${m?` data-openmonsterinfo="1" style="cursor:pointer;" title="點擊查看敵人屬性"`:''}>
+      <div class="wxg-portrait-wrap"${m?` data-monsterinfohover="1" style="cursor:help;"`:''}>
         ${S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
         <div class="wxg-portrait big enemy${enemyHitCls}">${monsterIcon}</div>
         <div class="wxg-ground-shadow"></div>
@@ -376,7 +372,7 @@ function renderStage(){
       <div class="wxg-fsub">Lv.${m?m.level:0}</div>
       ${wudangStanceTag}
       ${wudangDebuffRows}
-      ${m?`<div class="wxg-stage-hint" style="font-size:10px; opacity:.75;">👆 點擊頭像查看屬性</div>`:''}
+      ${m?`<div class="wxg-stage-hint" style="font-size:10px; opacity:.75;">🖱️ 滑鼠移到頭像查看屬性</div>`:''}
       <div class="wxg-gauge-wrap">
         ${pillbar('氣','en',m?m.hp:0,m?m.hpMax:1,'en',S.hitEnemy?'gauge-flash':'')}
       </div>
@@ -634,14 +630,25 @@ function internalLayerDesc(skill, layerIdx){
 }
 
 function renderInternal(){
+  const knownList = INTERNAL_POOL.filter(t=>S.knownInternal[t.id]);
+  const affinityFilter = S.internalFilterAffinity || "全部";
+  const filterBar = knownList.length>1 ? `<div class="wxg-panel">
+    <div class="wxg-row" style="flex-wrap:wrap; gap:8px; align-items:center; border-bottom:none;">
+      <span style="color:var(--dim-text);">篩選：</span>
+      <select data-internalfilteraffinity="1" style="background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+        ${["全部","太極","陰柔","陽剛"].map(a=>`<option value="${a}" ${affinityFilter===a?'selected':''}>${a==="全部"?"全部屬性":a}</option>`).join("")}
+      </select>
+    </div>
+  </div>` : '';
   return `
     <div class="wxg-panel"><div class="wxg-panel-head internal"><span class="dot"></span><h3>內功修為池：${S.qiPool} 點</h3></div>
       <div class="wxg-hint">投入不可拆分收回，需用洗髓丹洗點（返還七折，冷卻 20 次戰鬥）。點標題列可展開/收合詳情。</div>
       <div class="wxg-row" style="margin-top:6px;"><span>持有洗髓丹</span><b>${S.materials.洗髓丹}</b></div>
       <div class="wxg-row"><span>洗點冷卻</span><b>${S.respecCooldown>0?S.respecCooldown+' 次戰鬥':'可用'}</b></div>
     </div>
-    ${Object.keys(S.knownInternal).length===0?`<div class="wxg-panel"><div class="wxg-hint">尚未習得任何內功心法，擊殺 Boss 有機率掉落秘笈，於背包使用後習得。</div></div>`:''}
-    ${INTERNAL_POOL.filter(t=>S.knownInternal[t.id]).map(t=>{
+    ${knownList.length===0?`<div class="wxg-panel"><div class="wxg-hint">尚未習得任何內功心法，擊殺 Boss 有機率掉落秘笈，於背包使用後習得。</div></div>`:''}
+    ${filterBar}
+    ${knownList.filter(t=> affinityFilter==="全部" || t.affinity===affinityFilter).map(t=>{
       const known = S.knownInternal[t.id];
       const cap = MAX_OBTAINABLE_TIER - 1;
       const tier = getInternalTier(t.id);
@@ -714,16 +721,35 @@ function renderMartialWudang(){
     </div>`;
   }).join("");
 
+  const filterType = S.wudangFilterType||"全部";
+  const filterRarity = S.wudangFilterRarity||"全部";
+  const filterBar = `<div class="wxg-panel">
+    <div class="wxg-row" style="flex-wrap:wrap; gap:8px; align-items:center; border-bottom:none;">
+      <span style="color:var(--dim-text);">篩選：</span>
+      <select data-wudangfiltertype="1" style="background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+        ${["全部",...WUDANG_SLOT_TYPES].map(t=>`<option value="${t}" ${filterType===t?'selected':''}>${t==="全部"?"全部類型":t}</option>`).join("")}
+      </select>
+      <select data-wudangfilterrarity="1" style="background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+        <option value="全部" ${filterRarity==="全部"?'selected':''}>全部稀有度</option>
+        ${[1,2,3,4,5,6,7].map(r=>`<option value="${r}" ${String(filterRarity)===String(r)?'selected':''}>${MOVESET_RARITY_INFO[r].name}（${r}階）</option>`).join("")}
+      </select>
+    </div>
+  </div>`;
+
   const rows = WUDANG_MOVESETS.filter(ms=>S.wudangMovesetsUnlocked[ms.key]).map(ms=>{
-    const unlocked = true;
     const info = MOVESET_RARITY_INFO[ms.rarity] || {name:"？",color:"var(--dim-text)"};
-    const moveRows = ms.moves.map(m=>{
+    if(filterRarity!=="全部" && String(ms.rarity)!==String(filterRarity)) return "";
+    const visibleMoves = ms.moves.filter(m=> filterType==="全部" || m.type===filterType);
+    if(visibleMoves.length===0) return "";
+    const expanded = !!S.wudangMovesetExpanded[ms.key];
+    const equippedCount = ms.moves.filter(m=>equippedIds.has(m.id)).length;
+    const moveRows = visibleMoves.map(m=>{
       const st = S.wudangMoveState[m.id];
       const cdLeft = st ? Math.max(0, st.cdRemaining||0) : 0;
       const costTxt = m.rageCost ? `怒氣 ${m.rageCost}` : (m.mpCost ? `內力 ${m.mpCost}` : '無消耗');
       const isEquipped = equippedIds.has(m.id);
       const full = (S.wudangSlots[m.type]||[]).length >= WUDANG_SLOT_CAPS[m.type];
-      const btn = !unlocked ? '' : isEquipped
+      const btn = isEquipped
         ? `<button class="wxg-btn crimson small" data-wudangtoggle="${m.id}">卸下</button>`
         : `<button class="wxg-btn gold small" data-wudangtoggle="${m.id}" ${full?'disabled title="該類型技能欄已滿"':''}>裝備</button>`;
       return `<div class="wxg-row">
@@ -733,9 +759,15 @@ function renderMartialWudang(){
       <div class="wxg-hint" style="margin:0 0 4px; padding-left:4px;">${m.desc}</div>
       <div style="margin:0 0 8px; padding-left:4px;">${btn}</div>`;
     }).join("");
-    return `<div class="wxg-panel wxg-msrarity-${ms.rarity} ${unlocked?'active-main':''}">
-      <div class="wxg-panel-head martial"><span class="dot"></span><h3>${ms.name}</h3><span class="wxg-tag" style="border-color:${info.color}; color:${info.color};">${info.name}（稀有度${ms.rarity}）</span><span class="wxg-tag">${ms.weaponSub}</span>${unlocked?'<span class="wxg-tag jade" style="margin-left:auto;">已習得</span>':'<span class="wxg-tag" style="margin-left:auto;">尚未習得</span>'}</div>
-      ${unlocked?moveRows:`<div class="wxg-hint">尚未解鎖，稀有度兌換系統開發中。</div>`}
+    return `<div class="wxg-panel wxg-msrarity-${ms.rarity} active-main">
+      <div class="wxg-panel-head martial" data-wudangtogglemoveset="${ms.key}" style="cursor:pointer;">
+        <span class="dot"></span><h3>${ms.name}</h3>
+        <span class="wxg-tag" style="border-color:${info.color}; color:${info.color};">${info.name}（稀有度${ms.rarity}）</span>
+        <span class="wxg-tag">${ms.weaponSub}</span>
+        <span class="wxg-tag jade">已裝備 ${equippedCount}/${ms.moves.length}</span>
+        <span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${expanded?'▾':'▸'}</span>
+      </div>
+      ${expanded?moveRows:`<div class="wxg-hint">點標題列查看這套路的完整招式與說明。</div>`}
     </div>`;
   }).join("");
   return `
@@ -743,6 +775,7 @@ function renderMartialWudang(){
       <div class="wxg-hint">武當用的是全新的五招制戰鬥系統，招式會依當下敵我情勢自動見招拆招（實招硬拼、虛招破防、架招格擋、氣招調息、怒氣大招終結）。下面先在技能欄裝備要用的招式（實／虛／氣招各5格，架招／怒氣大招各1格），系統才會從已裝備的招式裡自動出招。同一套路內連續出招沒有限制，換到不同套路的招式要等5回合的換招冷卻。目前四套武學已全部解鎖供測試，稀有度兌換系統之後才會真的限制取得。</div>
       ${slotSection}
     </div>
+    ${filterBar}
     ${rows}
   `;
 }

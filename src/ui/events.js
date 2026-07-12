@@ -142,6 +142,12 @@ function bindGlobal(){
     if(i<arr.length-1){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; render(); }
   });
   document.querySelectorAll('[data-togglenside]').forEach(el=> el.onclick=()=>{ const k=el.dataset.togglenside; S.sideExpanded[k]=!S.sideExpanded[k]; render(); });
+  document.querySelectorAll('[data-wudangtogglemoveset]').forEach(el=> el.onclick=()=>{
+    const k = el.dataset.wudangtogglemoveset; S.wudangMovesetExpanded[k] = !S.wudangMovesetExpanded[k]; render();
+  });
+  document.querySelectorAll('[data-wudangfiltertype]').forEach(el=> el.onchange=()=>{ S.wudangFilterType = el.value; render(); });
+  document.querySelectorAll('[data-wudangfilterrarity]').forEach(el=> el.onchange=()=>{ S.wudangFilterRarity = el.value; render(); });
+  document.querySelectorAll('[data-internalfilteraffinity]').forEach(el=> el.onchange=()=>{ S.internalFilterAffinity = el.value; render(); });
   // 戰鬥邏輯分頁：每招的施放條件（HP/MP 高於/低於 X%），存進 S.wudangMoveConditions[moveId]。
   function ensureWudangCond(id){
     if(!S.wudangMoveConditions[id]) S.wudangMoveConditions[id] = {resource:"HP", compare:"above", pct:null};
@@ -326,9 +332,16 @@ function bindGlobal(){
     S.pickerSnapshot = S.inventory.filter(it=>it.slot===slot);
     render();
   });
-  document.querySelectorAll('[data-openmonsterinfo]').forEach(el=> el.onclick=()=>{ S.monsterInfoOpen = true; render(); });
-  document.querySelectorAll('[data-closemonsterinfo]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.monsterInfoOpen=false; render(); });
-  document.querySelectorAll('.wxg-modal button[data-closemonsterinfo]').forEach(el=> el.onclick=()=>{ S.monsterInfoOpen=false; render(); });
+  document.querySelectorAll('[data-monsterinfohover]').forEach(el=>{
+    el.onmouseenter = ()=>{
+      const m = S.monster || (S.monsters && S.monsters[0]);
+      if(!m) return;
+      const tip = getFloatTooltipEl();
+      tip.innerHTML = monsterInfoTooltipHtml(m);
+      positionFloatTooltip(tip, el);
+    };
+    el.onmouseleave = ()=>{ getFloatTooltipEl().style.display = "none"; };
+  });
   document.querySelectorAll('[data-closewarning]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.warningModal=null; S.warningCooldown=20; render(); });
   document.querySelectorAll('.wxg-modal button[data-closewarning]').forEach(el=> el.onclick=()=>{ S.warningModal=null; S.warningCooldown=20; render(); });
   document.querySelectorAll('[data-closepicker]').forEach(el=> el.onclick=(e)=>{ if(e.target!==el) return; S.pickerSlot=null; S.pickerSnapshot=[]; render(); });
