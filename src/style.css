@@ -60,6 +60,40 @@
    align-self:flex-end）保留頂端走位場地的高度，這樣不管資訊卡內容長短（武當debuff行數會變化），
    都不會被撐到往上跟頭像重疊。 */
 .wxg-fighter{align-self:flex-start; margin-top:145px;}
+
+/* ---- 武當專用：戰鬥地圖（多隻怪同時在場，玩家自動走位挑最近的打） ---- */
+.wxg-arena-map{
+  position:relative; margin:12px 14px 0; padding:0; border-radius:6px; overflow:hidden;
+  background:linear-gradient(145deg, var(--wood1), var(--wood2));
+  border:1px solid var(--gold-dk); box-shadow:0 0 0 1px #000 inset, 0 6px 14px #0009;
+  min-height:300px;
+}
+.wxg-map-player, .wxg-map-mob{
+  position:absolute; width:80px; margin-left:-40px; text-align:center; z-index:5; top:0;
+}
+.wxg-map-mob{ width:64px; margin-left:-32px; z-index:4; }
+.wxg-map-mob-name{
+  font-size:10.5px; font-weight:700; color:var(--ink-text); text-shadow:0 0 4px #000, 0 0 2px #000;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.wxg-map-mob.boss .wxg-map-mob-name{ color:#ff8a4a; }
+.wxg-map-mob-hpbar{
+  height:5px; border-radius:999px; background:#0a0805; border:1px solid #000; margin:2px auto 4px;
+  box-shadow:0 0 0 1px #4a3218; overflow:hidden; width:90%;
+}
+.wxg-map-mob-hpfill{height:100%; background:linear-gradient(180deg,#7ec9a2,var(--jade) 60%,#204a3a); transition:width .35s;}
+.wxg-map-player .wxg-portrait{width:76px; height:76px;}
+.wxg-map-player .wxg-portrait svg{width:76px; height:76px;}
+.wxg-map-mob .wxg-portrait{width:56px; height:56px;}
+.wxg-map-mob .wxg-portrait svg{width:56px; height:56px;}
+.wxg-map-player.walking{ animation:wxgArenaWalk .55s ease-in-out forwards; }
+.wxg-map-hud{
+  position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between;
+  gap:14px; padding:10px 16px; margin:0 14px; border-top:1px solid var(--gold-dk);
+  background:linear-gradient(180deg, rgba(24,16,9,.9), rgba(18,12,7,.9));
+}
+.wxg-map-hud .wxg-fname{ margin-bottom:2px; }
+.wxg-map-target{ flex:1; min-width:0; }
 .wxg-scene{position:absolute; inset:0; z-index:0; overflow:hidden;}
 .wxg-scene svg{width:100%; height:100%; display:block;}
 .wxg-scene.bg-photo{background-size:cover; background-position:center 42%;}

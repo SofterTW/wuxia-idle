@@ -368,6 +368,19 @@ function wudangMonsterMarkStacks(m, name){ const e = m.statusEffects.find(e=>e.w
 
 function firstAliveMonster(){ return (S.monsters||[]).find(m=>m.hp>0) || null; }
 
+// 從玩家目前位置找最近的存活怪物（用地圖定位點的直線距離），自動戰鬥「挑最近的怪走過去打」用。
+function nearestAliveWudangMonster(fromPos){
+  let best=null, bestD=Infinity;
+  (S.monsters||[]).forEach(m=>{
+    if(m.hp<=0) return;
+    const p = WUDANG_ARENA_SLOTS[m.arenaSlot];
+    if(!p) return;
+    const d = Math.hypot(p.x-fromPos.x, p.y-fromPos.y);
+    if(d<bestD){ bestD=d; best=m; }
+  });
+  return best;
+}
+
 // 目標身上如果還在「虛招破防」的減防期間，計算對它出手時實際要打的防禦力
 // （wudangGuardBreakPct 是破防那招留下的減防幅度，見 applyGuardBreak；沒被破防過就是原始防禦）。
 function wudangEffectiveDef(target){
@@ -708,9 +721,11 @@ function resolveWudangMonsterAttack(target, playerMove, activeTech){
 
 function onKillWudang(target){
   resolveKillRewards(target);
-  S.deathFlash = { isBoss: !!target.isBoss };
+  S.deathFlash = { isBoss: !!target.isBoss, slot: target.arenaSlot };
   S.killCount++;
-  if(S.monsters.every(m=>m.hp<=0)) spawnMonstersWudang(S.monsters.length);
+  // 死一隻立刻在空位補一隻，地圖上維持固定隻數，不用等全滅才重生。
+  S.monsters = S.monsters.filter(m=>m!==target);
+  spawnOneWudangMonster();
 }
 
 function combatTickWudang(){
@@ -726,6 +741,29 @@ function combatTickWudang(){
     return;
   }
   if(!S.monsters || S.monsters.length===0 || S.monsters.every(m=>m.hp<=0)) spawnMonstersWudang();
+  // 補位：舊存檔的怪物可能沒有 arenaSlot（改版前存的），或位置剛好跟別隻撞在一起，
+  // 這裡統一檢查一次、有問題就重新分配空位，避免地圖上疊圖或直接抓不到座標。
+  (() => {
+    const usedSlots = new Set();
+    S.monsters.forEach(m=>{
+      if(m.hp<=0) return;
+      if(m.arenaSlot==null || usedSlots.has(m.arenaSlot)){
+        m.arenaSlot = WUDANG_ARENA_SLOTS.findIndex((_,i)=>!usedSlots.has(i));
+      }
+      usedSlots.add(m.arenaSlot);
+    });
+  })();
+  // 舊存檔（改版前）可能只有 1 隻怪，這裡補到目標池數，讓地圖立刻變成多隻怪同時存在。
+  // 一次補好幾隻時，每隻都各自判定「這次擊殺數是不是首領倍數」會同時生出好幾隻首領，
+  // 用 bossAlreadyPresent 限制這批最多只補出 1 隻首領（跟 spawnMonstersWudang 的邏輯一致）。
+  let bossAlreadyPresent = S.monsters.some(m=>m.hp>0 && m.isBoss);
+  while(S.monsters.filter(m=>m.hp>0).length < WUDANG_ARENA_POOL_SIZE && S.monsters.length < WUDANG_ARENA_SLOTS.length){
+    const before = S.monsters.length;
+    spawnOneWudangMonster(bossAlreadyPresent);
+    if(S.monsters.length===before) break; // 沒空位可補了
+    if(S.monsters[S.monsters.length-1].isBoss) bossAlreadyPresent = true;
+  }
+  if(!S.wudangPlayerPos) S.wudangPlayerPos = {...WUDANG_ARENA_PATROL[0]};
   recalc(false);
   if(S.respecCooldown>0) S.respecCooldown--;
   if(S.warningCooldown>0) S.warningCooldown--;
@@ -737,6 +775,7 @@ function combatTickWudang(){
   checkAutoHeal();
   S.floatPlayer=""; S.floatEnemy=""; S.hitEnemy=false; S.hitEnemyCrit=false; S.hitPlayer=false;
   S.stageEffects=[]; S.triggerFlash={};
+  S.wudangPlayerWalking=false; S.wudangWalkFrom=null; S.wudangWalkTo=null;
 
   Object.values(S.wudangMoveState).forEach(st=>{ if(st.cdRemaining>0) st.cdRemaining--; });
   if(S.wudangSwitchCd>0) S.wudangSwitchCd--;
@@ -755,8 +794,42 @@ function combatTickWudang(){
       S.stageEffects.push(`<span style="color:#c084fc; font-weight:700;">${e.wudangMark||'內傷'}</span>・持續發作（-${dmg}，${e.firedCount}/${e.totalDuration||'?'}回合）<span style="color:${catColor}; margin-left:5px;">〔持續傷害〕</span>`);
     });
   });
+  // 地圖上同時有多隻怪，DOT 可能打死「這個 tick 沒有實際交手」的怪（例如玩家正走去打別隻），
+  // 死亡判定不能只看最後交手的 target，這裡先把 DOT 打死的怪處理掉，才不會有屍體卡住地圖格位
+  // （旁邊那隻的 hp<=0 卻一直沒被 onKillWudang 收掉，池數統計就會越補越多）。
+  S.monsters.filter(m=>m.hp<=0).forEach(m=>onKillWudang(m));
 
-  const target = firstAliveMonster();
+  // 自動戰鬥先挑最近的存活目標；還沒走到那格之前這個 tick 只走路、不出招——
+  // 「打到」跟「移動到」現在是兩件事，出招/挨打只在真的站到怪物旁邊那一刻才會發生。
+  const nearest = nearestAliveWudangMonster(S.wudangPlayerPos);
+  let target = null;
+  if(nearest){
+    const slotPos = WUDANG_ARENA_SLOTS[nearest.arenaSlot];
+    const arrived = Math.abs(S.wudangPlayerPos.x-slotPos.x)<0.6 && Math.abs(S.wudangPlayerPos.y-slotPos.y)<0.6;
+    if(!arrived){
+      S.wudangWalkFrom = {...S.wudangPlayerPos};
+      S.wudangWalkTo = {...slotPos};
+      S.wudangPlayerPos = {...slotPos};
+      S.wudangPlayerWalking = true;
+      S.monsters.forEach(m=>{ if(m.staggerTicks>0) m.staggerTicks--; if(m.defReduceTicks>0) m.defReduceTicks--; });
+      S.tick++;
+      return;
+    }
+    target = nearest;
+  } else {
+    // 沒有存活目標（極少發生，死一隻補一隻的情況下地圖幾乎不會真的空過）：
+    // 在巡邏點之間閒晃，等下一次 spawnMonstersWudang 補上怪物。
+    const patrolFrom = {...S.wudangPlayerPos};
+    S.wudangPatrolIdx = ((S.wudangPatrolIdx||0)+1) % WUDANG_ARENA_PATROL.length;
+    const nextPoint = WUDANG_ARENA_PATROL[S.wudangPatrolIdx];
+    if(Math.abs(patrolFrom.x-nextPoint.x)>0.6 || Math.abs(patrolFrom.y-nextPoint.y)>0.6){
+      S.wudangWalkFrom = patrolFrom; S.wudangWalkTo = {...nextPoint}; S.wudangPlayerWalking = true;
+    }
+    S.wudangPlayerPos = {...nextPoint};
+    S.tick++;
+    return;
+  }
+
   if(target) target.stance = wudangMonsterStance(target);
 
   const move = target ? pickWudangMove(target, activeTech) : null;
