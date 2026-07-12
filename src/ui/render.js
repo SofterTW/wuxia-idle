@@ -405,7 +405,18 @@ function renderSide(){
     rows.push(`<div class="wxg-row effect-flash"><span>培元丹（威力+${Math.round(S.buffAtk*100)}%）</span><b>${S.buffAtkTicks} 回合</b></div>`);
   }
   (S.statusEffects||[]).forEach(e=>{
-    if(e.kind==="buff"){
+    if(e.wudangName){
+      // 武當五招制的自身狀態（攬雀尾／三環套月／太極氣盾／陰陽之氣／霸體等）不是單純的
+      // 「某屬性 +X%」，用專屬文字顯示，不要走下面通用的 stat/value 格式（那樣會顯示成
+      // 沒意義的「提升0%」，因為這些效果的 stat/value 欄位本來就是空的佔位值）。
+      let label = e.wudangName;
+      if(e.wudangName==="霸體") label = `霸體（${e.immuneAll?'紅霸體，免疫僵直與所有控制':'黃霸體，免疫受擊僵直'}）`;
+      else if(e.shieldAbsorbPct) label = `${e.wudangName}（護盾，吸收${Math.round(e.shieldAbsorbPct*100)}%上限傷害）`;
+      else if(e.stacks!=null) label = `${e.wudangName}　${e.stacks}／${e.maxStacks}層`;
+      else if(e.mpOnHit) label = `${e.wudangName}（命中回復內力 ${e.mpOnHit}）`;
+      else if(e.kind==="regen") label = `${e.wudangName}（${e.stat==="mp"?"內力":"氣血"}持續回復中）`;
+      rows.push(`<div class="wxg-row effect-flash"><span>${label}</span><b>${e.remainingTicks} 回合</b></div>`);
+    } else if(e.kind==="buff"){
       rows.push(`<div class="wxg-row effect-flash"><span>${e.stat}提升 +${Math.round(e.value*100)}%</span><b>${e.remainingTicks} 回合</b></div>`);
     } else if(e.kind==="regen"){
       rows.push(`<div class="wxg-row effect-flash"><span>逍遙（內力回復中${e.atkBuff?`，威力+${Math.round(e.atkBuff*100)}%`:''}）</span><b>${e.remainingTicks} 回合</b></div>`);
