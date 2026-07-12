@@ -479,13 +479,9 @@ function renderSide(){
     ${exp.autoheal?autoBody:''}
   </div>`;
 
-  const primaryBody = ["臂力","身法","內息","罡氣","體魄"].map(k=>{
-    const tipRows = primaryContributions(k).map(c=>`<div class="wxg-tip-row"><span>${c.stat}</span><b>+${Math.round(c.val)}</b></div>`).join("");
-    return `<div class="wxg-row wxg-primary-row">
-      <span style="color:${PRIMARY_COLORS[k]};">${k}</span><b style="color:${PRIMARY_COLORS[k]};">${S.derivedPrimary[k]}</b>
-      <div class="wxg-primary-tip"><div class="wxg-tip-title" style="color:${PRIMARY_COLORS[k]};">${k} 換算・二級戰鬥屬性</div>${tipRows}</div>
-    </div>`;
-  }).join("");
+  const primaryBody = ["臂力","身法","內息","罡氣","體魄"].map(k=>
+    `<div class="wxg-row wxg-primary-row" data-primarykey="${k}"><span style="color:${PRIMARY_COLORS[k]};">${k}</span><b style="color:${PRIMARY_COLORS[k]};">${S.derivedPrimary[k]}</b></div>`
+  ).join("");
   const primaryPanel = `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="primary" style="cursor:pointer;"><span class="dot"></span><h3>五大主屬性</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.primary?'▾':'▸'}</span></div>
     ${exp.primary?primaryBody:''}
