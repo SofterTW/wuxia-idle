@@ -379,11 +379,14 @@ function nearestAliveWudangMonster(fromPos){
   return best;
 }
 function wudangDist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
-// 讓 pos 朝 target 移動最多 maxStep 的距離（不會超過），到達了就直接貼上，回傳「這步是否真的移動了」。
-function wudangStepToward(pos, target, maxStep){
+// 讓 pos 朝 target 移動最多 maxStep 的距離。stopDist 是「追擊時要停在離對方多遠」——不填就是
+// 0，會一路走到跟 target 完全同一點（給巡邏閒晃這種「走到定點」的情境用）；追擊玩家/怪物時要
+// 帶 WUDANG_ENGAGE_DIST，讓兩個頭像的圈圈邊邊碰到就停下，不要整個疊在一起。
+function wudangStepToward(pos, target, maxStep, stopDist){
   const d = wudangDist(pos, target);
-  if(d<0.5) return false;
-  const step = Math.min(maxStep, d);
+  const remaining = d - (stopDist||0);
+  if(remaining<0.5) return false;
+  const step = Math.min(maxStep, remaining);
   pos.x += (target.x-pos.x)/d*step;
   pos.y += (target.y-pos.y)/d*step;
   return true;
@@ -815,7 +818,7 @@ function combatTickWudang(){
     const hostile = m.aggressive || m.aggroed;
     let moved;
     if(hostile){
-      moved = wudangStepToward(m.pos, S.wudangPlayerPos, WUDANG_MOVE_STEP);
+      moved = wudangStepToward(m.pos, S.wudangPlayerPos, WUDANG_MOVE_STEP, WUDANG_ENGAGE_DIST);
     } else {
       if(!m.wanderTarget || wudangDist(m.pos, m.wanderTarget)<1.5) m.wanderTarget = wudangRandomPoint();
       moved = wudangStepToward(m.pos, m.wanderTarget, WUDANG_WANDER_STEP);
@@ -827,7 +830,7 @@ function combatTickWudang(){
     const d = wudangDist(S.wudangPlayerPos, nearest.pos);
     if(d > WUDANG_ENGAGE_DIST){
       const from = {...S.wudangPlayerPos};
-      wudangStepToward(S.wudangPlayerPos, nearest.pos, WUDANG_MOVE_STEP);
+      wudangStepToward(S.wudangPlayerPos, nearest.pos, WUDANG_MOVE_STEP, WUDANG_ENGAGE_DIST);
       S.wudangWalkFrom = from; S.wudangWalkTo = {...S.wudangPlayerPos}; S.wudangPlayerWalking = true;
     }
   } else {
