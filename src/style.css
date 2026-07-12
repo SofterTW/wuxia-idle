@@ -164,6 +164,7 @@
 }
 .wxg-float.self{color:#ff8a7a;}
 .wxg-float.foe{color:var(--gold-lt);}
+.wxg-float.miss{color:#9a9488 !important; font-size:12px;}
 .wxg-float.crit{font-size:19px; animation:wxgFloatCrit 1.3s ease-out; color:#fff5d6 !important; text-shadow:0 0 8px #d4af37, 0 0 16px rgba(212,175,55,.8), 1px 1px 0 #000;}
 @keyframes wxgFloatCrit{
   0%{opacity:0; transform:translate(-50%,6px) scale(.6) rotate(-4deg);}
@@ -491,6 +492,40 @@
 }
 .wxg-stage-shake{animation:wxgStageShake .35s ease-in-out;}
 .wxg-portrait.hit-shake{animation:wxgShake .4s ease-in-out;}
+
+/* ---- 迷你天堂風格撞擊：待機浮動／衝撞攻擊／受擊擊退／死亡墜落 ---- */
+@keyframes wxgIdleBob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+.wxg-idle-bob{animation:wxgIdleBob 2.6s ease-in-out infinite;}
+
+@keyframes wxgLungeSelf{ 0%{transform:translateX(0);} 40%{transform:translateX(20px);} 60%{transform:translateX(20px);} 100%{transform:translateX(0);} }
+@keyframes wxgLungeEnemy{ 0%{transform:translateX(0);} 40%{transform:translateX(-20px);} 60%{transform:translateX(-20px);} 100%{transform:translateX(0);} }
+.wxg-portrait.atk-lunge{animation:wxgLungeSelf .4s ease-in-out;}
+.wxg-portrait.atk-lunge-enemy{animation:wxgLungeEnemy .4s ease-in-out;}
+
+@keyframes wxgHitKnockSelf{
+  0%{transform:translate(0,0) rotate(0);}
+  15%{transform:translate(-14px,2px) rotate(-4deg);}
+  35%{transform:translate(-9px,-1px) rotate(2deg);}
+  55%{transform:translate(-4px,1px) rotate(-1deg);}
+  100%{transform:translate(0,0) rotate(0);}
+}
+@keyframes wxgHitKnockEnemy{
+  0%{transform:translate(0,0) rotate(0);}
+  15%{transform:translate(14px,2px) rotate(4deg);}
+  35%{transform:translate(9px,-1px) rotate(-2deg);}
+  55%{transform:translate(4px,1px) rotate(1deg);}
+  100%{transform:translate(0,0) rotate(0);}
+}
+.wxg-portrait.hit-knock-self{animation:wxgHitKnockSelf .4s ease-out;}
+.wxg-portrait.hit-knock-enemy{animation:wxgHitKnockEnemy .4s ease-out;}
+
+@keyframes wxgDeathFall{
+  0%{opacity:1; transform:translateY(0) scale(1); filter:grayscale(0) brightness(1);}
+  40%{opacity:1; transform:translateY(6px) scale(.96); filter:grayscale(.6) brightness(.7);}
+  100%{opacity:0; transform:translateY(38px) scale(.85); filter:grayscale(1) brightness(.4);}
+}
+.wxg-death-ghost{position:absolute; inset:0; z-index:5; pointer-events:none; animation:wxgDeathFall .6s ease-in forwards;}
+
 .wxg-portrait.hit-flash{position:relative;}
 .wxg-portrait.hit-flash::after{
   content:""; position:absolute; inset:-6px; border-radius:50%;

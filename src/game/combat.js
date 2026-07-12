@@ -9,6 +9,7 @@ function regenMultFor(activeTech, kind){
 }
 
 function combatTick(){
+  S.deathFlash = null; // 死亡墜落特效只顯示一個 tick，跟 onKill()/onKillWudang() 配對設值
   if(S.sectKey==="wudang"){ combatTickWudang(); return; }
   const activeTech = INTERNAL_POOL.find(t=>t.id===S.activeInternal);
   if(S.location==="jinling" || S.visitingSect){
@@ -311,6 +312,7 @@ function onKill(){
       addLog(`擊殺掉落「內功秘笈：${t.name}」，回背包查看`, 'loot');
     }
   }
+  S.deathFlash = { isBoss: !!S.monster.isBoss };
   S.killCount++; spawnMonster();
 }
 
@@ -706,6 +708,7 @@ function resolveWudangMonsterAttack(target, playerMove, activeTech){
 
 function onKillWudang(target){
   resolveKillRewards(target);
+  S.deathFlash = { isBoss: !!target.isBoss };
   S.killCount++;
   if(S.monsters.every(m=>m.hp<=0)) spawnMonstersWudang(S.monsters.length);
 }

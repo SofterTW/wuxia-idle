@@ -312,6 +312,11 @@ function attackProjectileIcon(){
   return WEAPON_PROJECTILE_ICON[S.sect.weaponType] || null;
 }
 
+// 撞擊感文字（身法閃避／禪定免疫／無敵化解）改灰字「MISS」風格，跟一般傷害飄字（黃/紅字）區分開。
+function isMissFloatText(t){
+  return t==="身法閃避！" || t==="禪定・免疫！" || t==="攻擊被無敵化解";
+}
+
 function renderStage(){
   const sectIcon = portraitImgHtml(SECT_PORTRAIT[S.sectKey]);
   const zoneKey = zoneBgClass();
@@ -324,7 +329,7 @@ function renderStage(){
       ${sceneSvg}
       <div class="wxg-corner tl"></div><div class="wxg-corner tr"></div><div class="wxg-corner bl"></div><div class="wxg-corner br"></div>
       <div class="wxg-fighter">
-        <div class="wxg-portrait-wrap">
+        <div class="wxg-portrait-wrap wxg-idle-bob">
           <div class="wxg-portrait big">${sectIcon}</div>
           <div class="wxg-ground-shadow"></div>
         </div>
@@ -339,7 +344,7 @@ function renderStage(){
         <div class="wxg-stage-hint">氣血、內力自動恢復中 · 前往「地圖」選擇狩獵區才能繼續戰鬥</div>
       </div>
       <div class="wxg-fighter">
-        <div class="wxg-portrait-wrap"><div class="wxg-portrait big enemy" style="opacity:.25;">${portraitImgHtml(MONSTER_PORTRAIT)}</div></div>
+        <div class="wxg-portrait-wrap wxg-idle-bob" style="animation-delay:.6s;"><div class="wxg-portrait big enemy" style="opacity:.25;">${portraitImgHtml(MONSTER_PORTRAIT)}</div></div>
         <div class="wxg-fname" style="color:#8a7d63;">（尚無目標）</div>
       </div>
     </div>`;
@@ -351,8 +356,11 @@ function renderStage(){
   const wudangShieldBuff = S.sectKey==="wudang" ? (S.statusEffects||[]).find(e=>e.shieldPool>0) : null;
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
   const stageShake = (S.hitEnemyCrit)?' wxg-stage-shake':'';
-  const playerHitCls = S.hitPlayer ? ' hit-shake hit-flash' : '';
-  const enemyHitCls = S.hitEnemy ? (' hit-shake hit-flash'+(S.hitEnemyCrit?' hit-crit':'')) : '';
+  // 撞擊感：受擊優先於出招動畫（同一 tick 兩者皆可能發生，被打的反饋比出手的動作更重要，
+  // 兩者都套在同一顆頭像上時只保留一個 animation，避免 CSS 動畫互相蓋掉）。
+  const playerHitCls = S.hitPlayer ? ' hit-knock-self hit-flash' : (S.hitEnemy ? ' atk-lunge' : '');
+  const enemyHitCls = S.hitEnemy ? (' hit-knock-enemy hit-flash'+(S.hitEnemyCrit?' hit-crit':'')) : (S.hitPlayer ? ' atk-lunge-enemy' : '');
+  const deathGhost = S.deathFlash ? `<div class="wxg-death-ghost">${portraitImgHtml(S.deathFlash.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT)}</div>` : '';
   return `
   <div class="wxg-stage bg-${zoneKey}${stageShake}">
     ${sceneSvg}
@@ -360,8 +368,8 @@ function renderStage(){
     ${S.hitEnemy?(()=>{ const icon=attackProjectileIcon(); return `<div class="wxg-projectile fwd${icon?' icon':''}">${icon||''}</div>`; })():""}
     ${S.hitPlayer?`<div class="wxg-projectile back"></div>`:""}
     <div class="wxg-fighter">
-      <div class="wxg-portrait-wrap">
-        ${S.floatPlayer?`<div class="wxg-float self">${S.floatPlayer}</div>`:""}
+      <div class="wxg-portrait-wrap wxg-idle-bob">
+        ${S.floatPlayer?`<div class="wxg-float self${isMissFloatText(S.floatPlayer)?' miss':''}">${S.floatPlayer}</div>`:""}
         <div class="wxg-portrait big${playerHitCls}">${sectIcon}</div>
         <div class="wxg-ground-shadow"></div>
       </div>
@@ -379,10 +387,11 @@ function renderStage(){
       ${S.stageEffects && S.stageEffects.length>0 ? S.stageEffects.map((t,i)=>`<div class="wxg-effect-banner" style="animation-delay:${i*0.15}s;">${t}</div>`).join("") : ""}
     </div>
     <div class="wxg-fighter">
-      <div class="wxg-portrait-wrap"${m?` data-monsterinfohover="1" style="cursor:help;"`:''}>
+      <div class="wxg-portrait-wrap wxg-idle-bob" style="animation-delay:.6s; ${m?'cursor:help;':''}"${m?` data-monsterinfohover="1"`:''}>
         ${S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
         <div class="wxg-portrait big enemy${enemyHitCls}">${monsterIcon}</div>
         <div class="wxg-ground-shadow"></div>
+        ${deathGhost}
       </div>
       <div class="wxg-fname">${m?m.name:"—"}</div>
       <div class="wxg-fsub">Lv.${m?m.level:0}</div>
