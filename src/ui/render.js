@@ -303,29 +303,44 @@ function isMissFloatText(t){
   return t==="身法閃避！" || t==="禪定・免疫！" || t==="攻擊被無敵化解";
 }
 
-// 移動計時器用的輕量更新：只改 DOM 節點既有的 left/top 這兩個 style 屬性，不整個重繪。
-// 原本每次移動 tick 都呼叫完整的 render()，代價是①整個舞台（含傷害飄字、受擊特效等短命
-// CSS 動畫）被砍掉重建，動畫還沒播完就被打斷、看起來像一直閃爍；②光是切換位置也要
-// Math.max(12,...) 頻率重建一整棵 DOM，移動本身反而不順（下一次 render 前畫面完全靜止，
-// 才用小幅度跳一次，肉眼看起來像格子跳動）。改成只搬 style.left/top，並讓 CSS
-// transition（見 style.css .wxg-map-player/.wxg-map-mob）在兩次更新之間幫忙補間，實際
-// 更新頻率不變，但視覺上會連續平滑；其餘內容（血條、飄字、招式判定）維持只在完整
-// render() 時更新，不會被這裡打斷，動畫才能播完整段。
-function updateWudangArenaPositions(){
+// 頭像移動的平滑內插：wudangMoveTick() 每 150ms 才更新一次「邏輯座標」（S.wudangPlayerPos／
+// m.pos），若畫面直接照這個頻率貼上去，肉眼看起來就是格子跳動；CSS transition 補間又會被
+// 攻擊 tick 觸發的完整 render() 整個砍掉重建打斷，變成攻擊那一刻全部怪物一起頓一下。
+// 這裡改用 requestAnimationFrame（瀏覽器畫面更新率，約 60fps）自己跑一個持續的視覺位置，
+// 每一幀都朝「目前的邏輯座標」線性靠近一點（wxgLerp），不管邏輯座標多久才變一次，視覺上
+// 永遠是連續平滑地在追。視覺位置存在 __wxgVisualPos（模組層級變數，不受 DOM 重建影響），
+// 就算 render() 換了新的 DOM 節點，這個迴圈下一幀直接抓新節點繼續補間，不會斷、不會跳。
+let __wxgVisualPos = { player:null, mobs:{} };
+function wxgLerp(a, b, t){ return a + (b-a)*t; }
+function wxgArenaAnimFrame(){
+  requestAnimationFrame(wxgArenaAnimFrame);
   if(!S || S.sectKey!=="wudang" || S.location==="jinling" || S.visitingSect) return;
   const playerEl = document.querySelector('.wxg-map-player');
   if(playerEl && S.wudangPlayerPos){
-    playerEl.style.left = S.wudangPlayerPos.x+'%';
-    playerEl.style.top = S.wudangPlayerPos.y+'%';
+    if(!__wxgVisualPos.player) __wxgVisualPos.player = {...S.wudangPlayerPos};
+    const vp = __wxgVisualPos.player;
+    vp.x = wxgLerp(vp.x, S.wudangPlayerPos.x, 0.25);
+    vp.y = wxgLerp(vp.y, S.wudangPlayerPos.y, 0.25);
+    playerEl.style.left = vp.x+'%';
+    playerEl.style.top = vp.y+'%';
   }
+  const seenUids = new Set();
   (S.monsters||[]).forEach(m=>{
     if(m.hp<=0 || !m.pos) return;
+    seenUids.add(m.uid);
     const el = document.querySelector(`.wxg-map-mob[data-mobuid="${m.uid}"]`);
     if(!el) return;
-    el.style.left = m.pos.x+'%';
-    el.style.top = m.pos.y+'%';
+    if(!__wxgVisualPos.mobs[m.uid]) __wxgVisualPos.mobs[m.uid] = {...m.pos};
+    const vp = __wxgVisualPos.mobs[m.uid];
+    vp.x = wxgLerp(vp.x, m.pos.x, 0.25);
+    vp.y = wxgLerp(vp.y, m.pos.y, 0.25);
+    el.style.left = vp.x+'%';
+    el.style.top = vp.y+'%';
   });
+  // 怪物死亡/補位後 uid 不會再出現，清掉殘留紀錄，避免舊資料越積越多。
+  Object.keys(__wxgVisualPos.mobs).forEach(uid=>{ if(!seenUids.has(uid)) delete __wxgVisualPos.mobs[uid]; });
 }
+requestAnimationFrame(wxgArenaAnimFrame);
 
 // 武當專用：地圖上同時有多隻怪物，玩家自動找最近的存活目標走過去打，取代掉「兩顆頭像面對面」
 // 的舊版對決畫面。其他門派因為戰鬥引擎還是單一目標（S.monster），沿用下面 renderStage() 原本
@@ -377,7 +392,7 @@ function renderWudangArenaStage(){
       ${wudangStanceTag}
       ${wudangDebuffRows}
       <div class="wxg-gauge-wrap" style="margin-top:4px;">${pillbar('氣','en',engaged.hp,engaged.hpMax,'en',S.hitEnemy?'gauge-flash':'')}</div>
-    </div>` : `<div class="wxg-map-target"><div class="wxg-stage-hint">正在地圖上尋找下一個目標……</div></div>`;
+    </div>` : `<div class="wxg-map-target"><div class="wxg-fname">—</div><div class="wxg-stage-hint">正在地圖上尋找下一個目標……</div></div>`;
 
   const playerCard = `
     <div class="wxg-map-target">

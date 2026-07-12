@@ -112,6 +112,12 @@
    HP、MP 的卡片看起來都像在一縮一放。這裡保留固定的 min-height（標題一行 + 兩行橫幅的量），
    平常沒有橫幅時也占住這個高度，橫幅出現/消失就不會再讓整排跳動。 */
 .wxg-vs-col{ min-height:74px; }
+/* 兩側顯示人物／目標資訊的卡片：招式狀態（架招/虛招標籤）、中毒/破防/硬直等 debuff 標籤、
+   護盾條，都是有才顯示、沒有就整行消失，內容行數一直變會讓卡片高度跟著抖，這排是
+   align-items:center 的 flex，任一張卡片變高變矮都會拖著整排（包含沒在變化的那張）一起跳。
+   保留固定 min-height（大約：名稱一行＋狀態標籤一行＋兩行 debuff＋血條），沒那麼多內容時
+   也占住這個高度；真的超過時仍讓它自然往下長，不裁切，只是不會再比這個矮。 */
+.wxg-map-target{ min-height:112px; }
 .wxg-map-hud .wxg-fname{ margin-bottom:2px; }
 .wxg-map-target{ flex:1; min-width:0; }
 .wxg-scene{position:absolute; inset:0; z-index:0; overflow:hidden;}

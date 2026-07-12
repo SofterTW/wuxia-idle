@@ -50,12 +50,12 @@ function tickGame(){
   combatTick();
   maybeRenderAndSave();
 }
-// 移動 tick 頻率比畫面重繪快很多，不能每次都呼叫完整 render()——那樣會把飄字/受擊特效這種
-// 短命動畫砍掉重建，播不完就閃爍，見 render.js 的 updateWudangArenaPositions() 說明。這裡改
-// 成只搬 style.left/top，攻擊/CD/血條這些照舊只在 tickGame() 的完整 render() 裡更新。
+// 只更新邏輯座標（S.wudangPlayerPos／m.pos），不碰 DOM——畫面上的平滑移動改交給
+// render.js 那個常駐的 requestAnimationFrame 迴圈（wxgArenaAnimFrame）自己去追這個座標，
+// 兩者頻率不同也沒關係：邏輯每 150ms 才變一次，畫面每一幀（約60fps）都朝目前的邏輯座標
+// 補間一點，肉眼看起來連續平滑，而且不會被攻擊 tick 觸發的完整 render() 打斷。
 function moveTickGame(){
   wudangMoveTick();
-  if(!isEditingUI() && !__wxgPointerActive) updateWudangArenaPositions();
 }
 
 document.addEventListener('focusout', (e)=>{
