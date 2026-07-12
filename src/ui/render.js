@@ -435,6 +435,7 @@ function renderAutoHealBody(){
           <option value="">不自動使用</option>
           ${hpOptions.map(c=>`<option value="${c.id}" ${S.autoHeal.hpItem===c.id?'selected':''}>${c.name}</option>`).join("")}
         </select>
+        ${S.autoHeal.hpItem?`<div class="wxg-hint" style="margin-top:2px;">目前剩餘量：${S.inventory.find(it=>it.kind==="consumable"&&it.refId===S.autoHeal.hpItem)?.qty||0} 瓶</div>`:''}
         <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
           <input type="checkbox" data-autobuy="hp" ${S.autoHeal.hpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
         </label>
@@ -448,6 +449,7 @@ function renderAutoHealBody(){
           <option value="">不自動使用</option>
           ${mpOptions.map(c=>`<option value="${c.id}" ${S.autoHeal.mpItem===c.id?'selected':''}>${c.name}</option>`).join("")}
         </select>
+        ${S.autoHeal.mpItem?`<div class="wxg-hint" style="margin-top:2px;">目前剩餘量：${S.inventory.find(it=>it.kind==="consumable"&&it.refId===S.autoHeal.mpItem)?.qty||0} 瓶</div>`:''}
         <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
           <input type="checkbox" data-autobuy="mp" ${S.autoHeal.mpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
         </label>
