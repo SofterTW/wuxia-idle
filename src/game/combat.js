@@ -240,15 +240,44 @@ function combatTick(){
 }
 
 
-function onKill(){
-  const lvl = S.monster.level;
+// 擊殺共通獎勵：修為/錢財/材料/任務進度/藥品/裝備掉落，onKill()（舊系統）跟 onKillWudang()
+// 共用，避免兩邊的機率數字各自維護、改一邊忘了改另一邊而悄悄跑掉。
+function resolveKillRewards(defeated){
+  const lvl = defeated.level;
   const qiGain = 8+lvl*3, goldGain = 4+lvl*2;
   S.qiPool += qiGain; S.gold += goldGain;
-  addLog(`擊殺了 ${S.monster.name}！獲得內功修為 +${qiGain}、錢財 +${formatMoney(goldGain)}`, 'loot');
+  addLog(`擊殺了 ${defeated.name}！獲得內功修為 +${qiGain}、錢財 +${formatMoney(goldGain)}`, 'loot');
   if(Math.random()<0.55) S.materials.淬鍊石 += 1+Math.floor(Math.random()*2);
   if(Math.random()<0.04){ S.materials.洗髓丹 += 1; addLog(`意外獲得「洗髓丹」x1`, 'loot'); }
   if(Math.random()<0.18){ const n=1+Math.floor(Math.random()*2); S.materials.精鐵砂 += n; addLog(`獲得「精鐵砂」x${n}`, 'loot'); }
-  if(Math.random() < (S.monster.isBoss?0.4:0.03)){ S.materials.美玉錠 += 1; addLog(`獲得珍稀的「美玉錠」x1`, 'loot'); }
+  if(Math.random() < (defeated.isBoss?0.4:0.03)){ S.materials.美玉錠 += 1; addLog(`獲得珍稀的「美玉錠」x1`, 'loot'); }
+
+  // 任務進度判定：知客委託剿滅魔教
+  if(S.quest && S.quest.zoneId===S.location && S.quest.killsDone<S.quest.killsNeeded){
+    S.quest.killsDone++;
+    addLog(`任務進度：${S.quest.killsDone} / ${S.quest.killsNeeded}`, 'system');
+  }
+  // 藥品掉落
+  if(Math.random() < 0.20){
+    const c = CONSUMABLES[Math.floor(Math.random()*(CONSUMABLES.length-1))]; // 大還丹不從一般掉落取得
+    addConsumable(c.id, 1);
+    addLog(`獲得藥品掉落：${c.name}`, 'loot');
+  }
+  // 門派至寶目前預設無法從戰鬥取得，供奉於各門派大殿（見圖鑑／門派拜訪頁），留給日後開放的玩法。
+  // 裝備掉落
+  if(Math.random() < 0.12){
+    const slot = SLOT_LIST[Math.floor(Math.random()*SLOT_LIST.length)];
+    const zone = HUNTING_ZONES.find(z=>z.id===defeated.zone);
+    const item = generateEquipment(slot, zone?zone.levelMod:0);
+    S.inventory.push(item);
+    const tierInfo = TIER_LIST.find(t=>t.key===item.tierKey);
+    const gradeTxt = item.tierKey==="jade" ? `${["","一","二","三","四","五","六","七"][item.jadeGrade]}品` : tierInfo.name;
+    addLog(`獲得裝備掉落：${item.name}（${gradeTxt}）`, 'loot');
+  }
+}
+
+function onKill(){
+  resolveKillRewards(S.monster);
 
   // 丐幫：降龍霸體，擊殺數累積到門檻，觸發大招且短暫無敵
   if(S.sectKey==="gaibang"){
@@ -260,12 +289,6 @@ function onKill(){
       addLog(`降龍霸體！連擊蓄勢已滿，下一擊威力大增，並可無敵化解一次攻擊`, 'skill');
       S.triggerFlash.sectPassive = true;
     }
-  }
-
-  // 任務進度判定：知客委託剿滅魔教
-  if(S.quest && S.quest.zoneId===S.location && S.quest.killsDone<S.quest.killsNeeded){
-    S.quest.killsDone++;
-    addLog(`任務進度：${S.quest.killsDone} / ${S.quest.killsNeeded}`, 'system');
   }
 
   // 武學秘笈掉落（改成放入背包，需自行使用）
@@ -287,23 +310,6 @@ function onKill(){
       S.inventory.push({kind:"manual", manualType:"internal", targetId:t.id, name:`內功秘笈：${t.name}`, uid:allocUid()});
       addLog(`擊殺掉落「內功秘笈：${t.name}」，回背包查看`, 'loot');
     }
-  }
-  // 藥品掉落
-  if(Math.random() < 0.20){
-    const c = CONSUMABLES[Math.floor(Math.random()*(CONSUMABLES.length-1))]; // 大還丹不從一般掉落取得
-    addConsumable(c.id, 1);
-    addLog(`獲得藥品掉落：${c.name}`, 'loot');
-  }
-  // 門派至寶目前預設無法從戰鬥取得，供奉於各門派大殿（見圖鑑／門派拜訪頁），留給日後開放的玩法。
-  // 裝備掉落
-  if(Math.random() < 0.12){
-    const slot = SLOT_LIST[Math.floor(Math.random()*SLOT_LIST.length)];
-    const zone = HUNTING_ZONES.find(z=>z.id===S.monster.zone);
-    const item = generateEquipment(slot, zone?zone.levelMod:0);
-    S.inventory.push(item);
-    const tierInfo = TIER_LIST.find(t=>t.key===item.tierKey);
-    const gradeTxt = item.tierKey==="jade" ? `${["","一","二","三","四","五","六","七"][item.jadeGrade]}品` : tierInfo.name;
-    addLog(`獲得裝備掉落：${item.name}（${gradeTxt}）`, 'loot');
   }
   S.killCount++; spawnMonster();
 }
@@ -360,6 +366,37 @@ function wudangMonsterMarkStacks(m, name){ const e = m.statusEffects.find(e=>e.w
 
 function firstAliveMonster(){ return (S.monsters||[]).find(m=>m.hp>0) || null; }
 
+// 目標身上如果還在「虛招破防」的減防期間，計算對它出手時實際要打的防禦力
+// （wudangGuardBreakPct 是破防那招留下的減防幅度，見 applyGuardBreak；沒被破防過就是原始防禦）。
+function wudangEffectiveDef(target){
+  return target.defReduceTicks>0 ? target.def*(1-(target.wudangGuardBreakPct||0.25)) : target.def;
+}
+
+// 北冥神功對武當招式的內力消耗也生效（sect:null，任何門派都能練），沒有裝北冥神功就是原價。
+function wudangMoveMpCost(move, activeTech){
+  if(!move.mpCost) return 0;
+  return Math.max(1, Math.round(move.mpCost * (activeTech.id==="beiming" ? activeTech.specialValue.mpCostMult : 1)));
+}
+
+// 命中未格擋目標時要處理的「自身增益」類收益：三環套月的命中回內力、陰陽交錯的疊層——
+// 兩者都是掛在 S.statusEffects 上的 buff，命中後在這裡統一結算，而不是各自散落在每個分支裡。
+function wudangOnPlayerHit(){
+  S.statusEffects.forEach(e=>{
+    if(e.mpOnHit>0){
+      S.mp = Math.min(S.mpMax, S.mp+e.mpOnHit);
+      addLog(`「${e.wudangName}」發動，回復 ${e.mpOnHit} 點內力`, 'skill');
+    }
+    if(e.valuePerStack!=null){
+      e.stacks = Math.min(e.maxStacks||10, (e.stacks||0)+1);
+    }
+  });
+}
+
+// 陰陽交錯之類的 stackBuff：每層疊加的威力加成加總起來，回傳的是要加進 mult 的量（不是完整倍率）。
+function wudangStackBonus(){
+  return S.statusEffects.reduce((s,e)=> e.valuePerStack!=null ? s+(e.stacks||0)*e.valuePerStack : s, 0);
+}
+
 function wudangMoveOffCd(move){
   const st = S.wudangMoveState[move.id];
   return !st || (st.cdRemaining||0)<=0;
@@ -401,10 +438,10 @@ function defaultWudangSlots(){
 // 只會從技能欄有裝備的招式挑（見 renderMartialWudang），沒裝備的招式即使已經解鎖也不會自動出手。
 // 換套路限制：上一招用的套路如果跟這次不同，要等換套路冷卻（wudangSwitchCd）歸零才能真的換過去；
 // 同一套路內連續出招沒有這個限制。
-function pickWudangMove(target){
+function pickWudangMove(target, activeTech){
   const equipped = wudangEquippedIds();
   let known = WUDANG_MOVE_LIST.filter(m=>
-    S.wudangMovesetsUnlocked[m.moveset] && equipped.has(m.id) && wudangMoveOffCd(m) && (!m.mpCost || S.mp>=m.mpCost) && wudangConditionMet(m.id));
+    S.wudangMovesetsUnlocked[m.moveset] && equipped.has(m.id) && wudangMoveOffCd(m) && S.mp>=wudangMoveMpCost(m, activeTech) && wudangConditionMet(m.id));
   if(S.wudangLastMoveset && S.wudangSwitchCd>0){
     known = known.filter(m=>m.moveset===S.wudangLastMoveset);
   }
@@ -489,13 +526,14 @@ function applyBlockBonus(move, target){
 }
 
 function resolveWudangPlayerMove(move, target, activeTech){
-  if(move.mpCost && S.mp<move.mpCost){
+  const mpCost = wudangMoveMpCost(move, activeTech);
+  if(mpCost && S.mp<mpCost){
     addLog(`內力不足，「${move.name}」無法施展`, 'system');
     S.stageEffects.push(wudangBannerHtml(move, "內力不足", "招式落空"));
     return;
   }
   if(move.rageCost && S.rage<move.rageCost){ return; }
-  if(move.mpCost) S.mp -= move.mpCost;
+  if(mpCost) S.mp -= mpCost;
   if(move.rageCost) S.rage = Math.max(0, S.rage-move.rageCost);
   wudangSetCd(move);
   S.lastUsedMoveId = move.id;
@@ -511,12 +549,13 @@ function resolveWudangPlayerMove(move, target, activeTech){
       if(wudangBuffActive(move.effect.buff)) mult += move.effect.mult;
     }
   }
+  mult += wudangStackBonus(); // 陰陽交錯之類疊層增傷，套用在所有招式上
   const base = wudangMoveStatValue(move) * wudangDmgTierMult(move.dmgTier) * mult;
   const aff = 1.16; // 武當招式一律太極屬性，固定吃這個相剋倍率
 
   if(move.type==="實招"){
     const blocked = target.stance==="架招";
-    let dmg = Math.max(1, Math.round(base*aff - target.def*(move.dmgType==="外功"?1:0.5)));
+    let dmg = Math.max(1, Math.round(base*aff - wudangEffectiveDef(target)*(move.dmgType==="外功"?1:0.5)));
     if(blocked) dmg = Math.max(1, Math.round(dmg*0.10));
     if(S.wudangCritNext){ dmg = Math.round(dmg*1.5); S.wudangCritNext = false; }
     target.hp -= dmg;
@@ -525,6 +564,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
     addLog(`你以「${move.name}」擊中${target.name}，造成 ${dmg} 傷害${blocked?'（被格擋，大幅減傷）':''}`, 'attack');
     if(!blocked){
       applyWudangEffect(move.effect, move, target, {blocked});
+      wudangOnPlayerHit();
       S.rage = Math.min(100, S.rage+2);
       S.stageEffects.push(wudangBannerHtml(move, `命中（-${dmg}）`, "實招命中"));
     } else {
@@ -536,6 +576,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
       const dmg = Math.max(1, Math.round(base*aff*0.5));
       target.hp -= dmg;
       applyGuardBreak(move.effect, target);
+      wudangOnPlayerHit();
       S.floatEnemy = `-${dmg}（破防！）`;
       S.hitEnemy = true;
       addLog(`「${move.name}」擊破${target.name}的架勢，造成 ${dmg} 傷害並使其陷入破綻`, 'skill');
@@ -544,6 +585,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
     } else {
       const dmg = Math.max(1, Math.round(base*aff*0.6));
       target.hp -= dmg;
+      wudangOnPlayerHit();
       S.floatEnemy = `-${dmg}`;
       S.hitEnemy = true;
       addLog(`你以「${move.name}」擊中${target.name}，造成 ${dmg} 傷害`, 'attack');
@@ -551,26 +593,32 @@ function resolveWudangPlayerMove(move, target, activeTech){
     }
     S.rage = Math.min(100, S.rage+2);
   } else if(move.type==="架招"){
-    S.wudangGuardingThisTick = move; // 是否真的擋到，要等怪物出手才知道，見 resolveWudangMonsterAttack
+    // 純被動架勢，是否真的擋到要等怪物出手才知道——combatTickWudang 直接把這招當 playerMove
+    // 傳給 resolveWudangMonsterAttack() 判斷，這裡不需要另外存狀態。
   } else if(move.type==="氣招"){
     applyWudangEffect(move.effect, move, target, {});
     addLog(`你運起「${move.name}」`, 'skill');
     S.stageEffects.push(wudangBannerHtml(move, "", "氣招發動"));
     S.triggerFlash[`martial_${move.id}`] = true;
   } else if(move.type==="怒氣大招"){
-    let dmg = target ? Math.max(1, Math.round(base*aff*1.6 - target.def*0.5)) : 0;
     const targets = (move.effect && move.effect.aoe) ? S.monsters.filter(m=>m.hp>0) : (target?[target]:[]);
-    targets.forEach(t=>{ t.hp -= dmg; });
+    let primaryDmg = 0;
+    targets.forEach(t=>{
+      const dmg = Math.max(1, Math.round(base*aff*1.6 - wudangEffectiveDef(t)*0.5));
+      t.hp -= dmg;
+      if(t===target) primaryDmg = dmg;
+    });
     applyWudangEffect(move.effect, move, target, {});
-    S.floatEnemy = `-${dmg}（怒氣大招！）`;
+    if(targets.length>0) wudangOnPlayerHit();
+    S.floatEnemy = `-${primaryDmg}（怒氣大招！）`;
     S.hitEnemyCrit = true; S.hitEnemy = true;
-    addLog(`你施展「${move.name}」，造成 ${dmg} 傷害！`, 'attack');
-    S.stageEffects.push(wudangBannerHtml(move, `怒氣爆發！（-${dmg}）`, "怒氣大招"));
+    addLog(`你施展「${move.name}」，造成 ${primaryDmg} 傷害！`, 'attack');
+    S.stageEffects.push(wudangBannerHtml(move, `怒氣爆發！（-${primaryDmg}）`, "怒氣大招"));
     S.triggerFlash.sectPassive = true;
   }
 }
 
-function resolveWudangMonsterAttack(target, playerMove){
+function resolveWudangMonsterAttack(target, playerMove, activeTech){
   const playerBlocking = playerMove && playerMove.type==="架招";
   const playerUltImmune = S.statusEffects.some(e=>e.immuneControl);
   let dmg = Math.max(1, Math.round(target.atk - S.secondary.外功防禦*0.3));
@@ -587,6 +635,32 @@ function resolveWudangMonsterAttack(target, playerMove){
     S.rage = Math.min(100, S.rage+4);
   } else {
     S.rage = Math.min(100, S.rage+5);
+  }
+  // 太極玄功：受擊時有機率格擋，格擋傷害降低（跟架招姿態的格擋是兩回事，任何情況都可能觸發）
+  if(dmg>0 && activeTech.id==="taiji_qi" && Math.random()<activeTech.specialValue.chance){
+    dmg = Math.max(0, Math.round(dmg*(1-activeTech.specialValue.dmgReduce)));
+    S.stageEffects.push("太極玄功・格擋！");
+    S.triggerFlash.internalSpecial = true;
+  }
+  // 九陽神功：氣血過低時受到的傷害降低
+  if(dmg>0 && activeTech.id==="jiuyang" && S.hpMax && S.hp/S.hpMax < activeTech.specialValue.hpThreshold){
+    dmg = Math.max(0, Math.round(dmg*(1-activeTech.specialValue.dmgReduce)));
+    S.stageEffects.push("九陽神功・氣血翻湧！");
+  }
+  // 一內特效：受擊觸發（兩儀護心功真氣護體，武當專屬的一內）
+  if(dmg>0){
+    const hitTier = getInternalTier(activeTech.id)+1;
+    const invHitEff = rollInternalTrigger(activeTech, hitTier, 'onHit');
+    if(invHitEff && invHitEff.kind==="shield"){
+      const absorb = invHitEff.absorbFlat!=null ? invHitEff.absorbFlat : Math.round(S.hpMax*invHitEff.absorbPct);
+      const absorbed = Math.min(dmg, absorb);
+      dmg = Math.max(0, dmg-absorbed);
+      const mpRestore = Math.round(S.mpMax*invHitEff.breakRestorePct);
+      S.mp = Math.min(S.mpMax, S.mp+mpRestore);
+      S.stageEffects.push(`${activeTech.name}・真氣護體（吸收${absorbed}）！`);
+      addLog(`真氣護體吸收了 ${absorbed} 點傷害，碎盾回復 ${mpRestore} 點內力`, 'skill');
+      S.triggerFlash.internalLayer = true;
+    }
   }
   const shieldBuff = S.statusEffects.find(e=>e.shieldPool>0 && e.remainingTicks>0);
   if(shieldBuff && dmg>0){
@@ -618,32 +692,7 @@ function resolveWudangMonsterAttack(target, playerMove){
 }
 
 function onKillWudang(target){
-  const lvl = target.level;
-  const qiGain = 8+lvl*3, goldGain = 4+lvl*2;
-  S.qiPool += qiGain; S.gold += goldGain;
-  addLog(`擊殺了 ${target.name}！獲得內功修為 +${qiGain}、錢財 +${formatMoney(goldGain)}`, 'loot');
-  if(Math.random()<0.55) S.materials.淬鍊石 += 1+Math.floor(Math.random()*2);
-  if(Math.random()<0.04){ S.materials.洗髓丹 += 1; addLog(`意外獲得「洗髓丹」x1`, 'loot'); }
-  if(Math.random()<0.18){ const n=1+Math.floor(Math.random()*2); S.materials.精鐵砂 += n; addLog(`獲得「精鐵砂」x${n}`, 'loot'); }
-  if(Math.random() < (target.isBoss?0.4:0.03)){ S.materials.美玉錠 += 1; addLog(`獲得珍稀的「美玉錠」x1`, 'loot'); }
-  if(S.quest && S.quest.zoneId===S.location && S.quest.killsDone<S.quest.killsNeeded){
-    S.quest.killsDone++;
-    addLog(`任務進度：${S.quest.killsDone} / ${S.quest.killsNeeded}`, 'system');
-  }
-  if(Math.random() < 0.20){
-    const c = CONSUMABLES[Math.floor(Math.random()*(CONSUMABLES.length-1))];
-    addConsumable(c.id, 1);
-    addLog(`獲得藥品掉落：${c.name}`, 'loot');
-  }
-  if(Math.random() < 0.12){
-    const slot = SLOT_LIST[Math.floor(Math.random()*SLOT_LIST.length)];
-    const zone = HUNTING_ZONES.find(z=>z.id===target.zone);
-    const item = generateEquipment(slot, zone?zone.levelMod:0);
-    S.inventory.push(item);
-    const tierInfo = TIER_LIST.find(t=>t.key===item.tierKey);
-    const gradeTxt = item.tierKey==="jade" ? `${["","一","二","三","四","五","六","七"][item.jadeGrade]}品` : tierInfo.name;
-    addLog(`獲得裝備掉落：${item.name}（${gradeTxt}）`, 'loot');
-  }
+  resolveKillRewards(target);
   S.killCount++;
   if(S.monsters.every(m=>m.hp<=0)) spawnMonstersWudang(S.monsters.length);
 }
@@ -654,8 +703,8 @@ function combatTickWudang(){
     recalc(false);
     if(S.warningCooldown>0) S.warningCooldown--;
     if(S.potionCd>0) S.potionCd--;
-    S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.5)));
-    S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.3))+1);
+    S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.5*regenMultFor(activeTech,"hp"))));
+    S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.3*regenMultFor(activeTech,"mp")))+1);
     S.floatPlayer=""; S.floatEnemy=""; S.stageEffects=[];
     checkAutoHeal();
     return;
@@ -667,8 +716,8 @@ function combatTickWudang(){
   if(S.potionCd>0) S.potionCd--;
   tickStatusEffects(S.statusEffects);
   S.monsters.forEach(m=> m.hp>0 && tickStatusEffects(m.statusEffects));
-  S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.3)));
-  S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.2))+1);
+  S.hp = Math.min(S.hpMax, S.hp + Math.max(1, Math.round(S.derivedPrimary.體魄*0.3*regenMultFor(activeTech,"hp"))));
+  S.mp = Math.min(S.mpMax, S.mp + Math.max(1, Math.round(S.derivedPrimary.罡氣*0.2*regenMultFor(activeTech,"mp")))+1);
   checkAutoHeal();
   S.floatPlayer=""; S.floatEnemy=""; S.hitEnemy=false; S.hitEnemyCrit=false; S.hitPlayer=false;
   S.stageEffects=[]; S.triggerFlash={};
@@ -694,14 +743,14 @@ function combatTickWudang(){
   const target = firstAliveMonster();
   if(target) target.stance = wudangMonsterStance(target);
 
-  const move = target ? pickWudangMove(target) : null;
+  const move = target ? pickWudangMove(target, activeTech) : null;
   if(move) resolveWudangPlayerMove(move, target, activeTech);
   else if(target && S.wudangLastMoveset && S.wudangSwitchCd>0){
     S.stageEffects.push(`<span style="color:var(--dim-text);">正在換招式，${S.wudangSwitchCd} 回合後才能使出其他套路</span><span style="color:${WUDANG_CATEGORY_COLOR["換招冷卻"]}; margin-left:5px;">〔換招冷卻〕</span>`);
   }
 
   if(target && target.hp>0 && target.stance==="實招"){
-    resolveWudangMonsterAttack(target, move);
+    resolveWudangMonsterAttack(target, move, activeTech);
   } else if(move && move.type==="架招" && target){
     S.stageEffects.push(wudangBannerHtml(move, "凝神戒備，但對方沒有出手", "架招落空"));
   }

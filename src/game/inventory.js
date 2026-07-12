@@ -166,7 +166,10 @@ function upgradeMartial(moveId){
   const name = Object.values(MARTIAL_POOL).flat().find(m=>m.id===moveId).name;
   addLog(`「${name}」升級至第 ${known.layer} 層！`, 'system'); render();
 }
-function setMartialSlot(idx, moveId){ S.martialSlots[idx] = moveId; render(); }
+function setMartialSlot(idx, moveId){
+  if(moveId && S.martialSlots.some((v,i)=>v===moveId && i!==idx)) return;
+  S.martialSlots[idx] = moveId; render();
+}
 function equipItem(item){
   const cur = S.equipment[item.slot];
   S.inventory = S.inventory.filter(i=>i!==item);

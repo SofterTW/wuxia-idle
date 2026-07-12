@@ -113,14 +113,14 @@ function spawnMonster(avoidBoss){
 
 // 武當專用：S.monsters 是陣列（1~5隻，前排到後排），現階段一般狩獵區固定 1 隻，
 // count 參數留給日後的多人副本用。跟 S.monster（單一物件，其他門派用）完全分開，互不影響。
-function spawnMonstersWudang(count){
+function spawnMonstersWudang(count, avoidBoss){
   const n = count || 1;
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
-  const isBoss = S.killCount>0 && S.killCount%10===0;
+  const isBoss = !avoidBoss && S.killCount>0 && S.killCount%10===0;
   const bossDef = BOSS_ROSTER[zone.id];
   if(isBoss && S.combatOptions && S.combatOptions.fleeBoss){
     addLog(`遇上首領「${bossDef.name}」，依設定自動逃跑，繼續尋找下一場戰鬥。`, 'system');
-    S.killCount++; spawnMonstersWudang(count);
+    spawnMonstersWudang(count, true);
     return;
   }
   const roster = MONSTER_ROSTER[zone.id] || [];
