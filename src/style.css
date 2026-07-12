@@ -118,17 +118,18 @@
   gap:14px; padding:10px 16px; margin:0 14px; border-top:1px solid var(--gold-dk);
   background:linear-gradient(180deg, rgba(24,16,9,.9), rgba(18,12,7,.9));
 }
-/* 中間「目前狩獵區」欄位觸發招式特效時才會多出橫幅文字，沒觸發的 tick 又會消失——高度
-   忽大忽小會拖著整排 flex（align-items:center）的高度跟著跳動，連兩側顯示人物/目標
-   HP、MP 的卡片看起來都像在一縮一放。這裡保留固定的 min-height（標題一行 + 兩行橫幅的量），
-   平常沒有橫幅時也占住這個高度，橫幅出現/消失就不會再讓整排跳動。
-   寬度也要固定：原本這個欄位是 flex:0 0 auto（依內容自動撐寬），橫幅文字長度不固定，撐大
-   縮小時會擠壓/釋放兩側卡片能用的寬度，連帶讓卡片裡的血條寬度跟著忽大忽小——這才是使用者
-   說「血條大小不固定」真正的原因（高度已經在上面用 min-height 固定過，寬度這次才是關鍵）。
-   用比 .wxg-vs-col{flex:1} 更高優先度的 .wxg-map-hud .wxg-vs-col 選擇器覆寫成固定寬度，
-   橫幅文字太長就在這個寬度內換行，不再撐開影響兩側卡片。這裡刻意只覆寫地圖版面用到的
-   .wxg-map-hud 情境，不動舊版兩人對決版面（renderStage）原本 flex:1 置中的寫法。 */
-.wxg-map-hud .wxg-vs-col{ flex:0 0 170px; min-height:74px; }
+/* 中間「目前狩獵區」欄位顯示招式命中/傷害訊息的橫幅，內容筆數不固定（0～多筆同時疊加）。
+   兩側玩家卡／目標卡是 flex:1，但內容（名稱＋血條）本身沒那麼寬，會在卡片自己的配額裡
+   留下大片沒用到的空白——把中間欄位加寬，等於把這塊閒置空間讓出來給它用，畫面比較不會有
+   突兀的空洞。用「固定 height + overflow-y:auto」而不是 min-height：min-height 只保證
+   下限，橫幅疊多筆時還是會把整排撐更高；固定 height 才是真的不管內容多少都不會再變動，
+   超出的部分用捲動處理，不會裁切看不到。用比 .wxg-vs-col{flex:1} 更高優先度的
+   .wxg-map-hud .wxg-vs-col 選擇器覆寫，只影響地圖版面，不動舊版兩人對決版面
+   （renderStage）原本 flex:1 置中的寫法。 */
+.wxg-map-hud .wxg-vs-col{
+  flex:0 0 320px; height:96px; overflow-y:auto; display:flex; flex-direction:column;
+  justify-content:center;
+}
 .wxg-map-hud .wxg-effect-banner{ white-space:normal; word-break:break-word; max-width:100%; }
 /* 人物/目標卡片裡的血條縮短到原本一半寬（原本 flex:1 撐滿整行），空出來的寬度留給
    套路傷害顯示（架招/虛招標籤、招式命中訊息等）用，不會再被血條擠壓。只影響地圖版面的
