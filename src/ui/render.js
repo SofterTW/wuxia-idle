@@ -1474,9 +1474,21 @@ function renderCodex(){
         ${rows}
       </div>`;
     }).join("");
-    return subTabs + `
+    const wudangRagePanel = `<div class="wxg-panel">
+        <div class="wxg-panel-head martial"><span class="dot"></span><h3>武當・實虛架氣怒（五招制）</h3></div>
+        <div class="wxg-hint" style="line-height:1.9;">
+          武當用的是獨立於其他門派的「實／虛／架／氣／怒」戰鬥系統：實招硬拼、虛招破防、架招格擋、氣招調息、怒氣大招終結，敵我每回合都會依當下情勢見招拆招（剪刀石頭布：實破虛、虛破架、架擋實）。<br><br>
+          <b style="color:var(--gold-lt);">怒氣如何獲得：</b><br>
+          ・實招命中且未被對方架招擋下：+2 怒氣（被擋下只有 +1）<br>
+          ・虛招命中（不論是否順帶破防）：+2 怒氣<br>
+          ・被敵人攻擊時：當下用架招擋下 +4 怒氣，沒有格擋（或架招落空沒接到攻擊）+5 怒氣<br>
+          ・部分架招套路格擋成功後有機率觸發額外加成（例如「借力」），再額外 +1 怒氣<br>
+          怒氣上限 100，累積到怒氣大招所需門檻（目前四套武學皆為 50）才能施放，AI 見招拆招時會優先使用怒氣大招。
+        </div>
+      </div>`;
+    return subTabs + wudangRagePanel + `
       <div class="wxg-panel">
-        <div class="wxg-panel-head martial"><span class="dot"></span><h3>武學系統規則</h3></div>
+        <div class="wxg-panel-head martial"><span class="dot"></span><h3>武學系統規則（武當以外門派）</h3></div>
         <div class="wxg-hint">最多同時裝備 4 招，戰鬥時依序輪流施展。每次施展會累積熟練度，達門檻可消耗「淬鍊石」升級（1～9 層），層數越高傷害越高，第 3 層解鎖附加效果、第 9 層為大成。</div>
       </div>
       <div class="wxg-panel">
