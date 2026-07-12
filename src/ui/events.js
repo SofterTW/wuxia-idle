@@ -109,6 +109,23 @@ function bindGlobal(){
   document.querySelectorAll('[data-respec]').forEach(el=> el.onclick=(e)=>{ e.stopPropagation(); respecTech(el.dataset.respec); });
   document.querySelectorAll('[data-upgrade]').forEach(el=> el.onclick=(e)=>{ e.stopPropagation(); upgradeMartial(el.dataset.upgrade); });
   document.querySelectorAll('[data-toggleint]').forEach(el=> el.onclick=()=>{ const id=el.dataset.toggleint; S.internalExpanded[id]=!S.internalExpanded[id]; render(); });
+  document.querySelectorAll('[data-wudangtoggle]').forEach(el=> el.onclick=(e)=>{
+    e.stopPropagation();
+    const id = el.dataset.wudangtoggle;
+    const m = WUDANG_MOVE_LIST.find(x=>x.id===id);
+    if(!m) return;
+    const arr = S.wudangSlots[m.type];
+    const idx = arr.indexOf(id);
+    if(idx>=0) arr.splice(idx,1);
+    else if(arr.length<WUDANG_SLOT_CAPS[m.type]) arr.push(id);
+    render();
+  });
+  document.querySelectorAll('[data-wudangunequip]').forEach(el=> el.onclick=(e)=>{
+    e.stopPropagation();
+    const [type, idx] = el.dataset.wudangunequip.split(":");
+    S.wudangSlots[type].splice(parseInt(idx,10), 1);
+    render();
+  });
   document.querySelectorAll('[data-togglenside]').forEach(el=> el.onclick=()=>{ const k=el.dataset.togglenside; S.sideExpanded[k]=!S.sideExpanded[k]; render(); });
   document.querySelectorAll('[data-primarykey]').forEach(el=>{
     el.onmouseenter = ()=>{

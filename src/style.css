@@ -250,6 +250,48 @@
   box-shadow:0 0 12px rgba(63,125,99,.35), 0 3px 10px #0009;
 }
 
+/* 套路稀有度 1~7 專屬外框，數字越大越浮誇——武學分頁的套路面板用（見 renderMartialWudang）。
+   刻意放在 .active-main 後面，靠 CSS 撰寫順序讓它蓋掉 active-main 的樣式（兩者常常同時套用在
+   同一個面板上：已解鎖的套路 = active-main + wxg-msrarity-N，稀有度外框要贏）。 */
+@keyframes wxgRarityPulse{
+  0%,100%{ filter:brightness(1); }
+  50%{ filter:brightness(1.35); }
+}
+.wxg-panel.wxg-msrarity-1{ border:1.5px solid #6b5c3f; box-shadow:0 2px 6px #0006; background:linear-gradient(160deg,#241a0e,#150f08); }
+.wxg-panel.wxg-msrarity-2{
+  border:1.5px solid transparent;
+  background: linear-gradient(160deg,#241a0e,#150f08) padding-box, linear-gradient(135deg,#204a34,#7ec9a2 50%,#204a34) border-box;
+  box-shadow:0 0 8px rgba(126,201,162,.30), 0 3px 8px #0007;
+}
+.wxg-panel.wxg-msrarity-3{
+  border:1.5px solid transparent;
+  background: linear-gradient(160deg,#241a0e,#150f08) padding-box, linear-gradient(135deg,#1e3a52,#6db3e0 50%,#1e3a52) border-box;
+  box-shadow:0 0 12px rgba(109,179,224,.35), 0 3px 10px #0008;
+}
+.wxg-panel.wxg-msrarity-4{
+  border:2px solid transparent;
+  background: linear-gradient(160deg,#241a0e,#150f08) padding-box, linear-gradient(135deg,#3a2452,#c084fc 45%,#3a2452 65%,#c084fc) border-box;
+  box-shadow:0 0 16px rgba(192,132,252,.40), inset 0 0 10px rgba(192,132,252,.12), 0 3px 10px #0009;
+}
+.wxg-panel.wxg-msrarity-5{
+  border:2px solid transparent;
+  background: linear-gradient(160deg,#241a0e,#150f08) padding-box, linear-gradient(120deg,#5c4318,#f3a03c 30%,#ffe9b0 50%,#f3a03c 70%,#5c4318) border-box;
+  box-shadow:0 0 20px rgba(243,160,60,.45), inset 0 0 14px rgba(243,160,60,.15), 0 3px 12px #000a;
+  animation: wxgRarityPulse 3.2s ease-in-out infinite;
+}
+.wxg-panel.wxg-msrarity-6{
+  border:2px solid transparent;
+  background: linear-gradient(160deg,#241a0e,#150f08) padding-box, linear-gradient(120deg,#0e4a48,#4dd0c8 30%,#d4fbf6 50%,#4dd0c8 70%,#0e4a48) border-box;
+  box-shadow:0 0 24px rgba(77,208,200,.55), 0 0 40px rgba(77,208,200,.25), inset 0 0 16px rgba(77,208,200,.18), 0 3px 12px #000a;
+  animation: wxgRarityPulse 2.6s ease-in-out infinite;
+}
+.wxg-panel.wxg-msrarity-7{
+  border:2.5px solid transparent;
+  background: linear-gradient(160deg,#241a0e,#150f08) padding-box, linear-gradient(115deg,#5c1440,#ff6fb0 25%,#fff0f7 45%,#ff6fb0 65%,#5c1440 85%,#ff6fb0) border-box;
+  box-shadow:0 0 28px rgba(255,111,176,.6), 0 0 50px rgba(255,111,176,.3), inset 0 0 18px rgba(255,111,176,.2), 0 3px 14px #000c;
+  animation: wxgRarityPulse 2s ease-in-out infinite;
+}
+
 .wxg-row{display:flex; justify-content:space-between; font-size:12.5px; padding:3.5px 2px; color:var(--dim-text); border-bottom:1px dotted #382c1c;}
 .wxg-row:last-child{border-bottom:none;}
 .wxg-row b{color:var(--ink-text); font-family:"JetBrains Mono"; font-weight:600;}
@@ -293,6 +335,8 @@
   font-size:11px; color:var(--ink-text);
 }
 .wxg-medal:hover{border-color:var(--gold);}
+.wxg-medal.empty{opacity:.5; cursor:default;}
+.wxg-medal.empty:hover{border-color:#4a3818;}
 .wxg-medal .ring{
   width:34px; height:34px; border-radius:50%; margin-right:8px; float:left;
   display:flex; align-items:center; justify-content:center; font-family:"Noto Serif TC"; font-weight:900; font-size:13px;

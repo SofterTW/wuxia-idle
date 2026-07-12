@@ -284,6 +284,24 @@ function pillbar(tag, tagCls, cur, max, fillCls, flashCls){
   </div>`;
 }
 
+// 武當敵人身上的持續性狀態（印記DOT／破防／硬直），每次 render 都要顯示，不是只有觸發那個
+// tick 才閃一下——DOT 用 firedCount/totalDuration 顯示「已經發作幾次／總共幾回合」的進度。
+function wudangMonsterDebuffHtml(m){
+  const rows = [];
+  (m.statusEffects||[]).forEach(e=>{
+    if(e.kind!=="dot_debuff") return;
+    const fired = Math.min(e.firedCount||0, e.totalDuration||e.remainingTicks||1);
+    rows.push(`<div class="wxg-tag" style="margin-top:3px; border-color:#c084fc; color:#c084fc;">${e.wudangMark||'內傷'}　${fired}/${e.totalDuration||'?'}回合</div>`);
+  });
+  if(m.defReduceTicks>0){
+    rows.push(`<div class="wxg-tag" style="margin-top:3px; border-color:#e2685c; color:#e2685c;">破防（防禦-${Math.round((m.wudangGuardBreakPct||0.25)*100)}%）　剩餘${m.defReduceTicks}回合</div>`);
+  }
+  if(m.staggerTicks>0){
+    rows.push(`<div class="wxg-tag" style="margin-top:3px; border-color:#d1564c; color:#d1564c;">硬直中　剩餘${m.staggerTicks}回合</div>`);
+  }
+  return rows.join("");
+}
+
 function renderStage(){
   const sectIcon = portraitImgHtml(SECT_PORTRAIT[S.sectKey]);
   const zoneKey = zoneBgClass();
@@ -319,6 +337,7 @@ function renderStage(){
   const m = S.monster || (S.monsters && S.monsters[0]);
   const monsterIcon = portraitImgHtml(m && m.isBoss ? BOSS_PORTRAIT : MONSTER_PORTRAIT);
   const wudangStanceTag = (S.sectKey==="wudang" && m && m.hp>0) ? `<div class="wxg-tag" style="margin-top:3px; ${m.stance==='架招'?'border-color:#4dd0c8;color:#4dd0c8;':m.stance==='虛招'?'border-color:#e2685c;color:#e2685c;':'border-color:#d1564c;color:#d1564c;'}">對方招式：${m.stance||'實招'}</div>` : '';
+  const wudangDebuffRows = (S.sectKey==="wudang" && m && m.hp>0) ? wudangMonsterDebuffHtml(m) : '';
   const zone = HUNTING_ZONES.find(z=>z.id===S.location) || HUNTING_ZONES[0];
   const stageShake = (S.hitEnemyCrit)?' wxg-stage-shake':'';
   const playerHitCls = S.hitPlayer ? ' hit-shake hit-flash' : '';
@@ -356,6 +375,7 @@ function renderStage(){
       <div class="wxg-fname">${m?m.name:"—"}</div>
       <div class="wxg-fsub">Lv.${m?m.level:0}</div>
       ${wudangStanceTag}
+      ${wudangDebuffRows}
       ${m?`<div class="wxg-stage-hint" style="font-size:10px; opacity:.75;">👆 點擊頭像查看屬性</div>`:''}
       <div class="wxg-gauge-wrap">
         ${pillbar('氣','en',m?m.hp:0,m?m.hpMax:1,'en',S.hitEnemy?'gauge-flash':'')}
@@ -664,28 +684,53 @@ function martialLayerDesc(def, layerIdx){
   return "傷害 +8%";
 }
 
-const WUDANG_TYPE_COLOR = {"實招":"#d1564c","虛招":"#e2685c","架招":"#4dd0c8","氣招":"#7ec9a2","怒氣大招":"#f3a03c"};
 function renderMartialWudang(){
+  const equippedIds = new Set(Object.values(S.wudangSlots||{}).flat().filter(Boolean));
+  const slotSection = WUDANG_SLOT_TYPES.map(type=>{
+    const cap = WUDANG_SLOT_CAPS[type];
+    const ids = S.wudangSlots[type]||[];
+    const cells = Array.from({length:cap}, (_,i)=>{
+      const id = ids[i];
+      const m = id ? WUDANG_MOVE_LIST.find(x=>x.id===id) : null;
+      return `<div class="wxg-medal ${m?'':'empty'}" style="border-color:${WUDANG_TYPE_COLOR[type]}44;" ${m?`data-wudangunequip="${type}:${i}"`:''}>
+        <div class="ring" style="border-color:${WUDANG_TYPE_COLOR[type]};">${i+1}</div>
+        <div style="padding-top:2px;">${m?`${m.name}<br><span style="color:#c9bd9e;font-size:10.5px">${m.movesetName} · 點擊卸下</span>`:"（空）"}</div>
+      </div>`;
+    }).join("");
+    return `<div style="margin-bottom:8px;">
+      <div class="wxg-row" style="border-bottom:none; padding-bottom:2px;"><span style="color:${WUDANG_TYPE_COLOR[type]}; font-weight:700;">${type}</span><b style="font-weight:400; color:var(--dim-text);">${ids.length}／${cap}</b></div>
+      <div class="wxg-slotgrid">${cells}</div>
+    </div>`;
+  }).join("");
+
   const rows = WUDANG_MOVESETS.map(ms=>{
     const unlocked = !!S.wudangMovesetsUnlocked[ms.key];
+    const info = MOVESET_RARITY_INFO[ms.rarity] || {name:"？",color:"var(--dim-text)"};
     const moveRows = ms.moves.map(m=>{
       const st = S.wudangMoveState[m.id];
       const cdLeft = st ? Math.max(0, st.cdRemaining||0) : 0;
       const costTxt = m.rageCost ? `怒氣 ${m.rageCost}` : (m.mpCost ? `內力 ${m.mpCost}` : '無消耗');
+      const isEquipped = equippedIds.has(m.id);
+      const full = (S.wudangSlots[m.type]||[]).length >= WUDANG_SLOT_CAPS[m.type];
+      const btn = !unlocked ? '' : isEquipped
+        ? `<button class="wxg-btn crimson small" data-wudangtoggle="${m.id}">卸下</button>`
+        : `<button class="wxg-btn gold small" data-wudangtoggle="${m.id}" ${full?'disabled title="該類型技能欄已滿"':''}>裝備</button>`;
       return `<div class="wxg-row">
         <span><span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[m.type]}; color:${WUDANG_TYPE_COLOR[m.type]};">${m.type}</span> ${m.name}</span>
         <b style="font-weight:400; color:var(--dim-text); font-size:11px;">CD${m.cd} · ${costTxt}${cdLeft>0?`　<span style="color:#e2685c;">冷卻中(${cdLeft})</span>`:''}</b>
       </div>
-      <div class="wxg-hint" style="margin:0 0 6px; padding-left:4px;">${m.desc}</div>`;
+      <div class="wxg-hint" style="margin:0 0 4px; padding-left:4px;">${m.desc}</div>
+      <div style="margin:0 0 8px; padding-left:4px;">${btn}</div>`;
     }).join("");
-    return `<div class="wxg-panel ${unlocked?'active-main':''}">
-      <div class="wxg-panel-head martial"><span class="dot"></span><h3>${ms.name}</h3><span class="wxg-tag gold">套路稀有度 ${ms.rarity}</span><span class="wxg-tag">${ms.weaponSub}</span>${unlocked?'<span class="wxg-tag jade" style="margin-left:auto;">已習得</span>':'<span class="wxg-tag" style="margin-left:auto;">尚未習得</span>'}</div>
+    return `<div class="wxg-panel wxg-msrarity-${ms.rarity} ${unlocked?'active-main':''}">
+      <div class="wxg-panel-head martial"><span class="dot"></span><h3>${ms.name}</h3><span class="wxg-tag" style="border-color:${info.color}; color:${info.color};">${info.name}（稀有度${ms.rarity}）</span><span class="wxg-tag">${ms.weaponSub}</span>${unlocked?'<span class="wxg-tag jade" style="margin-left:auto;">已習得</span>':'<span class="wxg-tag" style="margin-left:auto;">尚未習得</span>'}</div>
       ${unlocked?moveRows:`<div class="wxg-hint">尚未解鎖，稀有度兌換系統開發中。</div>`}
     </div>`;
   }).join("");
   return `
     <div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>武當・實虛架氣怒</h3></div>
-      <div class="wxg-hint">武當用的是全新的五招制戰鬥系統，招式會依當下敵我情勢自動見招拆招（實招硬拼、虛招破防、架招格擋、氣招調息、怒氣大招終結），不用手動選招。目前四套武學已全部解鎖供測試，稀有度兌換系統之後才會真的限制取得。</div>
+      <div class="wxg-hint">武當用的是全新的五招制戰鬥系統，招式會依當下敵我情勢自動見招拆招（實招硬拼、虛招破防、架招格擋、氣招調息、怒氣大招終結）。下面先在技能欄裝備要用的招式（實／虛／氣招各5格，架招／怒氣大招各1格），系統才會從已裝備的招式裡自動出招。同一套路內連續出招沒有限制，換到不同套路的招式要等5回合的換招冷卻。目前四套武學已全部解鎖供測試，稀有度兌換系統之後才會真的限制取得。</div>
+      ${slotSection}
     </div>
     ${rows}
   `;

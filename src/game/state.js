@@ -38,10 +38,12 @@ function newGame(sectKey){
     // 武當專用五招制戰鬥引擎欄位（見 game/combat.js combatTickWudang()），其他門派完全不會用到。
     rage:0, wudangMoveState:{}, wudangMovesetsUnlocked:{}, monsters:[],
     wudangFullBlockNext:false, wudangCritNext:false,
+    wudangSlots:{"實招":[],"虛招":[],"架招":[],"氣招":[],"怒氣大招":[]}, wudangLastMoveset:null, wudangSwitchCd:0,
   };
   if(sectKey==="wudang"){
     // 稀有度兌換系統（武學閣等）還沒做，先讓武當四套全部直接解鎖，才能測試戰鬥引擎本身。
     WUDANG_MOVESETS.forEach(m=> S.wudangMovesetsUnlocked[m.key] = true);
+    S.wudangSlots = defaultWudangSlots();
     spawnMonstersWudang();
   } else {
     spawnMonster();

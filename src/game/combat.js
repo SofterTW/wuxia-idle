@@ -320,6 +320,23 @@ function onKill(){
 const WUDANG_DMG_TIER_MULT = {"低":0.7, "中":1.0, "高":1.4};
 function wudangDmgTierMult(tier){ return WUDANG_DMG_TIER_MULT[tier] || 0; }
 
+// 招式類型／觸發分類的配色，「對決」下方的訊息橫幅跟武學分頁的招式標籤共用這組色票。
+const WUDANG_TYPE_COLOR = {"實招":"#d1564c","虛招":"#e2685c","架招":"#4dd0c8","氣招":"#7ec9a2","怒氣大招":"#f3a03c"};
+const WUDANG_CATEGORY_COLOR = {
+  "實招命中":"#d1564c", "實招被擋":"#8a7d63", "虛招破防":"#e2685c", "虛招命中":"#e2685c",
+  "架招成功":"#4dd0c8", "架招加成":"#4dd0c8", "架招落空":"#8a7d63",
+  "氣招發動":"#7ec9a2", "怒氣大招":"#f3a03c", "持續傷害":"#c084fc", "招式落空":"#8a7d63",
+  "換招冷卻":"#8a7d63",
+};
+// 組出「對決」下方訊息橫幅的 HTML：套路名稱／招式名稱／分類標籤各自上色，一眼就看得出來源跟結果。
+function wudangBannerHtml(move, msg, category){
+  const typeColor = WUDANG_TYPE_COLOR[move.type] || 'var(--gold-lt)';
+  const catColor = WUDANG_CATEGORY_COLOR[category] || 'var(--dim-text)';
+  const setName = move.movesetName ? `<span style="color:var(--gold-lt);">${move.movesetName}</span>・` : '';
+  const body = msg ? `・${msg}` : '';
+  return `${setName}<span style="color:${typeColor}; font-weight:700;">${move.name}</span>${body}<span style="color:${catColor}; margin-left:5px;">〔${category}〕</span>`;
+}
+
 function wudangMonsterStance(m){
   const w = m.isBoss ? {實招:0.55,架招:0.30,虛招:0.15} : {實招:0.75,架招:0.20,虛招:0.05};
   const r = Math.random();
@@ -350,12 +367,36 @@ function wudangSetCd(move){
   S.wudangMoveState[move.id].cdRemaining = move.cd||0;
 }
 
+function wudangEquippedIds(){
+  const s = S.wudangSlots || {};
+  return new Set(Object.values(s).flat().filter(Boolean));
+}
+
+// 新角色／舊存檔補欄位用的預設技能欄：依 WUDANG_MOVE_LIST 原本的順序，把已解鎖套路的招式
+// 依類型塞進技能欄，塞滿該類型上限（WUDANG_SLOT_CAPS）就換下一招，玩家可以之後自己在
+// 「武學」分頁調整。
+function defaultWudangSlots(){
+  const slots = {}; WUDANG_SLOT_TYPES.forEach(t=> slots[t]=[]);
+  WUDANG_MOVE_LIST.forEach(m=>{
+    if(!S.wudangMovesetsUnlocked[m.moveset]) return;
+    if(slots[m.type].length < WUDANG_SLOT_CAPS[m.type]) slots[m.type].push(m.id);
+  });
+  return slots;
+}
+
 // 見招拆招 AI：依對方目前的招式類型決定這次要用什麼招。
 // 內力/怒氣不夠付的招式一律先濾掉，不會出現「選了招但打不出來、整個 tick 白白浪費」的情況——
 // 架招全部不吃內力（mpCost:0），永遠會是最後的保底選項。
+// 只會從技能欄有裝備的招式挑（見 renderMartialWudang），沒裝備的招式即使已經解鎖也不會自動出手。
+// 換套路限制：上一招用的套路如果跟這次不同，要等換套路冷卻（wudangSwitchCd）歸零才能真的換過去；
+// 同一套路內連續出招沒有這個限制。
 function pickWudangMove(target){
-  const known = WUDANG_MOVE_LIST.filter(m=>
-    S.wudangMovesetsUnlocked[m.moveset] && wudangMoveOffCd(m) && (!m.mpCost || S.mp>=m.mpCost));
+  const equipped = wudangEquippedIds();
+  let known = WUDANG_MOVE_LIST.filter(m=>
+    S.wudangMovesetsUnlocked[m.moveset] && equipped.has(m.id) && wudangMoveOffCd(m) && (!m.mpCost || S.mp>=m.mpCost));
+  if(S.wudangLastMoveset && S.wudangSwitchCd>0){
+    known = known.filter(m=>m.moveset===S.wudangLastMoveset);
+  }
   const byType = t=> known.filter(m=>m.type===t);
   const ult = byType("怒氣大招").find(m=> S.rage >= (m.rageCost||0));
   if(ult) return ult;
@@ -399,11 +440,11 @@ function applyWudangEffect(effect, move, target, ctx){
     else { e.remainingTicks = effect.duration; }
   } else if(effect.type==="dotMark"){
     let e = target.statusEffects.find(e=>e.wudangMark===effect.name);
-    if(!e){ e = {kind:"dot_debuff", element:"陰", dmgPerTick:effect.dmgPerTick, remainingTicks:effect.duration, wudangMark:effect.name, stacks:1, maxStacks:effect.maxStacks}; target.statusEffects.push(e); }
-    else { e.stacks = Math.min(effect.maxStacks, e.stacks+1); e.remainingTicks = effect.duration; }
+    if(!e){ e = {kind:"dot_debuff", element:"陰", dmgPerTick:effect.dmgPerTick, remainingTicks:effect.duration, totalDuration:effect.duration, firedCount:0, wudangMark:effect.name, stacks:1, maxStacks:effect.maxStacks}; target.statusEffects.push(e); }
+    else { e.stacks = Math.min(effect.maxStacks, e.stacks+1); e.remainingTicks = effect.duration; e.totalDuration = effect.duration; e.firedCount = 0; }
   } else if(effect.type==="lockTarget"){
     target.staggerTicks = Math.max(target.staggerTicks, effect.duration);
-    target.statusEffects.push({kind:"dot_debuff", element:"陰", dmgPerTick:effect.dmgPerTick, remainingTicks:effect.duration, wudangMark:"如封似閉"});
+    target.statusEffects.push({kind:"dot_debuff", element:"陰", dmgPerTick:effect.dmgPerTick, remainingTicks:effect.duration, totalDuration:effect.duration, firedCount:0, wudangMark:"如封似閉"});
   } else if(effect.type==="ultimate"){
     S.statusEffects.push({kind:"buff", stat:"", value:0, remainingTicks:effect.duration, wudangName:"霸體", immuneControl:true, immuneAll:effect.guard==="red"});
   }
@@ -422,20 +463,20 @@ function applyBlockBonus(move, target){
   if(!move.effect || move.effect.type!=="blockBonus") return;
   if(Math.random() >= move.effect.procChance) return;
   const eff = move.effect;
-  if(eff.bonus==="fullBlock"){ S.wudangFullBlockNext = true; S.stageEffects.push(`${move.name}・下次完全化解！〔架招加成〕`); }
-  else if(eff.bonus==="crit"){ S.wudangCritNext = true; S.stageEffects.push(`${move.name}・蓄勢必殺！〔架招加成〕`); }
+  if(eff.bonus==="fullBlock"){ S.wudangFullBlockNext = true; S.stageEffects.push(wudangBannerHtml(move, "下次完全化解！", "架招加成")); }
+  else if(eff.bonus==="crit"){ S.wudangCritNext = true; S.stageEffects.push(wudangBannerHtml(move, "蓄勢必殺！", "架招加成")); }
   else if(eff.bonus==="stack" && eff.stackName){
     let e = S.statusEffects.find(e=>e.wudangName===eff.stackName);
     if(e){ e.stacks = Math.min(e.maxStacks||10, (e.stacks||0)+1); }
-    S.stageEffects.push(`${move.name}・借力！〔架招加成〕`);
-  } else if(eff.bonus==="interrupt"){ S.stageEffects.push(`${move.name}・借力打力！〔架招加成〕`); }
+    S.stageEffects.push(wudangBannerHtml(move, "借力！", "架招加成"));
+  } else if(eff.bonus==="interrupt"){ S.stageEffects.push(wudangBannerHtml(move, "借力打力！", "架招加成")); }
   S.rage = Math.min(100, S.rage+1);
 }
 
 function resolveWudangPlayerMove(move, target, activeTech){
   if(move.mpCost && S.mp<move.mpCost){
     addLog(`內力不足，「${move.name}」無法施展`, 'system');
-    S.stageEffects.push(`${move.name}・內力不足〔招式落空〕`);
+    S.stageEffects.push(wudangBannerHtml(move, "內力不足", "招式落空"));
     return;
   }
   if(move.rageCost && S.rage<move.rageCost){ return; }
@@ -443,6 +484,9 @@ function resolveWudangPlayerMove(move, target, activeTech){
   if(move.rageCost) S.rage = Math.max(0, S.rage-move.rageCost);
   wudangSetCd(move);
   S.lastUsedMoveId = move.id;
+  // 換套路限制：跟上一招不是同一套路，要重新鎖 5 回合才能再換下一次；同套路內連續出招不受影響。
+  if(S.wudangLastMoveset && S.wudangLastMoveset!==move.moveset) S.wudangSwitchCd = 5;
+  S.wudangLastMoveset = move.moveset;
 
   let mult = 1;
   if(move.effect && move.effect.type==="comboBonus"){
@@ -467,10 +511,10 @@ function resolveWudangPlayerMove(move, target, activeTech){
     if(!blocked){
       applyWudangEffect(move.effect, move, target, {blocked});
       S.rage = Math.min(100, S.rage+2);
-      S.stageEffects.push(`${move.name}・命中〔實招命中〕`);
+      S.stageEffects.push(wudangBannerHtml(move, `命中（-${dmg}）`, "實招命中"));
     } else {
       S.rage = Math.min(100, S.rage+1);
-      S.stageEffects.push(`${move.name}・被${target.name}擋下〔實招被擋〕`);
+      S.stageEffects.push(wudangBannerHtml(move, `被${target.name}擋下`, "實招被擋"));
     }
   } else if(move.type==="虛招"){
     if(target.stance==="架招"){
@@ -480,7 +524,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
       S.floatEnemy = `-${dmg}（破防！）`;
       S.hitEnemy = true;
       addLog(`「${move.name}」擊破${target.name}的架勢，造成 ${dmg} 傷害並使其陷入破綻`, 'skill');
-      S.stageEffects.push(`${move.name}・破防！〔虛招破防〕`);
+      S.stageEffects.push(wudangBannerHtml(move, `破防！（-${dmg}）`, "虛招破防"));
       S.triggerFlash[`martial_${move.id}`] = true;
     } else {
       const dmg = Math.max(1, Math.round(base*aff*0.6));
@@ -488,7 +532,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
       S.floatEnemy = `-${dmg}`;
       S.hitEnemy = true;
       addLog(`你以「${move.name}」擊中${target.name}，造成 ${dmg} 傷害`, 'attack');
-      S.stageEffects.push(`${move.name}・命中〔虛招命中〕`);
+      S.stageEffects.push(wudangBannerHtml(move, `命中（-${dmg}）`, "虛招命中"));
     }
     S.rage = Math.min(100, S.rage+2);
   } else if(move.type==="架招"){
@@ -496,7 +540,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
   } else if(move.type==="氣招"){
     applyWudangEffect(move.effect, move, target, {});
     addLog(`你運起「${move.name}」`, 'skill');
-    S.stageEffects.push(`${move.name}〔氣招發動〕`);
+    S.stageEffects.push(wudangBannerHtml(move, "", "氣招發動"));
     S.triggerFlash[`martial_${move.id}`] = true;
   } else if(move.type==="怒氣大招"){
     let dmg = target ? Math.max(1, Math.round(base*aff*1.6 - target.def*0.5)) : 0;
@@ -506,7 +550,7 @@ function resolveWudangPlayerMove(move, target, activeTech){
     S.floatEnemy = `-${dmg}（怒氣大招！）`;
     S.hitEnemyCrit = true; S.hitEnemy = true;
     addLog(`你施展「${move.name}」，造成 ${dmg} 傷害！`, 'attack');
-    S.stageEffects.push(`${move.name}・怒氣爆發！〔怒氣大招〕`);
+    S.stageEffects.push(wudangBannerHtml(move, `怒氣爆發！（-${dmg}）`, "怒氣大招"));
     S.triggerFlash.sectPassive = true;
   }
 }
@@ -519,10 +563,10 @@ function resolveWudangMonsterAttack(target, playerMove){
     if(S.wudangFullBlockNext){
       dmg = 0; S.wudangFullBlockNext = false;
       addLog(`「${playerMove.name}」完全化解了${target.name}的攻擊`, 'skill');
-      S.stageEffects.push(`${playerMove.name}・完全化解！〔架招成功〕`);
+      S.stageEffects.push(wudangBannerHtml(playerMove, "完全化解！", "架招成功"));
     } else {
       dmg = Math.max(0, Math.round(dmg*0.10));
-      S.stageEffects.push(`${playerMove.name}・格擋成功〔架招成功〕`);
+      S.stageEffects.push(wudangBannerHtml(playerMove, "格擋成功", "架招成功"));
     }
     applyBlockBonus(playerMove, target);
     S.rage = Math.min(100, S.rage+4);
@@ -599,16 +643,20 @@ function combatTickWudang(){
   S.stageEffects=[]; S.triggerFlash={};
 
   Object.values(S.wudangMoveState).forEach(st=>{ if(st.cdRemaining>0) st.cdRemaining--; });
+  if(S.wudangSwitchCd>0) S.wudangSwitchCd--;
 
-  // 怪物身上的印記/DOT 持續傷害
+  // 怪物身上的印記/DOT 持續傷害：firedCount 是「已經觸發第幾次」，跟 remainingTicks 分開算，
+  // 用來在畫面上顯示「X/Y回合」的持續進度，不受 tickStatusEffects() 的扣減順序影響。
   S.monsters.forEach(m=>{
     if(m.hp<=0) return;
     m.statusEffects.forEach(e=>{
       if(e.kind!=="dot_debuff") return;
       const dmg = e.dmgPerTick * (e.stacks||1);
       m.hp -= dmg;
+      e.firedCount = (e.firedCount||0)+1;
       addLog(`${m.name} 受到「${e.wudangMark||'內傷'}」持續傷害 ${dmg}`, 'dot');
-      S.stageEffects.push(`${e.wudangMark||'內傷'}・持續發作（${dmg}）〔持續傷害〕`);
+      const catColor = WUDANG_CATEGORY_COLOR["持續傷害"];
+      S.stageEffects.push(`<span style="color:#c084fc; font-weight:700;">${e.wudangMark||'內傷'}</span>・持續發作（-${dmg}，${e.firedCount}/${e.totalDuration||'?'}回合）<span style="color:${catColor}; margin-left:5px;">〔持續傷害〕</span>`);
     });
   });
 
@@ -617,11 +665,14 @@ function combatTickWudang(){
 
   const move = target ? pickWudangMove(target) : null;
   if(move) resolveWudangPlayerMove(move, target, activeTech);
+  else if(target && S.wudangLastMoveset && S.wudangSwitchCd>0){
+    S.stageEffects.push(`<span style="color:var(--dim-text);">正在換招式，${S.wudangSwitchCd} 回合後才能使出其他套路</span><span style="color:${WUDANG_CATEGORY_COLOR["換招冷卻"]}; margin-left:5px;">〔換招冷卻〕</span>`);
+  }
 
   if(target && target.hp>0 && target.stance==="實招"){
     resolveWudangMonsterAttack(target, move);
   } else if(move && move.type==="架招" && target){
-    S.stageEffects.push(`${move.name}・凝神戒備，但對方沒有出手〔架招落空〕`);
+    S.stageEffects.push(wudangBannerHtml(move, "凝神戒備，但對方沒有出手", "架招落空"));
   }
 
   S.monsters.forEach(m=>{

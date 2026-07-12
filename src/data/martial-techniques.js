@@ -114,6 +114,22 @@ const WUDANG_MOVESETS = [
 ];
 const WUDANG_MOVE_LIST = WUDANG_MOVESETS.flatMap(s=>s.moves.map(m=>({...m, moveset:s.key, movesetName:s.name, rarity:s.rarity, weaponSub:s.weaponSub})));
 
+// 技能欄上限：實/虛/氣各 5 格，架招／怒氣大招各 1 格（見 renderMartialWudang 的裝備介面）。
+const WUDANG_SLOT_CAPS = {"實招":5, "虛招":5, "架招":1, "氣招":5, "怒氣大招":1};
+const WUDANG_SLOT_TYPES = ["實招","虛招","架招","氣招","怒氣大招"];
+
+// 套路稀有度 1~7 對應的稱號跟色階（跟角色稱號系統是分開的兩套，這個專屬武學套路）。
+const MOVESET_RARITY_INFO = [
+  null,
+  {name:"初入江湖", color:"#f0e6cf"},
+  {name:"門派中流", color:"#7ec9a2"},
+  {name:"江湖百家", color:"#6db3e0"},
+  {name:"一派之尊", color:"#c084fc"},
+  {name:"奇緣絕學", color:"#f3a03c"},
+  {name:"武林至寶", color:"#4dd0c8"},
+  {name:"天道神話", color:"#ff6fb0"},
+];
+
 const MARTIAL_POOL = {
   "拳掌":[{id:"luohan",name:"羅漢拳",affinity:"陽剛",dmgType:"外功",special:"擊退"},{id:"jingang",name:"金剛伏魔指",affinity:"陽剛",dmgType:"外功",special:"暈眩"}],
   "劍法":[{id:"taiji_jian",name:"太極劍",affinity:"太極",dmgType:"外功",special:"降低對方防禦"},{id:"jiuyin_jian",name:"九陰劍法",affinity:"陰柔",dmgType:"內功",special:"流血"}],

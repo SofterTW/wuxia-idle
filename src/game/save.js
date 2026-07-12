@@ -38,8 +38,12 @@ function patchLoadedSave(){
   if(S.monsters===undefined) S.monsters = [];
   if(S.wudangFullBlockNext===undefined) S.wudangFullBlockNext = false;
   if(S.wudangCritNext===undefined) S.wudangCritNext = false;
+  if(S.wudangSlots===undefined) S.wudangSlots = {"實招":[],"虛招":[],"架招":[],"氣招":[],"怒氣大招":[]};
+  if(S.wudangLastMoveset===undefined) S.wudangLastMoveset = null;
+  if(S.wudangSwitchCd===undefined) S.wudangSwitchCd = 0;
   if(S.sectKey==="wudang"){
     WUDANG_MOVESETS.forEach(m=>{ if(S.wudangMovesetsUnlocked[m.key]===undefined) S.wudangMovesetsUnlocked[m.key] = true; });
+    if(Object.values(S.wudangSlots).every(arr=>arr.length===0)) S.wudangSlots = defaultWudangSlots();
   }
 }
 
