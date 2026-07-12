@@ -658,8 +658,8 @@
   animation:wxgEffectBanner 1.6s ease-out; opacity:0;
 }
 
-/* ---- 響應式：整個遊戲大小依螢幕寬度調整 ---- */
-.wxg{width:100%; max-width:900px; margin:0 auto; box-sizing:border-box;}
+/* ---- 響應式：整個遊戲大小依螢幕寬度調整（仿 Melvor Idle 寬版版面，寬螢幕盡量利用橫向空間） ---- */
+.wxg{width:100%; max-width:1440px; margin:0 auto; box-sizing:border-box;}
 @media (max-width:900px){
   .wxg{max-width:100%;}
 }
