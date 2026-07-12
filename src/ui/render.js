@@ -436,7 +436,10 @@ function renderNavList(){
 function renderAutoHealBody(){
   const hpOptions = CONSUMABLES.filter(c=>c.effect==="healHp"||c.effect==="healFull");
   const mpOptions = CONSUMABLES.filter(c=>c.effect==="healMp"||c.effect==="healFull");
-  const cdHint = S.potionCd>0 ? `<div class="wxg-hint" style="color:#e2685c;">戰鬥中服藥冷卻中，還要 ${S.potionCd} 回合才能再次服藥（不論自動或手動）。</div>` : '';
+  // 這行冷卻提示戰鬥中每隔幾回合就會出現/消失一次（S.potionCd 歸零又重新倒數），高倍速時
+  // 頻率非常高，如果整個 div 直接不渲染，面板高度會跟著一直跳動。改成永遠佔住這個位置、
+  // 只是切換 visibility，畫面高度就不會再變化。
+  const cdHint = `<div class="wxg-hint" style="color:#e2685c; ${S.potionCd>0?'':'visibility:hidden;'}">戰鬥中服藥冷卻中，還要 ${S.potionCd||0} 回合才能再次服藥（不論自動或手動）。</div>`;
   return `
       <div class="wxg-hint" style="margin-top:0;">氣血／內力低於門檻時，自動使用背包內指定藥品；勾選自動購買後，存量剩 1 瓶會自動補貨 100 瓶。戰鬥中服藥（不論自動或手動）共用 10 回合冷卻，離開戰鬥（金凌城／拜訪門派）不受此限制。</div>
       ${cdHint}
