@@ -609,8 +609,8 @@ function renderInternal(){
       const nextReq = TIER_TABLE[Math.min(tier+1,cap)].req;
       const isMain = S.activeInternal===t.id;
       const expanded = !!S.internalExpanded[t.id];
-      const tierList = Array.from({length:MAX_OBTAINABLE_TIER}, (_,i)=>i)
-        .map(i=>`<div class="wxg-row" style="${i===tier?'color:var(--gold-lt)':''}">${i===tier?'▶ ':'　'}${internalLayerDesc(t,i)}</div>`).join("");
+      const tierList = `<div class="wxg-row" style="color:var(--gold-lt);">▶ 目前　${internalLayerDesc(t,tier)}</div>`
+        + (atCap ? '' : `<div class="wxg-row">　下一層　${internalLayerDesc(t,tier+1)}</div>`);
       const capHint = atCap ? `<div class="wxg-hint" style="margin-top:6px; color:var(--gold-lt);">你的「${t.name}」目前只學到第 ${tier+1} 層，後面的第 ${cap+2}～36 層需要尋得更高深的心法傳承，目前尚無取得途徑，敬請期待日後版本開放。</div>` : '';
       return `
       <div class="wxg-panel ${isMain?'active-main':''}">
