@@ -77,15 +77,24 @@
      移動 tick 本身頻率已經夠高（見 combat.js WUDANG_MOVE_STEPS_PER_TICK），單靠高頻率的
      小步更新就夠順了，不需要 transition 這種會被完整重繪打斷的補間方式。 */
 }
-.wxg-map-mob{ width:88px; margin-left:-44px; z-index:4; }
+/* 怪物頭像改成「頭像置中在座標點上、名稱＋血條往右延伸」的橫向排版，而不是原本疊在頭像
+   正上/正下方——這樣傷害飄字（wxg-float，置中蓋在頭像正上方）出現時中間這塊完全淨空，
+   不會跟名稱、血條擠在一起。margin-left 只抵消頭像本身半徑（56px的一半），不是整個區塊的
+   一半寬，所以錨點是頭像中心對齊座標，名稱/血條是額外往右多出來的部分。 */
+.wxg-map-mob{
+  width:auto; margin-left:-28px; z-index:4; text-align:left;
+  display:flex; align-items:flex-start; gap:4px;
+}
+.wxg-map-mob-portrait-col{ position:relative; flex-shrink:0; }
+.wxg-map-mob-info{ padding-top:4px; min-width:64px; max-width:110px; }
 .wxg-map-mob-name{
   font-size:10.5px; font-weight:700; color:var(--ink-text); text-shadow:0 0 4px #000, 0 0 2px #000;
   white-space:normal; overflow:visible; text-overflow:clip; line-height:1.3; word-break:keep-all;
 }
 .wxg-map-mob.boss .wxg-map-mob-name{ color:#ff8a4a; }
 .wxg-map-mob-hpbar{
-  height:5px; border-radius:999px; background:#0a0805; border:1px solid #000; margin:2px auto 4px;
-  box-shadow:0 0 0 1px #4a3218; overflow:hidden; width:90%;
+  height:5px; border-radius:999px; background:#0a0805; border:1px solid #000; margin:2px 0 0;
+  box-shadow:0 0 0 1px #4a3218; overflow:hidden; width:100%;
 }
 .wxg-map-mob-hpfill{height:100%; background:linear-gradient(180deg,#7ec9a2,var(--jade) 60%,#204a3a); transition:width .35s;}
 .wxg-map-player .wxg-portrait{width:76px; height:76px;}

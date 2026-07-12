@@ -365,10 +365,14 @@ function renderWudangArenaStage(){
     const monsterIcon = portraitImgHtml(m.isBoss?BOSS_PORTRAIT:MONSTER_PORTRAIT);
     const aggroTag = m.isBoss ? '' : (hostile ? `<span class="wxg-map-mob-tag hostile">${m.aggroed&&!m.aggressive?'已激怒':'主動'}</span>` : `<span class="wxg-map-mob-tag passive">閒晃</span>`);
     return `<div class="wxg-map-mob wxg-idle-bob${m.isBoss?' boss':''}${hostile?' hostile':''}" data-mobuid="${m.uid}" style="left:${m.pos.x}%; top:${m.pos.y}%;"${isEngaged?` data-monsterinfohover="1"`:''}>
-      ${isEngaged && S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
-      <div class="wxg-map-mob-name">${m.isBoss?'👑 ':''}${m.name}${aggroTag}</div>
-      <div class="wxg-portrait enemy${enemyHitCls}">${monsterIcon}</div>
-      <div class="wxg-map-mob-hpbar"><div class="wxg-map-mob-hpfill" style="width:${Math.max(0,m.hp/m.hpMax*100)}%;"></div></div>
+      <div class="wxg-map-mob-portrait-col">
+        ${isEngaged && S.floatEnemy?`<div class="wxg-float foe${S.hitEnemyCrit?' crit':''}">${S.floatEnemy}</div>`:""}
+        <div class="wxg-portrait enemy${enemyHitCls}">${monsterIcon}</div>
+      </div>
+      <div class="wxg-map-mob-info">
+        <div class="wxg-map-mob-name">${m.isBoss?'👑 ':''}${m.name}${aggroTag}</div>
+        <div class="wxg-map-mob-hpbar"><div class="wxg-map-mob-hpfill" style="width:${Math.max(0,m.hp/m.hpMax*100)}%;"></div></div>
+      </div>
     </div>`;
   }).join("");
 
