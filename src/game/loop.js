@@ -10,10 +10,21 @@ function isEditingUI(){
 let __wxgLastSaveAt = 0;
 let __wxgLastRenderAt = 0;
 const WXG_RENDER_MIN_INTERVAL_MS = 100; // 畫面最多每秒重繪約10次，肉眼看起來還是流暢，但不會閃爍/擋點擊
+
+// 光是節流重繪頻率還不夠：render() 每次都整個 innerHTML 重建，如果使用者的滑鼠按下（mousedown）
+// 到放開（mouseup）之間剛好夾了一次重繪，原本按下去的按鈕節點被整個換掉，click 事件就不會發生在
+// 新的節點上——玩家會感覺「要抓時機」才按得到。用 pointerdown/pointerup 記錄「目前是否正在操作
+// 中」，操作中就先不重繪，放開滑鼠後才補畫一次，這樣任何一次按下-放開的過程都保證在同一份 DOM
+// 上完成，不會被 tick 打斷。
+let __wxgPointerActive = false;
+document.addEventListener('pointerdown', ()=>{ __wxgPointerActive = true; });
+document.addEventListener('pointerup', ()=>{ __wxgPointerActive = false; if(S) render(); });
+document.addEventListener('pointercancel', ()=>{ __wxgPointerActive = false; });
+
 function tickGame(){
   combatTick();
   const now = Date.now();
-  if(!isEditingUI() && now - __wxgLastRenderAt > WXG_RENDER_MIN_INTERVAL_MS){
+  if(!isEditingUI() && !__wxgPointerActive && now - __wxgLastRenderAt > WXG_RENDER_MIN_INTERVAL_MS){
     __wxgLastRenderAt = now;
     render();
   }

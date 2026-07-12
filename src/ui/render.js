@@ -529,11 +529,13 @@ function renderSide(){
   });
 
   const buffBody = rows.length>0 ? rows.join("") : `<div class="wxg-hint">尚未擁有任何生效中的特效。</div>`;
-  // 高倍速時狀態效果會頻繁增減（尤其武當的招式buff），內容筆數一直變會讓這個面板一直大小變化，
-  // 把下面的面板（尤其全局加速）擠得跟著上下跳動、點不到。固定高度＋內部捲動就不會再影響版面。
+  // 高倍速時狀態效果會頻繁增減、剩餘回合數字也一直變（尤其武當的招式buff），內容筆數/文字長度
+  // 一直變會讓這個面板一直大小變化，把下面的面板擠得跟著上下跳動、點不到。這裡故意用「固定
+  // height」而不是「max-height」——max-height 內容比上限矮時還是會跟著縮小，一樣會跳動；
+  // 固定 height + 內部捲動才能保證不管裡面幾筆效果，面板本身的高度永遠不變。
   const buffPanel = `<div class="wxg-panel">
     <div class="wxg-panel-head" data-togglenside="buffs" style="cursor:pointer;"><span class="dot"></span><h3>目前狀態效果</h3><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.buffs?'▾':'▸'}</span></div>
-    ${exp.buffs?`<div style="max-height:220px; overflow-y:auto;">${buffBody}</div>`:''}
+    ${exp.buffs?`<div style="height:180px; overflow-y:auto;">${buffBody}</div>`:''}
   </div>`;
 
   // 武當的「戰鬥選項」整合進「戰鬥邏輯」分頁了（見 renderWudangLogic），側欄不再重複顯示。
