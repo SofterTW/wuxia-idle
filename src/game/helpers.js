@@ -36,6 +36,15 @@ function equipSellValue(item){
 
 function findConsumable(id){ return CONSUMABLES.find(c=>c.id===id); }
 
+// 物品專屬編號：參考 L1J（天堂1 Java版模擬伺服器）的 object_id 設計——單一全域自增計數器，
+// 不分武器/裝備/道具分類、不補零、沒有上限，發過的號碼即使物品被賣掉/刪除也不會回收重發。
+// 每一件裝備實例（含隨機掉落、門派至寶）跟每一列道具/藥品/秘笈堆疊，第一次被建立時呼叫這個
+// 拿一個 uid，之後同一個物件被移動（例如換裝、放回背包）沿用同一個 uid，不重新發號。
+function allocUid(){
+  if(S.nextUid==null) S.nextUid = 1;
+  return String(S.nextUid++);
+}
+
 const PRIMARY_COLORS = {
   臂力:"#e2685c", 身法:"#7ec9a2", 內息:"#6db3e0", 罡氣:"#c084fc", 體魄:"#f3a03c",
 };

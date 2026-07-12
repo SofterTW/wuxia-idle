@@ -3,7 +3,7 @@ function addConsumable(refId, amount){
   if(!c) return;
   const stack = S.inventory.find(it=>it.kind==="consumable" && it.refId===refId);
   if(stack) stack.qty += amount;
-  else S.inventory.push({kind:"consumable", refId, name:c.name, qty:amount});
+  else S.inventory.push({kind:"consumable", refId, name:c.name, qty:amount, uid:allocUid()});
 }
 
 function buyConsumableBulk(refId, amount, isAuto){

@@ -271,7 +271,7 @@ function onKill(){
     const source = pool.length>0 ? pool : Object.values(MARTIAL_POOL).flat().filter(m=>S.knownMartial[m.id]);
     if(source.length>0){
       const m = source[Math.floor(Math.random()*source.length)];
-      S.inventory.push({kind:"manual", manualType:"martial", targetId:m.id, name:`武學秘笈：${m.name}`});
+      S.inventory.push({kind:"manual", manualType:"martial", targetId:m.id, name:`武學秘笈：${m.name}`, uid:allocUid()});
       addLog(`擊殺掉落「武學秘笈：${m.name}」，回背包查看`, 'loot');
     }
   }
@@ -281,7 +281,7 @@ function onKill(){
     const source = pool.length>0 ? pool : INTERNAL_POOL.filter(t=>S.knownInternal[t.id]);
     if(source.length>0){
       const t = source[Math.floor(Math.random()*source.length)];
-      S.inventory.push({kind:"manual", manualType:"internal", targetId:t.id, name:`內功秘笈：${t.name}`});
+      S.inventory.push({kind:"manual", manualType:"internal", targetId:t.id, name:`內功秘笈：${t.name}`, uid:allocUid()});
       addLog(`擊殺掉落「內功秘笈：${t.name}」，回背包查看`, 'loot');
     }
   }

@@ -27,6 +27,10 @@ function patchLoadedSave(){
   if(S.codexInternalSect===undefined) S.codexInternalSect = null;
   if(S.codexInternalSkillId===undefined) S.codexInternalSkillId = null;
   if(S.changelogPage===undefined) S.changelogPage = 0;
+  if(S.nextUid===undefined) S.nextUid = 1;
+  // 舊存檔的裝備/道具沒有 uid 欄位，逐一補發，號碼延續 S.nextUid，不會跟之後新產生的物品重複。
+  Object.values(S.equipment).forEach(it=>{ if(it && it.uid==null) it.uid = allocUid(); });
+  S.inventory.forEach(it=>{ if(it && it.uid==null) it.uid = allocUid(); });
 }
 
 function loadGame(){

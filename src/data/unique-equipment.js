@@ -24,7 +24,7 @@ const UNIQUE_EQUIPMENT = [
 function instantiateUniqueEquipment(u){
   return {
     name:u.name, bonus:{...u.bonus}, slot:u.slot, kind:"equipment",
-    tierKey:"jade", jadeGrade:7, awakened:[], locked:false, unique:true, uniqueId:u.id,
+    tierKey:"jade", jadeGrade:7, awakened:[], locked:false, unique:true, uniqueId:u.id, uid:allocUid(),
   };
 }
 

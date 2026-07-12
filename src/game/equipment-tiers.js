@@ -68,6 +68,6 @@ function generateEquipment(slot, levelMod){
   const namePrefix = {wood:"粗製",bronze:"精銅",iron:"寒鐵",silver:"素銀",gold:"赤金",jade:"美玉"}[tier.key];
   return {
     name:`${namePrefix}${slot}`, bonus:{[lean]:baseVal}, slot, kind:"equipment",
-    tierKey:tier.key, jadeGrade, awakened:[], locked:false,
+    tierKey:tier.key, jadeGrade, awakened:[], locked:false, uid:allocUid(),
   };
 }

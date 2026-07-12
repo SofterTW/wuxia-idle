@@ -3,10 +3,11 @@ let S = null;
 function newGame(sectKey){
   const sect = SECTS[sectKey];
   const equipment = {};
+  let uidCounter = 1;
   SLOT_LIST.forEach(slot=>{
     const lean = SLOT_LEAN[slot][0];
     const bonus = slot==="兵刃" ? 8 : (slot.startsWith("戒指") ? 0 : 3);
-    equipment[slot] = {name:`初階${slot}`, bonus:{[lean]:bonus}, slot, kind:"equipment", tierKey:"wood", jadeGrade:null, awakened:[], locked:false};
+    equipment[slot] = {name:`初階${slot}`, bonus:{[lean]:bonus}, slot, kind:"equipment", tierKey:"wood", jadeGrade:null, awakened:[], locked:false, uid:String(uidCounter++)};
   });
   const knownMartial = {};
   const starter = MARTIAL_POOL[sect.weaponType].filter(m=>!m.need);
@@ -14,7 +15,7 @@ function newGame(sectKey){
   const starterInternalId = STARTER_INTERNAL_ID[sectKey] || "tuna";
   const knownInternal = {[starterInternalId]:{invested:0}};
   S = {
-    sectKey, sect, primary:{...sect.base}, equipment, inventory:[],
+    sectKey, sect, primary:{...sect.base}, equipment, inventory:[], nextUid:uidCounter,
     knownInternal, activeInternal:starterInternalId,
     knownMartial, martialSlots:[starter[0]?.id||null, starter[1]?.id||null, null, null],
     qiPool:0, gold:20, materials:{淬鍊石:0, 洗髓丹:0, 精鐵砂:0, 美玉錠:0}, respecCooldown:0,
