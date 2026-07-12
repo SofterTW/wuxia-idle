@@ -947,8 +947,11 @@ function renderEquip(){
       // equipment
       const bonusText = bonusTextHtml(it.bonus);
       const awakenText = (it.awakened||[]).length>0 ? `<div class="wxg-hint" style="color:var(--gold-lt);">開光：${it.awakened.map(a=>`${a.stat}+${a.value}`).join('、')}</div>` : '';
+      const curEquipped = S.equipment[it.slot];
+      const cmpHtml = compareBonusHtml(it, curEquipped);
       return `<div class="wxg-panel"><div class="wxg-panel-head"><span class="dot"></span><h3>${rarityNameHtml(it)} ${it.locked?'🔒':''}</h3><span class="wxg-tag">${it.slot}</span></div>
         <div class="wxg-hint">${bonusText}</div>${awakenText}
+        ${cmpHtml?`<div class="wxg-hint" style="margin-top:4px;">與目前「${it.slot}」比較：</div>${cmpHtml}`:''}
         <div style="display:flex; gap:6px; margin-top:6px;">
           <button class="wxg-btn small" data-equip="${idx}">裝備</button>
           <button class="wxg-btn small" data-locktoggle="${idx}">${it.locked?'解鎖':'鎖定'}</button>
