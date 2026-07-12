@@ -148,6 +148,16 @@ function bindGlobal(){
   document.querySelectorAll('[data-wudangfiltertype]').forEach(el=> el.onchange=()=>{ S.wudangFilterType = el.value; render(); });
   document.querySelectorAll('[data-wudangfilterrarity]').forEach(el=> el.onchange=()=>{ S.wudangFilterRarity = el.value; render(); });
   document.querySelectorAll('[data-internalfilteraffinity]').forEach(el=> el.onchange=()=>{ S.internalFilterAffinity = el.value; render(); });
+  document.querySelectorAll('[data-wudangmovehover]').forEach(el=>{
+    el.onmouseenter = ()=>{
+      const m = WUDANG_MOVE_LIST.find(x=>x.id===el.dataset.wudangmovehover);
+      if(!m) return;
+      const tip = getFloatTooltipEl();
+      tip.innerHTML = wudangMoveTooltipHtml(m);
+      positionFloatTooltip(tip, el);
+    };
+    el.onmouseleave = ()=>{ getFloatTooltipEl().style.display = "none"; };
+  });
   // 戰鬥邏輯分頁：每招的施放條件（HP/MP 高於/低於 X%），存進 S.wudangMoveConditions[moveId]。
   function ensureWudangCond(id){
     if(!S.wudangMoveConditions[id]) S.wudangMoveConditions[id] = {resource:"HP", compare:"above", pct:null};

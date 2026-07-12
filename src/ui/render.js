@@ -779,6 +779,22 @@ function renderMartialWudang(){
     ${rows}
   `;
 }
+// 戰鬥邏輯分頁招式懸浮視窗：滑鼠移到招式名稱上顯示這招的完整資訊。
+function wudangMoveTooltipHtml(m){
+  if(!m) return "";
+  const costTxt = m.rageCost ? `怒氣 ${m.rageCost}` : (m.mpCost ? `內力 ${m.mpCost}` : '無消耗');
+  const statTxt = [m.statA, m.statB].filter(Boolean).join('／') || '—';
+  return `
+    <div class="wxg-tip-title" style="color:${WUDANG_TYPE_COLOR[m.type]};">${m.movesetName}・${m.name}</div>
+    <div class="wxg-tip-row"><span>招式類型</span><b>${m.type}</b></div>
+    <div class="wxg-tip-row"><span>屬性／傷害屬性</span><b>${m.affinity}／${m.dmgType}</b></div>
+    <div class="wxg-tip-row"><span>主要屬性加乘</span><b>${statTxt}</b></div>
+    <div class="wxg-tip-row"><span>傷害倍率</span><b>${m.dmgTier||'無直接傷害'}</b></div>
+    <div class="wxg-tip-row"><span>冷卻時間</span><b>${m.cd} 回合</b></div>
+    <div class="wxg-tip-row"><span>消耗</span><b>${costTxt}</b></div>
+    <div class="wxg-tip-row" style="margin-top:4px; border-top:1px dotted #4a3818; padding-top:4px;"><span>${m.desc}</span></div>
+  `;
+}
 // 戰鬥邏輯：幫每一招已裝備的招式設定施放條件（HP/MP 高於/低於 X%），沒設定條件（百分比欄位
 // 空白）的招式永遠視為條件成立，不影響「見招拆招」原本的判斷。
 function renderWudangLogic(){
@@ -793,7 +809,7 @@ function renderWudangLogic(){
   const rows = equipped.map(({id,type,def})=>{
     const c = S.wudangMoveConditions[id] || {};
     return `<div class="wxg-row" style="flex-wrap:wrap; gap:6px; align-items:center; padding:6px 2px;">
-      <span style="flex:1 1 140px; min-width:120px;"><span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[type]}; color:${WUDANG_TYPE_COLOR[type]};">${type}</span> ${def.name}</span>
+      <span style="flex:1 1 140px; min-width:120px; cursor:help;" data-wudangmovehover="${id}"><span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[type]}; color:${WUDANG_TYPE_COLOR[type]};">${type}</span> ${def.name}</span>
       <select data-wudangcondresource="${id}" style="background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
         <option value="HP" ${(c.resource||"HP")==="HP"?'selected':''}>HP</option>
         <option value="MP" ${c.resource==="MP"?'selected':''}>MP</option>
