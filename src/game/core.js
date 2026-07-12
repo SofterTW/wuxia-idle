@@ -119,7 +119,7 @@ const WUDANG_ARENA_PATROL = [
   {x:42, y:88}, {x:58, y:88}, {x:58, y:94}, {x:42, y:94},
 ];
 const WUDANG_ARENA_POOL_SIZE = 4; // 地圖上同時維持存活的怪物數量，死一隻立刻補一隻
-const WUDANG_AGGRO_CHANCE = 0.45; // 新生成的怪物有幾成機率是「主動攻擊」型
+const WUDANG_AGGRO_CHANCE = 0; // 新生成的怪物有幾成機率是「主動攻擊」型；先讓目前3個狩獵區都是被動怪，首領仍固定主動
 const WUDANG_MOVE_STEP = 14;      // 追擊（主動/已被激怒）時，每 tick 最多移動的場地百分比距離
 const WUDANG_WANDER_STEP = 8;     // 被動閒晃時，每 tick 最多移動的距離（比追擊慢，看起來比較悠閒）
 // 判定「已經走到對方旁邊、可以出招」的距離門檻——玩家頭像 76px、怪物頭像 56px，

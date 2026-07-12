@@ -75,10 +75,10 @@
      實際更新次數不多也能感覺很順，而不是每次都用完整 render() 硬跳過去。 */
   transition: left .16s linear, top .16s linear;
 }
-.wxg-map-mob{ width:64px; margin-left:-32px; z-index:4; }
+.wxg-map-mob{ width:88px; margin-left:-44px; z-index:4; }
 .wxg-map-mob-name{
   font-size:10.5px; font-weight:700; color:var(--ink-text); text-shadow:0 0 4px #000, 0 0 2px #000;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  white-space:normal; overflow:visible; text-overflow:clip; line-height:1.3; word-break:keep-all;
 }
 .wxg-map-mob.boss .wxg-map-mob-name{ color:#ff8a4a; }
 .wxg-map-mob-hpbar{
