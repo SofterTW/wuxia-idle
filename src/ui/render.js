@@ -298,6 +298,20 @@ function wudangMonsterDebuffHtml(m){
   return rows.join("");
 }
 
+// 攻擊飛行特效依兵刃類型換圖示：武當看招式的 weaponSub（單劍/雙劍/徒手），其他門派看
+// S.sect.weaponType（拳掌/劍法/棍法/暗器/刀法）。查不到對應圖示就回傳 null，維持原本的光球。
+const WEAPON_PROJECTILE_ICON = {
+  "單劍":"🗡️", "雙劍":"⚔️", "徒手":"👊",
+  "拳掌":"👊", "劍法":"🗡️", "棍法":"🏒", "暗器":"🎯", "刀法":"🔪",
+};
+function attackProjectileIcon(){
+  if(S.sectKey==="wudang"){
+    const mv = WUDANG_MOVE_LIST.find(x=>x.id===S.lastUsedMoveId);
+    return mv ? (WEAPON_PROJECTILE_ICON[mv.weaponSub]||null) : null;
+  }
+  return WEAPON_PROJECTILE_ICON[S.sect.weaponType] || null;
+}
+
 function renderStage(){
   const sectIcon = portraitImgHtml(SECT_PORTRAIT[S.sectKey]);
   const zoneKey = zoneBgClass();
@@ -343,7 +357,7 @@ function renderStage(){
   <div class="wxg-stage bg-${zoneKey}${stageShake}">
     ${sceneSvg}
     <div class="wxg-corner tl"></div><div class="wxg-corner tr"></div><div class="wxg-corner bl"></div><div class="wxg-corner br"></div>
-    ${S.hitEnemy?`<div class="wxg-projectile fwd"></div>`:""}
+    ${S.hitEnemy?(()=>{ const icon=attackProjectileIcon(); return `<div class="wxg-projectile fwd${icon?' icon':''}">${icon||''}</div>`; })():""}
     ${S.hitPlayer?`<div class="wxg-projectile back"></div>`:""}
     <div class="wxg-fighter">
       <div class="wxg-portrait-wrap">
@@ -435,7 +449,8 @@ function renderAutoHealBody(){
           <option value="">不自動使用</option>
           ${hpOptions.map(c=>`<option value="${c.id}" ${S.autoHeal.hpItem===c.id?'selected':''}>${c.name}</option>`).join("")}
         </select>
-        ${S.autoHeal.hpItem?`<div class="wxg-hint" style="margin-top:2px;">目前剩餘量：${S.inventory.find(it=>it.kind==="consumable"&&it.refId===S.autoHeal.hpItem)?.qty||0} 瓶</div>`:''}
+        ${S.autoHeal.hpItem?`<div class="wxg-hint" style="margin-top:2px;">效果：${consumableEffectText(CONSUMABLES.find(c=>c.id===S.autoHeal.hpItem))}</div>
+        <div class="wxg-hint" style="margin-top:2px;">目前剩餘量：${S.inventory.find(it=>it.kind==="consumable"&&it.refId===S.autoHeal.hpItem)?.qty||0} 瓶</div>`:''}
         <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
           <input type="checkbox" data-autobuy="hp" ${S.autoHeal.hpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
         </label>
@@ -449,7 +464,8 @@ function renderAutoHealBody(){
           <option value="">不自動使用</option>
           ${mpOptions.map(c=>`<option value="${c.id}" ${S.autoHeal.mpItem===c.id?'selected':''}>${c.name}</option>`).join("")}
         </select>
-        ${S.autoHeal.mpItem?`<div class="wxg-hint" style="margin-top:2px;">目前剩餘量：${S.inventory.find(it=>it.kind==="consumable"&&it.refId===S.autoHeal.mpItem)?.qty||0} 瓶</div>`:''}
+        ${S.autoHeal.mpItem?`<div class="wxg-hint" style="margin-top:2px;">效果：${consumableEffectText(CONSUMABLES.find(c=>c.id===S.autoHeal.mpItem))}</div>
+        <div class="wxg-hint" style="margin-top:2px;">目前剩餘量：${S.inventory.find(it=>it.kind==="consumable"&&it.refId===S.autoHeal.mpItem)?.qty||0} 瓶</div>`:''}
         <label style="display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; color:var(--dim-text); cursor:pointer;">
           <input type="checkbox" data-autobuy="mp" ${S.autoHeal.mpAutoBuy?'checked':''}> 存量不足時自動購買（扣款）
         </label>
@@ -547,11 +563,22 @@ function renderSide(){
     `:''}
   </div>`;
 
+  const curSpeed = S.tickSpeedMult||1;
+  const speedPanel = `<div class="wxg-panel">
+    <div class="wxg-panel-head" data-togglenside="speed" style="cursor:pointer;"><span class="dot"></span><h3>全局加速</h3><span class="wxg-help-icon" data-tip="${escapeHtml('測試用功能：縮短戰鬥 tick 間隔讓遊戲跑更快，不影響數值計算結果，只是變快而已。')}">?</span><span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${exp.speed?'▾':'▸'}</span></div>
+    ${exp.speed?`
+    <div style="display:flex; gap:6px; margin-top:8px;">
+      ${[1,10,100].map(m=>`<button class="wxg-btn small ${curSpeed===m?'gold':''}" data-setspeed="${m}">${m}倍</button>`).join("")}
+    </div>
+    `:''}
+  </div>`;
+
   return `
     ${primaryPanel}
     ${buffPanel}
     ${autoPanel}
     ${savePanel}
+    ${speedPanel}
   `;
 }
 
@@ -776,6 +803,7 @@ function renderMartialWudang(){
         <span class="wxg-tag" style="border-color:${info.color}; color:${info.color};">${info.name}（稀有度${ms.rarity}）</span>
         <span class="wxg-tag">${ms.weaponSub}</span>
         <span class="wxg-tag jade">已裝備 ${equippedCount}/${ms.moves.length}</span>
+        <button class="wxg-btn gold small" data-wudangequipset="${ms.key}" title="卸下目前所有技能欄招式，改裝備這套路的全部招式">一鍵裝備</button>
         <span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${expanded?'▾':'▸'}</span>
       </div>
       ${expanded?moveRows:`<div class="wxg-hint">點標題列查看這套路的完整招式與說明。</div>`}
@@ -1190,6 +1218,13 @@ function renderMap(){
 }
 
 const CODEX_EFFECT_LABEL = {healHp:"恢復氣血", healMp:"恢復內力", healFull:"氣血內力全滿", buffAtk:"暫時提升外功／內功威力"};
+// 藥品效果的精確數值文字，圖鑑分頁跟戰鬥邏輯／戰鬥選項的藥品下拉選單共用，避免兩處各寫一份、
+// 改數值時漏改其中一邊。
+function consumableEffectText(c){
+  if(c.effect==="buffAtk") return `威力 +${Math.round(c.value*100)}%，持續 ${c.duration} 次交手`;
+  if(c.effect==="healFull") return "氣血、內力當場全滿";
+  return `恢復上限的 ${Math.round(c.value*100)}%`;
+}
 
 function renderCodex(){
   const subTabs = `
@@ -1535,9 +1570,7 @@ function renderCodex(){
     const dropPool = CONSUMABLES.slice(0, CONSUMABLES.length-1); // 與 onKill() 掉落機率池一致
     const rows = CONSUMABLES.map(c=>{
       const canDrop = dropPool.includes(c);
-      const valueTxt = c.effect==="buffAtk" ? `威力 +${Math.round(c.value*100)}%，持續 ${c.duration} 次交手`
-        : c.effect==="healFull" ? "氣血、內力當場全滿"
-        : `恢復上限的 ${Math.round(c.value*100)}%`;
+      const valueTxt = consumableEffectText(c);
       return `<div class="wxg-panel">
         <div class="wxg-panel-head"><span class="dot"></span><h3>${c.name}</h3><span class="wxg-tag gold">${CODEX_EFFECT_LABEL[c.effect]||c.effect}</span></div>
         <div class="wxg-row"><span>效果</span><b>${valueTxt}</b></div>

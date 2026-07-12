@@ -48,6 +48,7 @@ function patchLoadedSave(){
   if(S.internalFilterAffinity===undefined) S.internalFilterAffinity = "全部";
   if(S.autoSellTiers===undefined) S.autoSellTiers = {wood:false, bronze:false, iron:false, silver:false, gold:false};
   if(S.potionCd===undefined) S.potionCd = 0;
+  if(S.tickSpeedMult===undefined) S.tickSpeedMult = 1;
   if(S.sectKey==="wudang"){
     WUDANG_MOVESETS.forEach(m=>{ if(S.wudangMovesetsUnlocked[m.key]===undefined) S.wudangMovesetsUnlocked[m.key] = true; });
     if(Object.values(S.wudangSlots).every(arr=>arr.length===0)) S.wudangSlots = defaultWudangSlots();
@@ -106,6 +107,7 @@ function importSaveFromFile(file){
     S.sect = SECTS[S.sectKey];
     patchLoadedSave();
     recalc(true);
+    applyTickSpeed();
     saveGame();
     render();
     addLog(`已匯入存檔：${S.sect.name}弟子`, 'system');

@@ -120,6 +120,11 @@ function bindGlobal(){
     else if(arr.length<WUDANG_SLOT_CAPS[m.type]) arr.push(id);
     render();
   });
+  document.querySelectorAll('[data-wudangequipset]').forEach(el=> el.onclick=(e)=>{
+    e.stopPropagation();
+    wudangEquipMoveset(el.dataset.wudangequipset);
+    render();
+  });
   document.querySelectorAll('[data-wudangunequip]').forEach(el=> el.onclick=(e)=>{
     e.stopPropagation();
     const [type, idx] = el.dataset.wudangunequip.split(":");
@@ -220,6 +225,10 @@ function bindGlobal(){
       positionFloatTooltip(tip, el);
     };
     el.onmouseleave = ()=>{ getFloatTooltipEl().style.display = "none"; };
+  });
+  document.querySelectorAll('[data-setspeed]').forEach(el=> el.onclick=(e)=>{
+    e.stopPropagation();
+    setTickSpeed(parseInt(el.dataset.setspeed,10));
   });
   document.querySelectorAll('[data-savegame]').forEach(el=> el.onclick=(e)=>{
     e.stopPropagation();

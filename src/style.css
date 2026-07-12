@@ -119,6 +119,9 @@
 }
 .wxg-projectile.fwd{ left:22%; background:var(--gold-lt); box-shadow:0 0 12px 5px rgba(212,175,55,.8); animation:wxgProjFwd .45s ease-in forwards;}
 .wxg-projectile.back{ left:76%; background:var(--crimson-lt); box-shadow:0 0 12px 5px rgba(165,51,44,.8); animation:wxgProjBack .45s ease-in forwards;}
+/* 依招式兵刃類型換成對應圖示時，改成透明底、直接顯示 emoji（見 render.js attackProjectileIcon）。 */
+.wxg-projectile.icon{ width:auto; height:auto; background:none; box-shadow:none; font-size:20px; line-height:1; filter:drop-shadow(0 0 5px rgba(212,175,55,.8));}
+.wxg-projectile.icon.back{ filter:drop-shadow(0 0 5px rgba(165,51,44,.8));}
 @keyframes wxgProjFwd{ 0%{left:22%; opacity:0;} 12%{opacity:1;} 88%{opacity:1;} 100%{left:76%; opacity:0;} }
 @keyframes wxgProjBack{ 0%{left:76%; opacity:0;} 12%{opacity:1;} 88%{opacity:1;} 100%{left:22%; opacity:0;} }
 .wxg-fname{font-size:12px; font-weight:700; color:var(--ink-text); letter-spacing:1px;}

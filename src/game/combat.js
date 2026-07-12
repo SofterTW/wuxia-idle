@@ -432,6 +432,19 @@ function defaultWudangSlots(){
   return slots;
 }
 
+// 「武學」分頁套路標題列的一鍵裝備：先把技能欄全部清空，再把這套路的招式依類型全部塞進去。
+// 每個套路各類型的招式數量本來就都在 WUDANG_SLOT_CAPS 上限內（設計時就這樣配置的），不會塞不下。
+function wudangEquipMoveset(key){
+  const ms = WUDANG_MOVESETS.find(m=>m.key===key);
+  if(!ms) return;
+  WUDANG_SLOT_TYPES.forEach(t=> S.wudangSlots[t]=[]);
+  ms.moves.forEach(m=>{
+    const arr = S.wudangSlots[m.type];
+    if(arr.length < WUDANG_SLOT_CAPS[m.type]) arr.push(m.id);
+  });
+  addLog(`已一鍵裝備「${ms.name}」的全部招式`, 'system');
+}
+
 // 見招拆招 AI：依對方目前的招式類型決定這次要用什麼招。
 // 內力/怒氣不夠付的招式一律先濾掉，不會出現「選了招但打不出來、整個 tick 白白浪費」的情況——
 // 架招全部不吃內力（mpCost:0），永遠會是最後的保底選項。

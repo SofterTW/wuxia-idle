@@ -43,6 +43,7 @@ function newGame(sectKey){
     internalFilterAffinity:"全部",
     autoSellTiers:{wood:false, bronze:false, iron:false, silver:false, gold:false},
     potionCd:0,
+    tickSpeedMult:1,
   };
   if(sectKey==="wudang"){
     // 稀有度兌換系統（武學閣等）還沒做，先讓武當四套全部直接解鎖，才能測試戰鬥引擎本身。
@@ -52,5 +53,5 @@ function newGame(sectKey){
   } else {
     spawnMonster();
   }
-  recalc(true); render(); saveGame();
+  recalc(true); applyTickSpeed(); render(); saveGame();
 }
