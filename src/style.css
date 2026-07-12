@@ -70,10 +70,12 @@
 }
 .wxg-map-player, .wxg-map-mob{
   position:absolute; width:80px; margin-left:-40px; text-align:center; z-index:5; top:0;
-  /* 移動計時器頻率沒辦法拉到跟畫面更新一樣快（會整個重繪太耗），改成移動時只直接改
-     left/top 這兩個屬性、不整個重建節點，靠這個 transition 讓瀏覽器自己內插出中間的畫面，
-     實際更新次數不多也能感覺很順，而不是每次都用完整 render() 硬跳過去。 */
-  transition: left .16s linear, top .16s linear;
+  /* 移動 tick 只直接改 left/top、不整個重建節點（見 render.js updateWudangArenaPositions）。
+     這裡本來加了 transition 想讓瀏覽器補間更順，但攻擊 tick 一旦觸發完整 render()，整個
+     舞台的節點會被砍掉重建，任何「正在補間中」的 transition 都會被腰斬、直接跳到終點——
+     這時反而變成「攻擊那一刻全部怪物一起頓一下」的頓挫感，比沒有 transition 還明顯。
+     移動 tick 本身頻率已經夠高（見 combat.js WUDANG_MOVE_STEPS_PER_TICK），單靠高頻率的
+     小步更新就夠順了，不需要 transition 這種會被完整重繪打斷的補間方式。 */
 }
 .wxg-map-mob{ width:88px; margin-left:-44px; z-index:4; }
 .wxg-map-mob-name{
@@ -105,6 +107,11 @@
   gap:14px; padding:10px 16px; margin:0 14px; border-top:1px solid var(--gold-dk);
   background:linear-gradient(180deg, rgba(24,16,9,.9), rgba(18,12,7,.9));
 }
+/* 中間「目前狩獵區」欄位觸發招式特效時才會多出橫幅文字，沒觸發的 tick 又會消失——高度
+   忽大忽小會拖著整排 flex（align-items:center）的高度跟著跳動，連兩側顯示人物/目標
+   HP、MP 的卡片看起來都像在一縮一放。這裡保留固定的 min-height（標題一行 + 兩行橫幅的量），
+   平常沒有橫幅時也占住這個高度，橫幅出現/消失就不會再讓整排跳動。 */
+.wxg-vs-col{ min-height:74px; }
 .wxg-map-hud .wxg-fname{ margin-bottom:2px; }
 .wxg-map-target{ flex:1; min-width:0; }
 .wxg-scene{position:absolute; inset:0; z-index:0; overflow:hidden;}
