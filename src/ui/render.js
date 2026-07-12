@@ -391,12 +391,12 @@ function renderWudangArenaStage(){
   const wudangShieldBuff = (S.statusEffects||[]).find(e=>e.shieldPool>0);
 
   const targetCard = engaged ? `
-    <div class="wxg-map-target"${engaged?` data-monsterinfohover="1"`:''}>
+    <div class="wxg-map-target wxg-map-target-foe"${engaged?` data-monsterinfohover="1"`:''}>
       <div class="wxg-fname">${engaged.isBoss?'👑 ':''}${engaged.name}<span class="wxg-fsub" style="margin-left:6px;">Lv.${engaged.level}</span></div>
       ${wudangStanceTag}
       ${wudangDebuffRows}
       <div class="wxg-gauge-wrap" style="margin-top:4px;">${pillbar('氣','en',engaged.hp,engaged.hpMax,'en',S.hitEnemy?'gauge-flash':'')}</div>
-    </div>` : `<div class="wxg-map-target"><div class="wxg-fname">—</div><div class="wxg-stage-hint">正在地圖上尋找下一個目標……</div></div>`;
+    </div>` : `<div class="wxg-map-target wxg-map-target-foe"><div class="wxg-fname">—</div><div class="wxg-stage-hint">正在地圖上尋找下一個目標……</div></div>`;
 
   const playerCard = `
     <div class="wxg-map-target">
