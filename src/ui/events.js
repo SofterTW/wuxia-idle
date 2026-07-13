@@ -109,6 +109,7 @@ function bindGlobal(){
   document.querySelectorAll('[data-respec]').forEach(el=> el.onclick=(e)=>{ e.stopPropagation(); respecTech(el.dataset.respec); });
   document.querySelectorAll('[data-upgrade]').forEach(el=> el.onclick=(e)=>{ e.stopPropagation(); upgradeMartial(el.dataset.upgrade); });
   document.querySelectorAll('[data-toggleint]').forEach(el=> el.onclick=()=>{ const id=el.dataset.toggleint; S.internalExpanded[id]=!S.internalExpanded[id]; render(); });
+  document.querySelectorAll('[data-togglezoneinfo]').forEach(el=> el.onclick=()=>{ const id=el.dataset.togglezoneinfo; S.zoneInfoExpanded[id]=!S.zoneInfoExpanded[id]; render(); });
   document.querySelectorAll('[data-wudangtoggle]').forEach(el=> el.onclick=(e)=>{
     e.stopPropagation();
     const id = el.dataset.wudangtoggle;

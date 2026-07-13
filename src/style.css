@@ -536,6 +536,26 @@
 .wxg-subtab.active{color:var(--gold-lt); border-color:var(--gold-dk); background:linear-gradient(160deg,#3a2810,#221708);}
 .wxg-subtab:hover{color:var(--ink-text);}
 
+/* ---- Melvor Idle 風格「區域列表」：頂部分類列（沿用 .wxg-subtab）＋下方表格式區域列，
+   取代原本一區一張獨立卡片的版面，一眼就能掃過所有區域的難度／狀態。 ---- */
+.wxg-zonelist{border-radius:6px; overflow:hidden; border:1px solid #3a2a17; margin-bottom:12px;}
+.wxg-zonerow{
+  display:flex; align-items:center; gap:12px; padding:10px 14px; cursor:pointer;
+  background:#150f0a; border-bottom:1px solid #2a1e10;
+}
+.wxg-zonerow:nth-child(even){background:#1a130b;}
+.wxg-zonerow:last-child{border-bottom:none;}
+.wxg-zonerow:hover{background:#241a0e;}
+.wxg-zonerow.active{background:linear-gradient(90deg, rgba(212,175,55,.16), transparent 80%); box-shadow:inset 3px 0 0 var(--gold);}
+.wxg-zonerow-icon{font-size:24px; width:34px; text-align:center; flex-shrink:0;}
+.wxg-zonerow-main{flex:1; min-width:0; display:flex; align-items:center; flex-wrap:wrap; gap:2px; font-size:13px; font-weight:700; color:var(--ink-text);}
+.wxg-zonerow-info{font-size:11px; color:#6d9fd4; font-weight:700; flex-shrink:0; display:flex; align-items:center; gap:3px; white-space:nowrap;}
+.wxg-zonerow-info:hover{color:#9dc0e8;}
+.wxg-zonerow-detail{padding:4px 14px 12px 60px; background:#100c07; border-bottom:1px solid #2a1e10;}
+.wxg-tag.diffeasy{background:var(--jade); color:#eafff2;}
+.wxg-tag.diffnormal{background:#c98a2e; color:#2a1c08;}
+.wxg-tag.diffhard{background:var(--crimson); color:#ffe9e6;}
+
 /* ---- 裝備選擇彈框 ---- */
 .wxg-modal-overlay{
   position:absolute; inset:0; background:rgba(5,3,1,.72); backdrop-filter:blur(1px);

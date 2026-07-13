@@ -1252,9 +1252,9 @@ function renderQuest(){
 function renderMap(){
   const subTabs = `
     <div class="wxg-subtabs">
-      <div class="wxg-subtab ${S.mapSubTab==='town'?'active':''}" data-mapsub="town">金凌城</div>
-      <div class="wxg-subtab ${S.mapSubTab==='sects'?'active':''}" data-mapsub="sects">各大門派</div>
-      <div class="wxg-subtab ${S.mapSubTab==='zones'?'active':''}" data-mapsub="zones">魔教勢力（狩獵區）</div>
+      <div class="wxg-subtab ${S.mapSubTab==='town'?'active':''}" data-mapsub="town">🏙️ 金凌城</div>
+      <div class="wxg-subtab ${S.mapSubTab==='sects'?'active':''}" data-mapsub="sects">🏯 各大門派</div>
+      <div class="wxg-subtab ${S.mapSubTab==='zones'?'active':''}" data-mapsub="zones">⚔️ 魔教勢力（狩獵區）</div>
     </div>`;
 
   if(S.mapSubTab==="town"){
@@ -1387,17 +1387,31 @@ function renderMap(){
     <div class="wxg-hint">回城休整，氣血內力自動恢復，無法在此戰鬥。</div>
     ${!inTown?`<button class="wxg-btn small" data-gotown="1" style="margin-top:8px;">返回金凌城</button>`:''}
   </div>`;
-  const zoneCards = HUNTING_ZONES.map(z=>{
+  const zoneRows = HUNTING_ZONES.map(z=>{
     const active = S.location===z.id;
-    return `<div class="wxg-panel ${active?'active-main':''}">
-      <div class="wxg-panel-head martial"><span class="dot"></span><h3>${z.name}</h3><span class="wxg-tag crimson">${z.tag}</span>${active?'<span class="wxg-tag gold">狩獵中</span>':''}</div>
-      <div class="wxg-hint">${z.desc}</div>
-      <div class="wxg-row" style="margin-top:6px;"><span>等級加成</span><b>+${z.levelMod}</b></div>
+    const expanded = !!(S.zoneInfoExpanded||{})[z.id];
+    const icon = ZONE_ICON[z.id] || "🗺️";
+    const diff = zoneDifficulty(z.levelMod);
+    const detail = expanded ? `<div class="wxg-zonerow-detail">
+      <div class="wxg-hint" style="margin-top:6px;">${z.desc}</div>
+      <div class="wxg-row" style="margin-top:4px;"><span>等級加成</span><b>+${z.levelMod}</b></div>
       <div class="wxg-row"><span>常見敵人</span><b style="font-weight:400; font-family:inherit; color:var(--dim-text);">${z.monsters.join("、")}</b></div>
       ${!active?`<button class="wxg-btn crimson small" data-zone="${z.id}" style="margin-top:8px;">前往此地狩獵</button>`:''}
-    </div>`;
+    </div>` : '';
+    return `<div class="wxg-zonerow ${active?'active':''}" data-togglezoneinfo="${z.id}">
+        <div class="wxg-zonerow-icon">${icon}</div>
+        <div class="wxg-zonerow-main">${z.name} <span class="wxg-tag ${diff.cls}" style="margin-left:6px;">${diff.label}</span>${active?'<span class="wxg-tag gold">狩獵中</span>':''}</div>
+        <div class="wxg-zonerow-info">區域資訊 <span class="wxg-chevron">${expanded?'▾':'▸'}</span></div>
+      </div>${detail}`;
   }).join("");
-  return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">魔教勢力範圍分布，等級加成越高代表敵人越強、掉落也越好。</div>` + townCard + zoneCards;
+  return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">魔教勢力範圍分布，等級加成越高代表敵人越強、掉落也越好。點區域列可展開查看詳情。</div>` + townCard + `<div class="wxg-zonelist">${zoneRows}</div>`;
+}
+
+const ZONE_ICON = {heifeng:"🏚️", xueyu:"⛓️", jile:"🌫️"};
+function zoneDifficulty(levelMod){
+  if(levelMod<=0) return {label:"簡單", cls:"diffeasy"};
+  if(levelMod<10) return {label:"普通", cls:"diffnormal"};
+  return {label:"困難", cls:"diffhard"};
 }
 
 const CODEX_EFFECT_LABEL = {healHp:"恢復氣血", healMp:"恢復內力", healFull:"氣血內力全滿", buffAtk:"暫時提升外功／內功威力"};

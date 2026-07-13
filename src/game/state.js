@@ -32,7 +32,7 @@ function newGame(sectKey){
     equipSubTab:"gear", pickerSlot:null, pickerSnapshot:[], codexSubTab:"guide", bagFilter:"all",
     codexInternalSect:null, codexInternalSkillId:null, changelogPage:0, monsterInfoOpen:false,
     mapSubTab:"zones", huntingZone:"heifeng", location:"heifeng", visitingSect:null, dialogueNpc:null,
-    internalExpanded:{}, martialExpanded:{}, sideExpanded:{primary:true, buffs:true, autoheal:true}, logFilters:{}, navCollapsed:false,
+    internalExpanded:{}, martialExpanded:{}, zoneInfoExpanded:{}, sideExpanded:{primary:true, buffs:true, autoheal:true}, logFilters:{}, navCollapsed:false,
     navHintSeen:false,
     hitEnemy:false, hitEnemyCrit:false, hitPlayer:false, lastUsedMoveId:null, stageEffects:[],
     // 武當專用五招制戰鬥引擎欄位（見 game/combat.js combatTickWudang()），其他門派完全不會用到。
