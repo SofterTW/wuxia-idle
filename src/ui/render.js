@@ -985,7 +985,7 @@ function renderMartialWudang(){
     if(movesInGroup.length===0) return "";
     const color = wudangMovesetColor(ms.key);
     return `<div style="margin-bottom:10px;">
-      <div class="wxg-row" style="border-bottom:none; padding-bottom:4px; align-items:center; gap:6px;">
+      <div class="wxg-row" style="border-bottom:none; padding-bottom:4px; align-items:center; gap:6px; justify-content:flex-start;">
         <span class="msdot" style="width:8px; height:8px; border-radius:50%; background:${color}; box-shadow:0 0 5px ${color}; display:inline-block;"></span>
         <b style="font-weight:700; color:var(--ink-text);">${ms.name}</b>
       </div>
