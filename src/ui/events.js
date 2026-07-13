@@ -121,11 +121,6 @@ function bindGlobal(){
     else if(arr.length<WUDANG_SLOT_CAPS[m.type]) arr.push(id);
     render();
   });
-  document.querySelectorAll('[data-wudangequipset]').forEach(el=> el.onclick=(e)=>{
-    e.stopPropagation();
-    wudangEquipMoveset(el.dataset.wudangequipset);
-    render();
-  });
   // 快捷列格子：桌機滑鼠用原生拖放（dragover/drop），觸控裝置原生拖放不會動作，改用
   // 「點招式池卡片選取→點格子放入」的兩步點選流程共用同一個 wudangDropMoveIntoSlot()。
   // 格子本身沒有選取中的招式時，點擊有招式的格子＝卸下（沿用原本 data-wudangunequip 的行為，

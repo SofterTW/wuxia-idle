@@ -915,7 +915,6 @@ function renderMartialWudang(){
       <span class="wxg-tag">${ms.weaponSub}</span>
       <span class="wxg-tag jade">已裝備 ${equippedCount}/${ms.moves.length}</span>
       <span class="wxg-msettoggle-state">${active?'啟用中':'已停用'}</span>
-      <button class="wxg-btn gold small" data-wudangequipset="${ms.key}" title="卸下目前所有技能欄招式，改裝備這套路的全部招式">一鍵裝備</button>
     </div>`;
   }).join("");
 
@@ -970,7 +969,7 @@ function renderMartialWudang(){
     (filterRarity==="全部" || String(m.rarity)===String(filterRarity)) &&
     !equippedIds.has(m.id)
   );
-  const poolCards = poolMoves.map(m=>{
+  function poolCardHtml(m){
     const st = S.wudangMoveState[m.id];
     const cdLeft = st ? Math.max(0, st.cdRemaining||0) : 0;
     const costTxt = m.rageCost ? `怒氣 ${m.rageCost}` : (m.mpCost ? `內力 ${m.mpCost}` : '無消耗');
@@ -979,10 +978,23 @@ function renderMartialWudang(){
       <span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[m.type]}; color:${WUDANG_TYPE_COLOR[m.type]};">${m.type}</span> ${m.name}
       <div class="wxg-hint" style="margin-top:3px;">${m.movesetName} · CD${m.cd} · ${costTxt}${cdLeft>0?`　<span style="color:#e2685c;">冷卻中(${cdLeft})</span>`:''}</div>
     </div>`;
+  }
+  // 招式池一排一排依套路分組，每套一列，用套路配色當列標題的色點，跟快捷列格子的邊框色對應得起來。
+  const poolGroups = WUDANG_MOVESETS.map(ms=>{
+    const movesInGroup = poolMoves.filter(m=>m.moveset===ms.key);
+    if(movesInGroup.length===0) return "";
+    const color = wudangMovesetColor(ms.key);
+    return `<div style="margin-bottom:10px;">
+      <div class="wxg-row" style="border-bottom:none; padding-bottom:4px; align-items:center; gap:6px;">
+        <span class="msdot" style="width:8px; height:8px; border-radius:50%; background:${color}; box-shadow:0 0 5px ${color}; display:inline-block;"></span>
+        <b style="font-weight:700; color:var(--ink-text);">${ms.name}</b>
+      </div>
+      <div class="wxg-cardgrid">${movesInGroup.map(poolCardHtml).join("")}</div>
+    </div>`;
   }).join("");
   const poolSection = `<div class="wxg-panel">
     <div class="wxg-panel-head martial"><span class="dot"></span><h3>招式池</h3></div>
-    ${poolMoves.length>0 ? `<div class="wxg-cardgrid">${poolCards}</div>` : `<div class="wxg-hint">目前沒有可裝備的招式——確認上面有啟用套路，或這套已經全部裝備完畢。</div>`}
+    ${poolMoves.length>0 ? poolGroups : `<div class="wxg-hint">目前沒有可裝備的招式——確認上面有啟用套路，或這套已經全部裝備完畢。</div>`}
   </div>`;
 
   return `
