@@ -919,27 +919,29 @@ function renderMartialWudang(){
     </div>`;
   }).join("");
 
-  // 2. 快捷列：拖放目標，已填格子邊框用套路配色分組，未填格子維持類型底色。
+  // 2. 快捷列：仿線上遊戲快捷列的小格子，平常只看得到一個小圖示，滑鼠移上去才跳出完整資訊
+  // （沿用 data-wudangmovehover 既有的懸浮視窗機制）。拖放目標；已填格子邊框用套路配色分組，
+  // 未填格子維持類型底色。▲▼調順序鈕平常隱藏，滑鼠移到格子上才浮現（CSS :hover 控制）。
   const slotSection = WUDANG_SLOT_TYPES.map(type=>{
     const cap = WUDANG_SLOT_CAPS[type];
     const ids = S.wudangSlots[type]||[];
     const cells = Array.from({length:cap}, (_,i)=>{
       const id = ids[i];
       const m = id ? WUDANG_MOVE_LIST.find(x=>x.id===id) : null;
-      const orderBtns = m ? `<div class="wxg-slotorder-btns">
+      const orderBtns = m ? `<div class="wxg-hotbar-order">
         <button class="wxg-orderbtn" data-wudangmoveup="${type}:${i}" ${i===0?'disabled':''} title="提前施放順序">▲</button>
         <button class="wxg-orderbtn" data-wudangmovedown="${type}:${i}" ${i===ids.length-1?'disabled':''} title="延後施放順序">▼</button>
       </div>` : '';
       const borderColor = m ? wudangMovesetColor(m.moveset) : WUDANG_TYPE_COLOR[type]+'44';
-      return `<div class="wxg-medal ${m?'':'empty'}" style="border-color:${borderColor};" data-wudangslot="${type}:${i}">
+      return `<div class="wxg-hotbarslot ${m?'':'empty'}" style="border-color:${borderColor};" data-wudangslot="${type}:${i}" ${m?`data-wudangmovehover="${m.id}"`:''}>
+        <span class="wxg-hotbarslot-idx">${i+1}</span>
+        ${m?`<span class="wxg-hotbarslot-name">${m.name}</span>`:''}
         ${orderBtns}
-        <div class="ring" style="border-color:${WUDANG_TYPE_COLOR[type]};">${i+1}</div>
-        <div style="padding-top:2px;">${m?`${m.name}<br><span style="color:#c9bd9e;font-size:10.5px">${m.movesetName} · 點擊卡片卸下</span>`:"（空／可拖曳招式進來）"}</div>
       </div>`;
     }).join("");
     return `<div style="margin-bottom:8px;">
-      <div class="wxg-row" style="border-bottom:none; padding-bottom:2px;"><span style="color:${WUDANG_TYPE_COLOR[type]}; font-weight:700;">${type}</span><b style="font-weight:400; color:var(--dim-text);">${ids.length}／${cap}　<span style="color:var(--dim-text); font-weight:400;">數字＝施放優先順序，用▲▼調整</span></b></div>
-      <div class="wxg-slotgrid">${cells}</div>
+      <div class="wxg-row" style="border-bottom:none; padding-bottom:2px;"><span style="color:${WUDANG_TYPE_COLOR[type]}; font-weight:700;">${type}</span><b style="font-weight:400; color:var(--dim-text);">${ids.length}／${cap}　<span style="color:var(--dim-text); font-weight:400;">滑鼠移上去看詳情，▲▼調施放順序</span></b></div>
+      <div class="wxg-hotbar">${cells}</div>
     </div>`;
   }).join("");
 
