@@ -853,7 +853,7 @@ function renderInternal(){
     const isMain = S.activeInternal===t.id;
     const tierList = `<div class="wxg-row" style="color:var(--gold-lt);">▶ 目前　${internalLayerDesc(t,tier)}</div>`
       + (atCap ? '' : `<div class="wxg-row">　下一層　${internalLayerDesc(t,tier+1)}</div>`);
-    const capHint = atCap ? `<div class="wxg-hint" style="margin-top:6px; color:var(--gold-lt);">你的「${t.name}」目前只學到第 ${tier+1} 層，後面的第 ${cap+2}～36 層需要尋得更高深的心法傳承，目前尚無取得途徑，敬請期待日後版本開放。</div>` : '';
+    const capHint = (atCap && cap+2<=36) ? `<div class="wxg-hint" style="margin-top:6px; color:var(--gold-lt);">你的「${t.name}」目前只學到第 ${tier+1} 層，後面的第 ${cap+2}～36 層需要尋得更高深的心法傳承，目前尚無取得途徑，敬請期待日後版本開放。</div>` : '';
     return `
     <div class="wxg-panel ${isMain?'active-main':''}">
       <div class="wxg-panel-head internal">
@@ -1648,7 +1648,7 @@ function renderCodex(){
     return subTabs + `
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>內功系統規則</h3></div>
-        <div class="wxg-hint">每個門派各有一到六本專屬心法（一內～六內），每本最高 36 層，每一層都有自己專屬的效果，不是統一公式套算出來的。點下方門派可查看該門所有心法，再點心法可查看完整 1～36 層效果。目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。</div>
+        <div class="wxg-hint">每個門派各有一到六本專屬心法（一內～六內），每本最高 36 層，每一層都有自己專屬的效果，不是統一公式套算出來的。點下方門派可查看該門所有心法，再點心法可查看完整 1～36 層效果。${MAX_OBTAINABLE_TIER<36?`目前只有第 1～${MAX_OBTAINABLE_TIER} 層能透過投入修為練到，第 ${MAX_OBTAINABLE_TIER+1}～36 層需要日後開放的其他取得途徑，敬請期待。`:'投入修為即可一路練到第 36 層（滿層）。'}</div>
       </div>
       <div class="wxg-panel">
         <div class="wxg-panel-head internal"><span class="dot"></span><h3>實力稱號</h3></div>

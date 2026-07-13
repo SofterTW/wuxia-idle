@@ -1,6 +1,6 @@
-// 內功層數表：只用來決定「投入多少修為才能練到第幾層」（req），第 1～6 層是目前實際能
-// 透過投入修為練到的範圍，第 7～36 層的門檻先建好（之後會用在別的取得管道上），
-// MAX_OBTAINABLE_TIER 就是用來擋住這件事的上限。
+// 內功層數表：只用來決定「投入多少修為才能練到第幾層」（req）。第 7～36 層的門檻原本是
+// 先建好但用 MAX_OBTAINABLE_TIER 擋住不給練，現在直接開放到 36 層頂——下面的
+// extendTierTableTo36() 會把第 7～36 層的 req 依同樣的成長曲線自動算出來。
 // mult/hpBonus/mpBonus 這三個欄位是舊版「練到第N層 +X%」公式留下的殘留欄位，
 // 現在已經不會被讀取（各層效果改成 bonusStat／special，見下面 buildInternalLayers()），
 // 保留只是因為 req 成長曲線跟它們寫在同一張表裡，懶得拆開。
@@ -12,7 +12,7 @@ const TIER_TABLE = [
   {req:25000, mult:0.45, hpBonus:0.20, mpBonus:0.30},
   {req:80000, mult:0.60, hpBonus:0.20, mpBonus:0.30},
 ];
-const MAX_OBTAINABLE_TIER = TIER_TABLE.length; // 目前 = 6
+const MAX_OBTAINABLE_TIER = 36;
 
 (function extendTierTableTo36(){
   let prev = TIER_TABLE[TIER_TABLE.length-1];
@@ -538,8 +538,8 @@ Object.entries(AUTHORED_LAYERS).forEach(([id, layers])=>{
 // 結構化效果參數表：把上面 desc 文字描述的機率／數值抽成程式可讀的資料，供 status-effects.js
 // 的 rollInternalTrigger() 查表使用，讓戰鬥引擎真正執行這些效果（而不是只在 UI 顯示文字）。
 // 每門心法一個 resolve(tier) 函式，依 tier 落在哪個區塊回傳當層的效果參數，數值都是逐層核對
-// AUTHORED_LAYERS 裡的 desc 文字填的。tier 最高只到 36（MAX_OBTAINABLE_TIER=6 是目前可達上限，
-// 7 層以後資料先建好，之後開放上限直接生效）。
+// AUTHORED_LAYERS 裡的 desc 文字填的。tier 最高到 36，MAX_OBTAINABLE_TIER 現在也是 36，
+// 全部 1~36 層都能透過投入修為練到並直接生效。
 function chandingEffectAt(tier){
   if(tier<=5) return {kind:'buff', stat:'外功防禦', chance:tier*0.01, value:tier*0.01, duration:5};
   if(tier<=15) return {kind:'buff', stat:'外功防禦', chance:0.10, value:0.08, staggerReduce:0.10, duration:5};

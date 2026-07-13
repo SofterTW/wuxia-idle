@@ -7,7 +7,7 @@ function getEquipTotal(){
 }
 function getInternalTier(techId){
   const inv = S.knownInternal[techId]?.invested || 0;
-  const cap = MAX_OBTAINABLE_TIER - 1; // 目前只有前 6 層能透過投入修為練到
+  const cap = MAX_OBTAINABLE_TIER - 1; // 投入修為最高能練到的層數（0-indexed），目前=35（第36層滿層）
   let tier = 0;
   for(let i=cap;i>=0;i--){ if(inv >= TIER_TABLE[i].req){ tier=i; break; } }
   return tier;
