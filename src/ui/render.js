@@ -269,11 +269,15 @@ const ZONE_SCENES = {
   </svg>`,
 };
 
+// 新的 6 個狩獵區還沒有各自手繪的戰鬥背景 SVG（見 ZONE_SCENES），先借用氛圍最接近的既有
+// 3 張場景頂著用，之後有空再個別畫新場景。
+const ZONE_BG_FALLBACK = {canglang:"jile", wanshe:"jile", tiansha:"xueyu", youming:"xueyu", fentian:"heifeng", mozong:"jile"};
 function zoneBgClass(){
   if(S.location==="jinling") return "jinling";
   if(S.location==="heifeng") return "heifeng";
   if(S.location==="xueyu") return "xueyu";
   if(S.location==="jile") return "jile";
+  if(ZONE_BG_FALLBACK[S.location]) return ZONE_BG_FALLBACK[S.location];
   return "jinling";
 }
 
@@ -1407,7 +1411,7 @@ function renderMap(){
   return subTabs + `<div class="wxg-hint" style="margin-bottom:8px;">魔教勢力範圍分布，等級加成越高代表敵人越強、掉落也越好。點區域列可展開查看詳情。</div>` + townCard + `<div class="wxg-zonelist">${zoneRows}</div>`;
 }
 
-const ZONE_ICON = {heifeng:"🏚️", xueyu:"⛓️", jile:"🌫️"};
+const ZONE_ICON = {heifeng:"🏚️", xueyu:"⛓️", jile:"🌫️", canglang:"🚤", wanshe:"🐍", tiansha:"⛰️", youming:"⚰️", fentian:"⛩️", mozong:"🏯"};
 function zoneDifficulty(levelMod){
   if(levelMod<=0) return {label:"簡單", cls:"diffeasy"};
   if(levelMod<10) return {label:"普通", cls:"diffnormal"};
