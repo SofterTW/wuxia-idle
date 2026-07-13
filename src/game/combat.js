@@ -332,6 +332,14 @@ function wudangDmgTierMult(tier){ return WUDANG_DMG_TIER_MULT[tier] || 0; }
 
 // 招式類型／觸發分類的配色，「對決」下方的訊息橫幅跟武學分頁的招式標籤共用這組色票。
 const WUDANG_TYPE_COLOR = {"實招":"#d1564c","虛招":"#e2685c","架招":"#4dd0c8","氣招":"#7ec9a2","怒氣大招":"#f3a03c"};
+// 套路專屬配色（跟上面「招式類型」配色是分開的兩套）：武學分頁快捷列的格子要用這個顏色分組，
+// 讓玩家一眼看出「這幾格是同一套路」。不能用 MOVESET_RARITY_INFO 的稀有度顏色，因為目前4套
+// 武學裡有2套都是稀有度2、顏色會撞在一起，沒辦法唯一識別套路。
+const WUDANG_MOVESET_PALETTE = ["#d4af37","#5eab88","#4a86c0","#c084fc","#e2685c","#4dd0c8","#f3a03c"];
+function wudangMovesetColor(key){
+  const idx = WUDANG_MOVESETS.findIndex(ms=>ms.key===key);
+  return WUDANG_MOVESET_PALETTE[idx>=0 ? idx % WUDANG_MOVESET_PALETTE.length : 0];
+}
 const WUDANG_CATEGORY_COLOR = {
   "實招命中":"#d1564c", "實招被擋":"#8a7d63", "虛招破防":"#e2685c", "虛招命中":"#e2685c",
   "架招成功":"#4dd0c8", "架招加成":"#4dd0c8", "架招落空":"#8a7d63",
@@ -444,7 +452,24 @@ function wudangEquipMoveset(key){
     const arr = S.wudangSlots[m.type];
     if(arr.length < WUDANG_SLOT_CAPS[m.type]) arr.push(m.id);
   });
+  S.wudangMovesetActive[key] = true; // 明確點了一鍵裝備，代表玩家想用這套，招式池要顯示它剩下沒裝備的招式
   addLog(`已一鍵裝備「${ms.name}」的全部招式`, 'system');
+}
+
+// 武學分頁「拖放／點選歸位」共用邏輯：把某招塞進指定類型技能欄的指定格位。型別不符直接忽略；
+// 這招若已經裝在別的格子（同類型或不同類型都算）先移除，避免同一招重複裝備。
+// idx 落在現有陣列範圍內＝取代該格，超出範圍（=拖到空格）＝直接補在陣列尾端。
+function wudangDropMoveIntoSlot(moveId, targetType, idx){
+  const m = WUDANG_MOVE_LIST.find(x=>x.id===moveId);
+  if(!m || m.type!==targetType) return;
+  WUDANG_SLOT_TYPES.forEach(t=>{
+    const arr = S.wudangSlots[t];
+    const i = arr.indexOf(moveId);
+    if(i>=0) arr.splice(i,1);
+  });
+  const arr = S.wudangSlots[targetType];
+  if(idx < arr.length) arr[idx] = moveId;
+  else if(arr.length < WUDANG_SLOT_CAPS[targetType]) arr.push(moveId);
 }
 
 // 見招拆招 AI：依對方目前的招式類型決定這次要用什麼招。

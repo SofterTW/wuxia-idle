@@ -126,10 +126,46 @@ function bindGlobal(){
     wudangEquipMoveset(el.dataset.wudangequipset);
     render();
   });
-  document.querySelectorAll('[data-wudangunequip]').forEach(el=> el.onclick=(e)=>{
+  // 快捷列格子：桌機滑鼠用原生拖放（dragover/drop），觸控裝置原生拖放不會動作，改用
+  // 「點招式池卡片選取→點格子放入」的兩步點選流程共用同一個 wudangDropMoveIntoSlot()。
+  // 格子本身沒有選取中的招式時，點擊有招式的格子＝卸下（沿用原本 data-wudangunequip 的行為，
+  // 現在併進同一個 handler，因為兩者共用同一個 DOM 節點，分開綁 onclick 只有後綁的會生效）。
+  document.querySelectorAll('[data-wudangslot]').forEach(el=>{
+    const [type, idxStr] = el.dataset.wudangslot.split(":");
+    const idx = parseInt(idxStr, 10);
+    el.ondragover = (e)=>{ e.preventDefault(); el.classList.add('dragover'); };
+    el.ondragleave = ()=>{ el.classList.remove('dragover'); };
+    el.ondrop = (e)=>{
+      e.preventDefault();
+      el.classList.remove('dragover');
+      const moveId = e.dataTransfer.getData('text/plain');
+      if(moveId){ wudangDropMoveIntoSlot(moveId, type, idx); render(); }
+    };
+    el.onclick = (e)=>{
+      e.stopPropagation();
+      if(S.wudangPoolSelected){
+        wudangDropMoveIntoSlot(S.wudangPoolSelected, type, idx);
+        S.wudangPoolSelected = null;
+        render();
+        return;
+      }
+      const arr = S.wudangSlots[type]||[];
+      if(idx < arr.length){ arr.splice(idx, 1); render(); }
+    };
+  });
+  document.querySelectorAll('[data-wudangdragsrc]').forEach(el=> el.ondragstart=(e)=>{
+    e.dataTransfer.setData('text/plain', el.dataset.wudangdragsrc);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  document.querySelectorAll('[data-wudangpoolpick]').forEach(el=> el.onclick=(e)=>{
     e.stopPropagation();
-    const [type, idx] = el.dataset.wudangunequip.split(":");
-    S.wudangSlots[type].splice(parseInt(idx,10), 1);
+    const id = el.dataset.wudangpoolpick;
+    S.wudangPoolSelected = (S.wudangPoolSelected===id) ? null : id;
+    render();
+  });
+  document.querySelectorAll('[data-wudangtogglemovesetactive]').forEach(el=> el.onclick=()=>{
+    const k = el.dataset.wudangtogglemovesetactive;
+    S.wudangMovesetActive[k] = !(S.wudangMovesetActive[k]!==false);
     render();
   });
   // 施放順序：技能欄裡的排列順序就是 AI 見招拆招時，同類型招式的優先順序（見 combat.js

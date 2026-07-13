@@ -900,6 +900,26 @@ function martialLayerDesc(def, layerIdx){
 
 function renderMartialWudang(){
   const equippedIds = new Set(Object.values(S.wudangSlots||{}).flat().filter(Boolean));
+
+  // 1. 套路啟用清單：點卡片切換「啟用／停用」，下面的招式池只顯示已啟用套路的招式，
+  // 已裝備的招式不受啟用狀態影響（停用一套不會自動卸下已經裝好的招式）。
+  const movesetToggles = WUDANG_MOVESETS.filter(ms=>S.wudangMovesetsUnlocked[ms.key]).map(ms=>{
+    const info = MOVESET_RARITY_INFO[ms.rarity] || {name:"？",color:"var(--dim-text)"};
+    const active = S.wudangMovesetActive[ms.key]!==false;
+    const color = wudangMovesetColor(ms.key);
+    const equippedCount = ms.moves.filter(m=>equippedIds.has(m.id)).length;
+    return `<div class="wxg-msettoggle ${active?'active':''}" data-wudangtogglemovesetactive="${ms.key}" style="--msc:${color};">
+      <span class="msdot" style="background:${color};"></span>
+      <b>${ms.name}</b>
+      <span class="wxg-tag" style="border-color:${info.color}; color:${info.color};">${info.name}</span>
+      <span class="wxg-tag">${ms.weaponSub}</span>
+      <span class="wxg-tag jade">已裝備 ${equippedCount}/${ms.moves.length}</span>
+      <span class="wxg-msettoggle-state">${active?'啟用中':'已停用'}</span>
+      <button class="wxg-btn gold small" data-wudangequipset="${ms.key}" title="卸下目前所有技能欄招式，改裝備這套路的全部招式">一鍵裝備</button>
+    </div>`;
+  }).join("");
+
+  // 2. 快捷列：拖放目標，已填格子邊框用套路配色分組，未填格子維持類型底色。
   const slotSection = WUDANG_SLOT_TYPES.map(type=>{
     const cap = WUDANG_SLOT_CAPS[type];
     const ids = S.wudangSlots[type]||[];
@@ -910,10 +930,11 @@ function renderMartialWudang(){
         <button class="wxg-orderbtn" data-wudangmoveup="${type}:${i}" ${i===0?'disabled':''} title="提前施放順序">▲</button>
         <button class="wxg-orderbtn" data-wudangmovedown="${type}:${i}" ${i===ids.length-1?'disabled':''} title="延後施放順序">▼</button>
       </div>` : '';
-      return `<div class="wxg-medal ${m?'':'empty'}" style="border-color:${WUDANG_TYPE_COLOR[type]}44;" ${m?`data-wudangunequip="${type}:${i}"`:''}>
+      const borderColor = m ? wudangMovesetColor(m.moveset) : WUDANG_TYPE_COLOR[type]+'44';
+      return `<div class="wxg-medal ${m?'':'empty'}" style="border-color:${borderColor};" data-wudangslot="${type}:${i}">
         ${orderBtns}
         <div class="ring" style="border-color:${WUDANG_TYPE_COLOR[type]};">${i+1}</div>
-        <div style="padding-top:2px;">${m?`${m.name}<br><span style="color:#c9bd9e;font-size:10.5px">${m.movesetName} · 點擊卡片卸下</span>`:"（空）"}</div>
+        <div style="padding-top:2px;">${m?`${m.name}<br><span style="color:#c9bd9e;font-size:10.5px">${m.movesetName} · 點擊卡片卸下</span>`:"（空／可拖曳招式進來）"}</div>
       </div>`;
     }).join("");
     return `<div style="margin-bottom:8px;">
@@ -937,49 +958,39 @@ function renderMartialWudang(){
     </div>
   </div>`;
 
-  const rows = WUDANG_MOVESETS.filter(ms=>S.wudangMovesetsUnlocked[ms.key]).map(ms=>{
-    const info = MOVESET_RARITY_INFO[ms.rarity] || {name:"？",color:"var(--dim-text)"};
-    if(filterRarity!=="全部" && String(ms.rarity)!==String(filterRarity)) return "";
-    const visibleMoves = ms.moves.filter(m=> filterType==="全部" || m.type===filterType);
-    if(visibleMoves.length===0) return "";
-    const expanded = !!S.wudangMovesetExpanded[ms.key];
-    const equippedCount = ms.moves.filter(m=>equippedIds.has(m.id)).length;
-    const moveRows = visibleMoves.map(m=>{
-      const st = S.wudangMoveState[m.id];
-      const cdLeft = st ? Math.max(0, st.cdRemaining||0) : 0;
-      const costTxt = m.rageCost ? `怒氣 ${m.rageCost}` : (m.mpCost ? `內力 ${m.mpCost}` : '無消耗');
-      const isEquipped = equippedIds.has(m.id);
-      const full = (S.wudangSlots[m.type]||[]).length >= WUDANG_SLOT_CAPS[m.type];
-      const btn = isEquipped
-        ? `<button class="wxg-btn crimson small" data-wudangtoggle="${m.id}">卸下</button>`
-        : `<button class="wxg-btn gold small" data-wudangtoggle="${m.id}" ${full?'disabled title="該類型技能欄已滿"':''}>裝備</button>`;
-      return `<div class="wxg-row">
-        <span><span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[m.type]}; color:${WUDANG_TYPE_COLOR[m.type]};">${m.type}</span> ${m.name}</span>
-        <b style="font-weight:400; color:var(--dim-text); font-size:11px;">CD${m.cd} · ${costTxt}${cdLeft>0?`　<span style="color:#e2685c;">冷卻中(${cdLeft})</span>`:''}</b>
-      </div>
-      <div class="wxg-hint" style="margin:0 0 2px; padding-left:4px;">${m.desc}</div>
-      <div class="wxg-hint" style="margin:0 0 4px; padding-left:4px; color:var(--gold-lt);">${wudangEffectDetailText(m)}</div>
-      <div style="margin:0 0 8px; padding-left:4px;">${btn}</div>`;
-    }).join("");
-    return `<div class="wxg-panel wxg-msrarity-${ms.rarity} active-main">
-      <div class="wxg-panel-head martial" data-wudangtogglemoveset="${ms.key}" style="cursor:pointer;">
-        <span class="dot"></span><h3>${ms.name}</h3>
-        <span class="wxg-tag" style="border-color:${info.color}; color:${info.color};">${info.name}（稀有度${ms.rarity}）</span>
-        <span class="wxg-tag">${ms.weaponSub}</span>
-        <span class="wxg-tag jade">已裝備 ${equippedCount}/${ms.moves.length}</span>
-        <button class="wxg-btn gold small" data-wudangequipset="${ms.key}" title="卸下目前所有技能欄招式，改裝備這套路的全部招式">一鍵裝備</button>
-        <span class="wxg-chevron" style="margin-left:auto; color:var(--dim-text); font-size:10px;">${expanded?'▾':'▸'}</span>
-      </div>
-      ${expanded?moveRows:`<div class="wxg-hint">點標題列查看這套路的完整招式與說明。</div>`}
+  // 3. 招式池：只有「已解鎖＋已啟用套路＋符合篩選＋尚未裝備」的招式會出現，桌機用滑鼠拖進上面
+  // 的快捷列格子，觸控裝置原生拖放不會動作，改用「點卡片選取→點格子放入」的兩步點選流程
+  // （data-wudangpoolpick／S.wudangPoolSelected，見 events.js）。
+  const poolMoves = WUDANG_MOVE_LIST.filter(m=>
+    S.wudangMovesetsUnlocked[m.moveset] &&
+    (S.wudangMovesetActive[m.moveset]!==false) &&
+    (filterType==="全部" || m.type===filterType) &&
+    (filterRarity==="全部" || String(m.rarity)===String(filterRarity)) &&
+    !equippedIds.has(m.id)
+  );
+  const poolCards = poolMoves.map(m=>{
+    const st = S.wudangMoveState[m.id];
+    const cdLeft = st ? Math.max(0, st.cdRemaining||0) : 0;
+    const costTxt = m.rageCost ? `怒氣 ${m.rageCost}` : (m.mpCost ? `內力 ${m.mpCost}` : '無消耗');
+    const selected = S.wudangPoolSelected===m.id;
+    return `<div class="wxg-movepool-card ${selected?'selected':''}" draggable="true" data-wudangdragsrc="${m.id}" data-wudangpoolpick="${m.id}" data-wudangmovehover="${m.id}" style="border-left-color:${wudangMovesetColor(m.moveset)};">
+      <span class="wxg-tag" style="border-color:${WUDANG_TYPE_COLOR[m.type]}; color:${WUDANG_TYPE_COLOR[m.type]};">${m.type}</span> ${m.name}
+      <div class="wxg-hint" style="margin-top:3px;">${m.movesetName} · CD${m.cd} · ${costTxt}${cdLeft>0?`　<span style="color:#e2685c;">冷卻中(${cdLeft})</span>`:''}</div>
     </div>`;
   }).join("");
+  const poolSection = `<div class="wxg-panel">
+    <div class="wxg-panel-head martial"><span class="dot"></span><h3>招式池</h3></div>
+    ${poolMoves.length>0 ? `<div class="wxg-cardgrid">${poolCards}</div>` : `<div class="wxg-hint">目前沒有可裝備的招式——確認上面有啟用套路，或這套已經全部裝備完畢。</div>`}
+  </div>`;
+
   return `
     <div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>武當・實虛架氣怒</h3></div>
-      <div class="wxg-hint">武當用的是全新的五招制戰鬥系統，招式會依當下敵我情勢自動見招拆招（實招硬拼、虛招破防、架招格擋、氣招調息、怒氣大招終結）。下面先在技能欄裝備要用的招式（實／虛／氣招各5格，架招／怒氣大招各1格），系統才會從已裝備的招式裡自動出招。同一套路內連續出招沒有限制，換到不同套路的招式要等5回合的換招冷卻。目前四套武學已全部解鎖供測試，稀有度兌換系統之後才會真的限制取得。</div>
-      ${slotSection}
+      <div class="wxg-hint">武當用的是全新的五招制戰鬥系統，招式會依當下敵我情勢自動見招拆招（實招硬拼、虛招破防、架招格擋、氣招調息、怒氣大招終結）。操作順序：① 下面先選要啟用哪些套路 ② 啟用後招式會出現在「招式池」③ 把招式拖進上方快捷列的格子（實／虛／氣招各5格，架招／怒氣大招各1格）。同一套路內連續出招沒有限制，換到不同套路的招式要等5回合的換招冷卻。目前四套武學已全部解鎖供測試，稀有度兌換系統之後才會真的限制取得。</div>
     </div>
+    <div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>已學套路</h3></div>${movesetToggles}</div>
+    <div class="wxg-panel"><div class="wxg-panel-head martial"><span class="dot"></span><h3>快捷列</h3></div>${slotSection}</div>
     ${filterBar}
-    ${rows}
+    ${poolSection}
   `;
 }
 // 戰鬥邏輯分頁招式懸浮視窗：滑鼠移到招式名稱上顯示這招的完整資訊。

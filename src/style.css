@@ -412,6 +412,26 @@
   position:absolute; top:2px; right:4px; font-size:9px; background:var(--gold); color:#2a1c08;
   padding:0 5px; border-radius:8px; font-weight:800;
 }
+.wxg-medal.dragover{border-color:var(--gold) !important; box-shadow:0 0 0 2px var(--gold), 0 0 10px rgba(212,175,55,.5);}
+
+/* ---- 武當「武學」分頁：套路啟用列＋可拖曳的招式池卡片（見 render.js renderMartialWudang） ---- */
+.wxg-msettoggle{
+  display:flex; align-items:center; flex-wrap:wrap; gap:6px; padding:8px 10px; border-radius:6px; cursor:pointer;
+  background:linear-gradient(160deg,#221808,#140d05); border:1.5px solid var(--msc, #4a3818); margin-bottom:8px;
+  font-size:12px; color:var(--ink-text);
+}
+.wxg-msettoggle:last-child{margin-bottom:0;}
+.wxg-msettoggle:not(.active){opacity:.5; filter:grayscale(.4);}
+.wxg-msettoggle .msdot{width:9px; height:9px; border-radius:50%; flex-shrink:0; box-shadow:0 0 5px var(--msc);}
+.wxg-msettoggle-state{font-size:10px; color:var(--dim-text); margin-left:auto;}
+.wxg-movepool-card{
+  position:relative; width:170px; border-radius:6px; padding:8px 9px; cursor:grab;
+  background:linear-gradient(160deg,#221808,#140d05); border:1px solid #4a3818; border-left:4px solid #4a3818;
+  font-size:11px; color:var(--ink-text);
+}
+.wxg-movepool-card:hover{border-color:var(--gold);}
+.wxg-movepool-card:active{cursor:grabbing;}
+.wxg-movepool-card.selected{border-color:var(--gold); box-shadow:0 0 0 2px var(--gold), 0 0 10px rgba(212,175,55,.4);}
 
 .wxg-progress-wrap{height:8px; background:#0a0805; border-radius:4px; overflow:hidden; margin:5px 0 3px; border:1px solid #000; box-shadow:0 0 0 1px #4a3818;}
 .wxg-progress{height:100%;}
