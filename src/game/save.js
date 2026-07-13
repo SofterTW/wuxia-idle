@@ -48,6 +48,7 @@ function patchLoadedSave(){
   if(S.wudangFilterRarity===undefined) S.wudangFilterRarity = "全部";
   if(S.wudangMovesetActive===undefined) S.wudangMovesetActive = {};
   if(S.wudangPoolSelected===undefined) S.wudangPoolSelected = null;
+  if(S.wudangFilterMoveset===undefined) S.wudangFilterMoveset = "全部";
   if(S.internalFilterAffinity===undefined) S.internalFilterAffinity = "全部";
   if(S.autoSellTiers===undefined) S.autoSellTiers = {wood:false, bronze:false, iron:false, silver:false, gold:false};
   if(S.potionCd===undefined) S.potionCd = 0;

@@ -946,6 +946,8 @@ function renderMartialWudang(){
 
   const filterType = S.wudangFilterType||"全部";
   const filterRarity = S.wudangFilterRarity||"全部";
+  const filterMoveset = S.wudangFilterMoveset||"全部";
+  const unlockedMovesets = WUDANG_MOVESETS.filter(ms=>S.wudangMovesetsUnlocked[ms.key]);
   const filterBar = `<div class="wxg-panel">
     <div class="wxg-row" style="flex-wrap:wrap; gap:8px; align-items:center; border-bottom:none;">
       <span style="color:var(--dim-text);">篩選：</span>
@@ -956,6 +958,10 @@ function renderMartialWudang(){
         <option value="全部" ${filterRarity==="全部"?'selected':''}>全部稀有度</option>
         ${[1,2,3,4,5,6,7].map(r=>`<option value="${r}" ${String(filterRarity)===String(r)?'selected':''}>${MOVESET_RARITY_INFO[r].name}（${r}階）</option>`).join("")}
       </select>
+      <select data-wudangfiltermoveset="1" style="background:#100e0a; color:var(--ink-text); border:1px solid #4a3818; border-radius:3px; padding:4px; font-size:11px;">
+        <option value="全部" ${filterMoveset==="全部"?'selected':''}>全部套路</option>
+        ${unlockedMovesets.map(ms=>`<option value="${ms.key}" ${filterMoveset===ms.key?'selected':''}>${ms.name}</option>`).join("")}
+      </select>
     </div>
   </div>`;
 
@@ -964,7 +970,7 @@ function renderMartialWudang(){
   // （data-wudangpoolpick／S.wudangPoolSelected，見 events.js）。
   const poolMoves = WUDANG_MOVE_LIST.filter(m=>
     S.wudangMovesetsUnlocked[m.moveset] &&
-    (S.wudangMovesetActive[m.moveset]!==false) &&
+    (filterMoveset==="全部" ? (S.wudangMovesetActive[m.moveset]!==false) : m.moveset===filterMoveset) &&
     (filterType==="全部" || m.type===filterType) &&
     (filterRarity==="全部" || String(m.rarity)===String(filterRarity)) &&
     !equippedIds.has(m.id)

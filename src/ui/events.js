@@ -184,6 +184,7 @@ function bindGlobal(){
   });
   document.querySelectorAll('[data-wudangfiltertype]').forEach(el=> el.onchange=()=>{ S.wudangFilterType = el.value; render(); });
   document.querySelectorAll('[data-wudangfilterrarity]').forEach(el=> el.onchange=()=>{ S.wudangFilterRarity = el.value; render(); });
+  document.querySelectorAll('[data-wudangfiltermoveset]').forEach(el=> el.onchange=()=>{ S.wudangFilterMoveset = el.value; render(); });
   document.querySelectorAll('[data-internalfilteraffinity]').forEach(el=> el.onchange=()=>{ S.internalFilterAffinity = el.value; render(); });
   document.querySelectorAll('[data-wudangmovehover]').forEach(el=>{
     el.onmouseenter = ()=>{

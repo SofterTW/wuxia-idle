@@ -40,7 +40,7 @@ function newGame(sectKey){
     wudangFullBlockNext:false, wudangCritNext:false,
     wudangSlots:{"實招":[],"虛招":[],"架招":[],"氣招":[],"怒氣大招":[]}, wudangLastMoveset:null, wudangSwitchCd:0,
     wudangMoveConditions:{}, wudangMovesetExpanded:{}, wudangFilterType:"全部", wudangFilterRarity:"全部",
-    wudangMovesetActive:{}, wudangPoolSelected:null,
+    wudangMovesetActive:{}, wudangPoolSelected:null, wudangFilterMoveset:"全部",
     internalFilterAffinity:"全部",
     autoSellTiers:{wood:false, bronze:false, iron:false, silver:false, gold:false},
     potionCd:0,
